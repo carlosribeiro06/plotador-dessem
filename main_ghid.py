@@ -10,14 +10,14 @@ import plotly.graph_objects as go
 import sys
 import os
 
-aciona_plot_tempo = int(sys.argv[1])
 
 for pasta in caminho_pasta.iterdir():
     if pasta.name in casos.keys():
         for caso in pasta.iterdir():
             if caso.name in casos[data]:
                 caminho_sintese = caso.joinpath(caso, "sintese")
-                df_ghid = gera_df_ghid_sbm(caminho_sintese, casos, caso)
+                df_ghid, df_datas = gera_df_ghid_sbm(caminho_sintese, casos, caso)
 
+df_plot_ghid_sbm(df_ghid, df_datas)
 
 

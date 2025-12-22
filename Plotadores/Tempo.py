@@ -26,11 +26,12 @@ def gera_df_tempo(caminho_sintese, casos, caso):
     return df_milp, df_pls, df_leitura
 
 def df_plot_tempo(df_milp, df_pls, df_leitura):
-    y_list = list(casos.keys())
+    y_list = list(df_leitura.keys())
     y_list.remove("Datas")
 
     fig = px.bar(df_milp, x="Datas", y=y_list, title=f"Tempo MILP", barmode="group")
     fig.update_layout(
+    hovermode="x unified",
     xaxis_title='Data',  
     yaxis_title='Tempo em Minutos', 
     font=dict(family='Arial', size=12), 
@@ -47,6 +48,7 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
 
     fig = px.bar(df_pls, x="Datas", y=y_list, title=f"Tempo PL", barmode="group")
     fig.update_layout(
+    hovermode="x unified",
     xaxis_title='Data',  
     yaxis_title='Tempo em Minutos', 
     font=dict(family='Arial', size=12), 
@@ -63,6 +65,7 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
 
     fig = px.bar(df_leitura, x="Datas", y=y_list, title=f"Tempo Leitura de Dados e Impressão", barmode="group")
     fig.update_layout(
+    hovermode="x unified",
     xaxis_title='Data',  
     yaxis_title='Tempo em Minutos', 
     font=dict(family='Arial', size=12), 
@@ -86,6 +89,7 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
 
     fig = px.bar(df_total, x="Datas", y=y_list, title=f"Tempo Total", barmode="group")
     fig.update_layout(
+    hovermode="x unified",
     xaxis_title='Data',  
     yaxis_title='Tempo em Minutos', 
     font=dict(family='Arial', size=12), 

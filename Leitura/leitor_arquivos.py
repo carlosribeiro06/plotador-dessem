@@ -5,7 +5,7 @@ from collections import defaultdict
 import plotly.express as px
 import plotly.graph_objects as go
 
-caminho_pasta = Path("C:/Users/carlo/OneDrive/Documentos/git/plotador-dessem")
+caminho_pasta = Path("C:/Users/carlo/OneDrive/Documentos/git/plotador-dessem/exemplo")
 
 casos = {}
 casos = defaultdict(list)
