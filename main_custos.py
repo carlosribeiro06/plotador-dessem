@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from collections import defaultdict
-from Plotadores.Tempo import *
+from Plotadores.Custos import *
 from Leitura.leitor_arquivos import *
 import plotly.express as px
 import plotly.graph_objects as go
@@ -14,9 +14,9 @@ for pasta in caminho_pasta.iterdir():
         for caso in pasta.iterdir():
             if caso.name in casos[data]:
                 caminho_sintese = caso.joinpath(caso, "sintese")
-                df_tempo_milp, df_tempo_pl, df_tempo_leitura = gera_df_tempo(caminho_sintese, casos, caso)
+                df_cp, df_cd =  gera_df_custos(caminho_sintese, casos, caso)
                 
-df_plot_tempo(df_tempo_milp, df_pls, df_tempo_leitura)
+df_plot_custos(df_cp, df_cf)
 
 
 

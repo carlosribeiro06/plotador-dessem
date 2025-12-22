@@ -3,20 +3,24 @@ import pandas as pd
 from pathlib import Path
 from collections import defaultdict
 from Plotadores.Tempo import *
+from Plotadores.Gter_sbm import *
+from Plotadores.Gter_SIN import *
 from Leitura.leitor_arquivos import *
 import plotly.express as px
 import plotly.graph_objects as go
 import sys
 import os
 
+
 for pasta in caminho_pasta.iterdir():
     if pasta.name in casos.keys():
         for caso in pasta.iterdir():
             if caso.name in casos[data]:
                 caminho_sintese = caso.joinpath(caso, "sintese")
-                df_tempo_milp, df_tempo_pl, df_tempo_leitura = gera_df_tempo(caminho_sintese, casos, caso)
-                
-df_plot_tempo(df_tempo_milp, df_pls, df_tempo_leitura)
+                df_gter_sbm, df_datas_sbm = gera_df_gter_sbm(caminho_sintese, casos, caso)
+                df_gter_sin, df_datas_sin = gera_df_gter_sin(caminho_sintese, casos, caso)
 
+df_plot_gter_sbm(df_gter_sbm, df_datas_sbm)
+df_plot_gter_sin(df_gter_sin, df_datas_sin)
 
 
