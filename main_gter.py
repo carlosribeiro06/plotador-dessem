@@ -17,10 +17,10 @@ for pasta in caminho_pasta.iterdir():
         for caso in pasta.iterdir():
             if caso.name in casos[data]:
                 caminho_sintese = caso.joinpath(caso, "sintese")
-                df_gter_sbm, df_datas_sbm = gera_df_gter_sbm(caminho_sintese, casos, caso)
-                df_gter_sin, df_datas_sin = gera_df_gter_sin(caminho_sintese, casos, caso)
+                df_gter_sbm = gera_df_gter_sbm(caminho_sintese, casos, caso)
+                df_gter_sin = gera_df_gter_sin(caminho_sintese, casos, caso)
 
-df_plot_gter_sbm(df_gter_sbm, df_datas_sbm)
-df_plot_gter_sin(df_gter_sin, df_datas_sin)
+df_plot_gter_sbm(df_gter_sbm)
+df_plot_gter_sin(df_gter_sin)
 
 

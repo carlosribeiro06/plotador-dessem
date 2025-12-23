@@ -28,7 +28,8 @@ def gera_df_tempo(caminho_sintese, casos, caso):
 def df_plot_tempo(df_milp, df_pls, df_leitura):
     y_list = list(df_leitura.keys())
     y_list.remove("Datas")
-
+    
+    df_milp['Datas'] = pd.to_datetime(df_milp['Datas'])
     fig = px.bar(df_milp, x="Datas", y=y_list, title=f"Tempo MILP", barmode="group")
     fig.update_layout(
     hovermode="x unified",
@@ -40,12 +41,13 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
     width=1400,      
     height=450     
     )
-    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='category')
+    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='date')
     fig.update_yaxes(showgrid=True, gridcolor="lightgray", gridwidth=1)
     out = f"grafico_MILP.html"
     caminho_arquivo = os.path.join(caminho_pasta, out)  
     fig.write_html(caminho_arquivo, include_plotlyjs="cdn")
 
+    df_pls['Datas'] = pd.to_datetime(df_pls['Datas'])
     fig = px.bar(df_pls, x="Datas", y=y_list, title=f"Tempo PL", barmode="group")
     fig.update_layout(
     hovermode="x unified",
@@ -57,12 +59,13 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
     width=1400,      
     height=450     
     )
-    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='category')
+    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='date')
     fig.update_yaxes(showgrid=True, gridcolor="lightgray", gridwidth=1)
     out = f"grafico_PL.html"
     caminho_arquivo = os.path.join(caminho_pasta, out)  
     fig.write_html(caminho_arquivo, include_plotlyjs="cdn")
 
+    df_leitura['Datas'] = pd.to_datetime(df_leitura['Datas'])
     fig = px.bar(df_leitura, x="Datas", y=y_list, title=f"Tempo Leitura de Dados e Impressão", barmode="group")
     fig.update_layout(
     hovermode="x unified",
@@ -74,7 +77,7 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
     width=1400,      
     height=450     
     )
-    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='category')
+    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='date')
     fig.update_yaxes(showgrid=True, gridcolor="lightgray", gridwidth=1)
     out = f"grafico_Leitura.html"
     caminho_arquivo = os.path.join(caminho_pasta, out)  
@@ -87,6 +90,7 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
     df_total = df_milp_resultante + df_pl_resultante + df_leitura_resultante
     df_total["Datas"] = list(casos.keys())
 
+    df_total['Datas'] = pd.to_datetime(df_total['Datas'])
     fig = px.bar(df_total, x="Datas", y=y_list, title=f"Tempo Total", barmode="group")
     fig.update_layout(
     hovermode="x unified",
@@ -98,7 +102,7 @@ def df_plot_tempo(df_milp, df_pls, df_leitura):
     width=1400,      
     height=450     
     )
-    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='category')
+    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='date')
     fig.update_yaxes(showgrid=True, gridcolor="lightgray", gridwidth=1)
     out = f"grafico_total.html"
     caminho_arquivo = os.path.join(caminho_pasta, out)  

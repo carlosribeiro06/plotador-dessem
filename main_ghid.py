@@ -16,11 +16,11 @@ for pasta in caminho_pasta.iterdir():
         for caso in pasta.iterdir():
             if caso.name in casos[data]:
                 caminho_sintese = caso.joinpath(caso, "sintese")
-                df_ghid_sbm, df_datas_sbm = gera_df_ghid_sbm(caminho_sintese, casos, caso)
-                df_ghid_sin, df_datas_sin = gera_df_ghid_sin(caminho_sintese, casos, caso)
+                df_ghid_sbm= gera_df_ghid_sbm(caminho_sintese, casos, caso)
+                df_ghid_sin = gera_df_ghid_sin(caminho_sintese, casos, caso)
 
 
-df_plot_ghid_sbm(df_ghid_sbm, df_datas_sbm)
-df_plot_ghid_sin(df_ghid_sin, df_datas_sin)
+df_plot_ghid_sbm(df_ghid_sbm)
+df_plot_ghid_sin(df_ghid_sin)
 
 

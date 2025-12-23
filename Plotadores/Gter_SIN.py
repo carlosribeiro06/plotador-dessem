@@ -15,18 +15,19 @@ def gera_df_gter_sin(caminho_sintese, casos, caso):
         if gter.name == "GTER_SIN.parquet":
             gter_parquet = caminho_sintese.joinpath(gter.name)
             df_gter_sin = pd.read_parquet(gter_parquet)
-            df_gter[caso.name].append(df_gter_sin)
-            if len(df_datas) == 0:
-                df_datas["Datas"] = df_gter_sin.loc[(df_gter_sin["estagio"] <= 48), "data_inicio"].values
+            df_gter[caso.name].append(df_gter_sin.loc[df_gter_sin["estagio"] <= 48])
 
-    return df_gter, df_datas
+    return df_gter
 
-def df_plot_gter_sin(df_gter, df_datas):
+def df_plot_gter_sin(df_gter):
     y_list = list(df_gter.keys())
-    df_plot = defaultdict(list)
     for caso in y_list:
-        df_plot[caso] = df_gter[caso][0].loc[(df_gter[caso][0]["estagio"] <= 48), "valor"].values
-    df_plot["Datas"] = pd.to_datetime(df_datas["Datas"])
+        aux = pd.concat(df_gter[caso], ignore_index=True)
+        df_plot[caso] = aux["valor"].values
+        if len(df_datas) == 0:
+            df_datas["Datas"] = np.unique(aux["data_inicio"])
+
+    df_plot["Datas"] = df_datas["Datas"]
     fig = px.line(df_plot, x="Datas", y=y_list)
     fig.update_layout(
     hovermode="x unified",

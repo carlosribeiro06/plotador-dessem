@@ -16,19 +16,20 @@ def gera_df_ghid_sbm(caminho_sintese, casos, caso):
         if ghid.name == "GHID_SBM.parquet":
             ghid_parquet = caminho_sintese.joinpath(ghid.name)
             df_ghid_sbm = pd.read_parquet(ghid_parquet)
-            df_ghid[caso.name].append(df_ghid_sbm)
-            if len(df_datas) == 0:
-                df_datas["Datas"] = df_ghid_sbm.loc[(df_ghid_sbm["estagio"] <= 48) & (df_ghid_sbm["codigo_submercado"] == 1), "data_inicio"].values
+            df_ghid[caso.name].append(df_ghid_sbm.loc[df_ghid_sbm["estagio"] <= 48])
 
-    return df_ghid, df_datas
+    return df_ghid
 
-def df_plot_ghid_sbm(df_ghid, df_datas):
+def df_plot_ghid_sbm(df_ghid):
     y_list = list(df_ghid.keys())
-    df_plot = defaultdict(list)
     for sbm in submercados:
         for caso in y_list:
-            df_plot[caso] = df_ghid[caso][0].loc[(df_ghid[caso][0]["estagio"] <= 48) & (df_ghid[caso][0]["codigo_submercado"] == sbm), "valor"].values
-        df_plot["Datas"] = pd.to_datetime(df_datas["Datas"])
+            aux = pd.concat(df_ghid[caso], ignore_index=True)
+            df_plot[caso] = aux.loc[aux["codigo_submercado"] == sbm, "valor"].values
+            if len(df_datas) == 0:
+                df_datas["Datas"] = np.unique(aux["data_inicio"])
+
+        df_plot["Datas"] = df_datas["Datas"]
         fig = px.line(df_plot, x="Datas", y=y_list)
         fig.update_layout(
         hovermode="x unified",

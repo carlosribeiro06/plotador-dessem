@@ -26,6 +26,7 @@ def df_plot_custos(df_cp, df_cf):
     y_list = list(df_cp.keys())
     y_list.remove("Datas")
 
+    df_cp['Datas'] = pd.to_datetime(df_cp['Datas'])
     fig = px.bar(df_cp, x="Datas", y=y_list, barmode="group")
     fig.update_layout(
     hovermode="x unified",
@@ -37,12 +38,13 @@ def df_plot_custos(df_cp, df_cf):
     width=1400,      
     height=450     
     )
-    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='category')
+    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='date')
     fig.update_yaxes(showgrid=True, gridcolor="lightgray", gridwidth=1)
     out = f"grafico_custo_presente.html"
     caminho_arquivo = os.path.join(caminho_pasta, out)  
     fig.write_html(caminho_arquivo, include_plotlyjs="cdn")
 
+    df_cf['Datas'] = pd.to_datetime(df_cf['Datas'])
     fig = px.bar(df_cf, x="Datas", y=y_list, barmode="group")
     fig.update_layout(
     hovermode="x unified",
@@ -55,7 +57,7 @@ def df_plot_custos(df_cp, df_cf):
     height=450     
     )
     fig.update_traces(textposition='outside')
-    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='category')
+    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='date')
     fig.update_yaxes(showgrid=True, gridcolor="lightgray", gridwidth=1)
     out = f"grafico_custo_futuro.html"
     caminho_arquivo = os.path.join(caminho_pasta, out)  
@@ -67,6 +69,7 @@ def df_plot_custos(df_cp, df_cf):
     df_total = df_cp_resultante + df_cf_resultante
     df_total["Datas"] = list(casos.keys())
 
+    df_total['Datas'] = pd.to_datetime(df_total['Datas'])
     fig = px.bar(df_total, x="Datas", y=y_list, barmode="group")
     fig.update_layout(
     hovermode="x unified",
@@ -79,7 +82,7 @@ def df_plot_custos(df_cp, df_cf):
     height=450     
     )
     fig.update_traces(textposition='outside')
-    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='category')
+    fig.update_xaxes(showgrid=True, gridcolor="lightgray", gridwidth=1, type='date')
     fig.update_yaxes(showgrid=True, gridcolor="lightgray", gridwidth=1)
     out = f"grafico_custo_total.html"
     caminho_arquivo = os.path.join(caminho_pasta, out)  

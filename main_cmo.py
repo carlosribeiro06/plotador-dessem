@@ -16,8 +16,8 @@ for pasta in caminho_pasta.iterdir():
         for caso in pasta.iterdir():
             if caso.name in casos[data]:
                 caminho_sintese = caso.joinpath(caso, "sintese")
-                df_cmo, df_datas = gera_df_cmo_sbm(caminho_sintese, casos, caso)
-
-df_plot_cmo_sbm(df_cmo, df_datas)
+                df_cmo = gera_df_cmo_sbm(caminho_sintese, casos, caso)
+                
+df_plot_cmo_sbm(df_cmo)
 
 

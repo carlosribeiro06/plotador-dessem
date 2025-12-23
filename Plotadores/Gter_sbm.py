@@ -16,19 +16,20 @@ def gera_df_gter_sbm(caminho_sintese, casos, caso):
         if gter.name == "GTER_SBM.parquet":
             gter_parquet = caminho_sintese.joinpath(gter.name)
             df_gter_sbm = pd.read_parquet(gter_parquet)
-            df_gter[caso.name].append(df_gter_sbm)
-            if len(df_datas) == 0:
-                df_datas["Datas"] = df_gter_sbm.loc[(df_gter_sbm["estagio"] <= 48) & (df_gter_sbm["codigo_submercado"] == 1), "data_inicio"].values
+            df_gter[caso.name].append(df_gter_sbm.loc[df_gter_sbm["estagio"] <= 48])
 
-    return df_gter, df_datas
+    return df_gter
 
-def df_plot_gter_sbm(df_gter, df_datas):
+def df_plot_gter_sbm(df_gter):
     y_list = list(df_gter.keys())
-    df_plot = defaultdict(list)
     for sbm in submercados:
         for caso in y_list:
-            df_plot[caso] = df_gter[caso][0].loc[(df_gter[caso][0]["estagio"] <= 48) & (df_gter[caso][0]["codigo_submercado"] == sbm), "valor"].values
-        df_plot["Datas"] = pd.to_datetime(df_datas["Datas"])
+            aux = pd.concat(df_gter[caso], ignore_index=True)
+            df_plot[caso] = aux.loc[aux["codigo_submercado"] == sbm, "valor"].values
+            if len(df_datas) == 0:
+                df_datas["Datas"] = np.unique(aux["data_inicio"])
+
+        df_plot["Datas"] = df_datas["Datas"]
         fig = px.line(df_plot, x="Datas", y=y_list)
         fig.update_layout(
         hovermode="x unified",
