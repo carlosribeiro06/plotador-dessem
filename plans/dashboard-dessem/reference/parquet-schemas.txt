@@ -1,0 +1,933 @@
+60 parquet files in exemplo/2024-03-03/caso_oficial/sintese
+
+====================================================================================================
+CFU_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 2 unique -> ['0.0', '228917.0446721']
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5    0.0             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5    0.0             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5    0.0             -inf              inf
+====================================================================================================
+CMO_SBM.parquet  shape=(340, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 5 unique -> ['1', '11', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 15 unique (min=0.0, max=0.18)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5   0.05             -inf              inf
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5   0.05             -inf              inf
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5   0.05             -inf              inf
+====================================================================================================
+COP_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 5 unique -> ['203.32905', '2439.9486', '2548.7496', '3253.2648', '813.3162']
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  203.32905             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  203.32905             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  203.32905             -inf              inf
+====================================================================================================
+CUNS_SBM.parquet  shape=(272, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 19 unique (min=0.0, max=106.0)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5    0.0             -inf              inf
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5    0.0             -inf              inf
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5    0.0             -inf              inf
+====================================================================================================
+CUNS_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 15 unique (min=0.0, max=129.0)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5    0.0             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5    0.0             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5    0.0             -inf              inf
+====================================================================================================
+CUSTOS.parquet  shape=(4, 3)
+dtypes: {'parcela': 'str', 'valor_esperado': 'float64', 'desvio_padrao': 'int64'}
+  parcela: 4 unique -> ['FUTURO', 'PEQUENAS PENALIDADES', 'PRESENTE', 'VIOLACOES']
+  valor_esperado: 4 unique -> ['0.0', '228420390.34615', '40.42478', '58667.5674']
+  desvio_padrao: 1 unique -> ['0']
+     parcela  valor_esperado  desvio_padrao
+0   PRESENTE    5.866757e+04              0
+1     FUTURO    2.284204e+08              0
+2  VIOLACOES    0.000000e+00              0
+====================================================================================================
+CVU.parquet  shape=(6052, 3)
+dtypes: {'codigo_usina': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'valor': 'float64'}
+  codigo_usina: 89 unique (min=1, max=434)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  valor: 68 unique (min=0.0, max=2997.89)
+   codigo_usina               data_inicio   valor
+0             1 2024-03-03 00:00:00+00:00   31.17
+1             4 2024-03-03 00:00:00+00:00  310.41
+2            12 2024-03-03 00:00:00+00:00    0.00
+====================================================================================================
+EARMF_SBM.parquet  shape=(340, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 5 unique -> ['1', '11', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 271 unique (min=0.0, max=133130.35)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  132637.07             -inf              inf
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  132632.72             -inf              inf
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  132631.72             -inf              inf
+====================================================================================================
+EARMF_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=191346.84, max=194403.49)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  192668.54             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  192640.76             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  192627.23             -inf              inf
+====================================================================================================
+EST.parquet  shape=(68, 3)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+   estagio               data_inicio                  data_fim
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00
+====================================================================================================
+ESTATISTICAS_OPERACAO_SBM.parquet  shape=(3264, 11)
+dtypes: {'variavel': 'string', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'str', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  variavel: 11 unique -> ['CMO', 'CUNS', 'EARMF', 'GHID', 'GTER', 'GUNS', 'GUNSD', 'MER', 'MERL', 'VARMF', 'VARMI']
+  codigo_submercado: 5 unique -> ['1', '11', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['mean']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 1670 unique (min=0.0, max=308219.37)
+  limite_inferior: 9 unique -> ['-inf', '0.0', '185041.66', '23349.27', '26344.4', '27629.62', '2835.0', '694.0', '875.0']
+  limite_superior: 52 unique (min=2160.57, max=inf)
+  variavel  codigo_submercado  estagio               data_inicio                  data_fim cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0      CMO                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00    mean        2              0.5   0.05             -inf              inf
+1      CMO                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00    mean        2              0.5   0.05             -inf              inf
+2      CMO                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00    mean        2              0.5   0.05             -inf              inf
+====================================================================================================
+ESTATISTICAS_OPERACAO_SBP.parquet  shape=(816, 12)
+dtypes: {'variavel': 'string', 'codigo_submercado_de': 'int64', 'codigo_submercado_para': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'str', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  variavel: 1 unique -> ['INT']
+  codigo_submercado_de: 6 unique -> ['1', '11', '2', '3', '4', '99']
+  codigo_submercado_para: 6 unique -> ['1', '11', '2', '3', '4', '99']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['mean']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 192 unique (min=0.0, max=5677.51)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+  variavel  codigo_submercado_de  codigo_submercado_para  estagio               data_inicio                  data_fim cenario  patamar  duracao_patamar    valor  limite_inferior  limite_superior
+0      INT                     1                       3        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00    mean        2              0.5  1940.34             -inf              inf
+1      INT                     1                      11        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00    mean        2              0.5     0.00             -inf              inf
+2      INT                     1                      99        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00    mean        2              0.5     0.00             -inf              inf
+====================================================================================================
+ESTATISTICAS_OPERACAO_SIN.parquet  shape=(1020, 10)
+dtypes: {'variavel': 'string', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'str', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  variavel: 15 unique (min=CFU, max=VARMI)
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['mean']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 650 unique (min=0.0, max=461028.25)
+  limite_inferior: 15 unique (min=-inf, max=262364.95)
+  limite_superior: 110 unique (min=19694.72, max=inf)
+  variavel  estagio               data_inicio                  data_fim cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0      CFU        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00    mean        2              0.5    0.0             -inf              inf
+1      CFU        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00    mean        2              0.5    0.0             -inf              inf
+2      CFU        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00    mean        2              0.5    0.0             -inf              inf
+====================================================================================================
+ESTATISTICAS_OPERACAO_UHE.parquet  shape=(116892, 13)
+dtypes: {'variavel': 'string', 'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'str', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  variavel: 12 unique -> ['GHID', 'QAFL', 'QDEF', 'QINC', 'QTUR', 'QVER', 'VAGUA', 'VARMF', 'VARMI', 'VARPF', 'VARPI', 'VCALHA']
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['mean']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 22007 unique (min=-1.25, max=8001253.45)
+  limite_inferior: 215 unique (min=-inf, max=27695.19)
+  limite_superior: 3010 unique (min=0.0, max=inf)
+  variavel  codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0     GHID             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00    mean        2              0.5   7.85              0.0             46.0
+1     GHID             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00    mean        2              0.5   7.85              0.0             46.0
+2     GHID             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00    mean        2              0.5   7.85              0.0             46.0
+====================================================================================================
+ESTATISTICAS_OPERACAO_UTE.parquet  shape=(6052, 12)
+dtypes: {'variavel': 'string', 'codigo_usina': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'str', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  variavel: 1 unique -> ['GTER']
+  codigo_usina: 89 unique (min=1, max=434)
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['mean']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 18 unique (min=0.0, max=1350.0)
+  limite_inferior: 17 unique (min=0.0, max=1350.0)
+  limite_superior: 69 unique (min=0.0, max=1593.0)
+  variavel  codigo_usina  codigo_submercado  estagio               data_inicio                  data_fim cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0     GTER             1                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00    mean        2              0.5  640.0            640.0            640.0
+1     GTER             1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00    mean        2              0.5  640.0            640.0            640.0
+2     GTER             1                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00    mean        2              0.5  640.0            640.0            640.0
+====================================================================================================
+GHID_SBM.parquet  shape=(272, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 272 unique (min=2434.87, max=43267.46)
+  limite_inferior: 1 unique -> ['0.0']
+  limite_superior: 35 unique (min=8277.96, max=58498.52)
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar     valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  36209.34              0.0         57901.12
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  35967.01              0.0         57901.12
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  35407.17              0.0         57901.12
+====================================================================================================
+GHID_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=38848.03, max=79226.22)
+  limite_inferior: 1 unique -> ['0.0']
+  limite_superior: 29 unique (min=97704.81, max=102125.73)
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar     valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  70171.20              0.0        101010.83
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  68596.76              0.0        101010.83
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  67034.73              0.0        101010.83
+====================================================================================================
+GHID_UHE.parquet  shape=(11220, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 3767 unique (min=0.0, max=10156.26)
+  limite_inferior: 1 unique -> ['0.0']
+  limite_superior: 166 unique (min=0.0, max=14000.0)
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5   7.85              0.0             46.0
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5   7.85              0.0             46.0
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5   7.85              0.0             46.0
+====================================================================================================
+GTER_SBM.parquet  shape=(272, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 5 unique -> ['0.0', '2835.0', '694.0', '744.0', '875.0']
+  limite_inferior: 4 unique -> ['0.0', '2835.0', '694.0', '875.0']
+  limite_superior: 12 unique -> ['2160.57', '3448.0', '3451.0', '3453.0', '3458.0', '3459.0', '3460.0', '3463.0', '5299.68', '5307.68', '8786.46', '9678.46']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  2835.0           2835.0          8786.46
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  2835.0           2835.0          8786.46
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  2835.0           2835.0          8786.46
+====================================================================================================
+GTER_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 2 unique -> ['4404.0', '4454.0']
+  limite_inferior: 1 unique -> ['4404.0']
+  limite_superior: 11 unique -> ['19694.72', '19697.72', '19699.72', '19704.72', '19705.72', '19707.72', '19712.72', '19713.72', '19714.72', '19717.72', '20605.72']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  4404.0           4404.0         19714.72
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  4404.0           4404.0         19714.72
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  4404.0           4404.0         19714.72
+====================================================================================================
+GTER_UTE.parquet  shape=(6052, 11)
+dtypes: {'codigo_usina': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 89 unique (min=1, max=434)
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 18 unique (min=0.0, max=1350.0)
+  limite_inferior: 17 unique (min=0.0, max=1350.0)
+  limite_superior: 69 unique (min=0.0, max=1593.0)
+   codigo_usina  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  640.0            640.0            640.0
+1             1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  640.0            640.0            640.0
+2             1                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  640.0            640.0            640.0
+====================================================================================================
+GUNSD_SBM.parquet  shape=(272, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 253 unique (min=311.0, max=16258.0)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  3545.0             -inf              inf
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  3538.0             -inf              inf
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  3537.0             -inf              inf
+====================================================================================================
+GUNSD_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 67 unique (min=8238.0, max=34920.56)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  8238.0             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  8294.0             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  8399.0             -inf              inf
+====================================================================================================
+GUNS_SBM.parquet  shape=(272, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 253 unique (min=311.0, max=16152.0)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  3545.0             -inf              inf
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  3538.0             -inf              inf
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  3537.0             -inf              inf
+====================================================================================================
+GUNS_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 67 unique (min=8238.0, max=34920.56)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  8238.0             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  8294.0             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  8399.0             -inf              inf
+====================================================================================================
+INT_SBP.parquet  shape=(816, 11)
+dtypes: {'codigo_submercado_de': 'int64', 'codigo_submercado_para': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado_de: 6 unique -> ['1', '11', '2', '3', '4', '99']
+  codigo_submercado_para: 6 unique -> ['1', '11', '2', '3', '4', '99']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 192 unique (min=0.0, max=5677.51)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado_de  codigo_submercado_para  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar    valor  limite_inferior  limite_superior
+0                     1                       3        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  1940.34             -inf              inf
+1                     1                      11        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5     0.00             -inf              inf
+2                     1                      99        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5     0.00             -inf              inf
+====================================================================================================
+MERL_SBM.parquet  shape=(340, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 5 unique -> ['1', '11', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 273 unique (min=0.0, max=50439.69)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar     valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  41270.87             -inf              inf
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  40245.16             -inf              inf
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  39350.27             -inf              inf
+====================================================================================================
+MERL_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=40715.92, max=80615.62)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar     valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  72039.10             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  70464.65             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  68902.62             -inf              inf
+====================================================================================================
+MER_SBM.parquet  shape=(340, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 5 unique -> ['1', '11', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 273 unique (min=0.0, max=57317.0)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar     valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  44815.87             -inf              inf
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  43783.16             -inf              inf
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  42887.27             -inf              inf
+====================================================================================================
+MER_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=66876.84, max=97536.0)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar     valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  80277.10             -inf              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  78758.65             -inf              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  77301.62             -inf              inf
+====================================================================================================
+METADADOS_EXECUCAO.parquet  shape=(5, 3)
+dtypes: {'chave': 'str', 'nome_curto': 'str', 'nome_longo': 'str'}
+  chave: 5 unique -> ['CUSTOS', 'PROGRAMA', 'TEMPO', 'TITULO', 'VERSAO']
+  nome_curto: 5 unique -> ['CUSTOS', 'PROGRAMA', 'TEMPO', 'TITULO', 'VERSAO']
+  nome_longo: 5 unique -> ['Composição de Custos da Solução', 'Modelo de Otimização', 'Tempo de Execução', 'Título do Estudo', 'Versão do Modelo']
+      chave nome_curto            nome_longo
+0  PROGRAMA   PROGRAMA  Modelo de Otimização
+1    VERSAO     VERSAO      Versão do Modelo
+2    TITULO     TITULO      Título do Estudo
+====================================================================================================
+METADADOS_OPERACAO.parquet  shape=(40, 8)
+dtypes: {'chave': 'str', 'nome_curto_variavel': 'str', 'nome_longo_variavel': 'str', 'nome_curto_agregacao': 'str', 'nome_longo_agregacao': 'str', 'unidade': 'str', 'calculado': 'bool', 'limitado': 'bool'}
+  chave: 40 unique (min=CFU_SIN, max=VCALHA_UHE)
+  nome_curto_variavel: 22 unique (min=CFU, max=Vazão VER)
+  nome_longo_variavel: 22 unique (min=Corte da Geração de Usinas Não, max=Volume Armazenado Percentual I)
+  nome_curto_agregacao: 5 unique -> ['SBM', 'SBP', 'SIN', 'UHE', 'UTE']
+  nome_longo_agregacao: 5 unique -> ['Par de Submercados', 'Sistema Interligado', 'Submercado', 'Usina Hidroelétrica', 'Usina Termelétrica']
+  unidade: 8 unique -> ['%', '10^3 R$', '10^6 R$', 'MW', 'MWh', 'R$/MWh', 'hm3', 'm3/s']
+  calculado: 1 unique -> ['False']
+  limitado: 2 unique -> ['False', 'True']
+     chave nome_curto_variavel         nome_longo_variavel nome_curto_agregacao nome_longo_agregacao unidade  calculado  limitado
+0  CMO_SBM                 CMO  Custo Marginal de Operação                  SBM           Submercado  R$/MWh      False     False
+1  MER_SBM             Mercado          Mercado de Energia                  SBM           Submercado      MW      False     False
+2  MER_SIN             Mercado          Mercado de Energia                  SIN  Sistema Interligado      MW      False     False
+====================================================================================================
+METADADOS_SISTEMA.parquet  shape=(7, 3)
+dtypes: {'chave': 'str', 'nome_curto': 'str', 'nome_longo': 'str'}
+  chave: 7 unique -> ['CVU', 'EST', 'PAT', 'REE', 'SBM', 'UHE', 'UTE']
+  nome_curto: 7 unique -> ['CVU', 'EST', 'PAT', 'REE', 'SBM', 'UHE', 'UTE']
+  nome_longo: 7 unique -> ['Custos das Usinas Termelétricas', 'Estágios', 'Patamares', 'Reservatórios Equivalentes', 'Submercados', 'Usinas Hidroelétricas', 'Usinas Termelétricas']
+  chave nome_curto                  nome_longo
+0   EST        EST                    Estágios
+1   PAT        PAT                   Patamares
+2   REE        REE  Reservatórios Equivalentes
+====================================================================================================
+PAT.parquet  shape=(68, 4)
+dtypes: {'data_inicio': 'datetime64[ns, UTC]', 'estagio': 'int64', 'patamar': 'int64', 'valor': 'float64'}
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  estagio: 68 unique (min=1, max=68)
+  patamar: 3 unique -> ['0', '1', '2']
+  valor: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+                data_inicio  estagio  patamar  valor
+0 2024-03-03 00:00:00+00:00        1        2    0.5
+1 2024-03-03 00:30:00+00:00        2        2    0.5
+2 2024-03-03 01:00:00+00:00        3        2    0.5
+====================================================================================================
+PROGRAMA.parquet  shape=(1, 1)
+dtypes: {'programa': 'str'}
+  programa: 1 unique -> ['DESSEM']
+  programa
+0   DESSEM
+====================================================================================================
+QAFL_UHE.parquet  shape=(11220, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 2709 unique (min=0.0, max=41752.2)
+  limite_inferior: 1 unique -> ['0.0']
+  limite_superior: 1 unique -> ['inf']
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  107.0              0.0              inf
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  107.0              0.0              inf
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  107.0              0.0              inf
+====================================================================================================
+QDEF_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=161798.31, max=438606.01)
+  limite_inferior: 8 unique -> ['38743.15', '38893.15', '39741.73', '39941.73', '40091.73', '40261.73', '40461.73', '40611.73']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  226618.79         38743.15              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  221259.41         38743.15              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  216580.02         38743.15              inf
+====================================================================================================
+QDEF_UHE.parquet  shape=(11220, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 3675 unique (min=0.0, max=238064.36)
+  limite_inferior: 77 unique (min=0.0, max=5690.0)
+  limite_superior: 41 unique (min=0.0, max=inf)
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  34.02             34.0           1000.0
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  34.02             34.0           1000.0
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  34.02             34.0           1000.0
+====================================================================================================
+QINC_UHE.parquet  shape=(11220, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 371 unique (min=0.0, max=35851.0)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  107.0             -inf              inf
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  107.0             -inf              inf
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  107.0             -inf              inf
+====================================================================================================
+QTUR_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=112604.03, max=207301.27)
+  limite_inferior: 1 unique -> ['4277.4']
+  limite_superior: 68 unique (min=225468.39, max=246009.01)
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  174536.15           4277.4        241466.07
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  173681.92           4277.4        241820.23
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  169002.47           4277.4        241841.60
+====================================================================================================
+QTUR_UHE.parquet  shape=(11220, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 3677 unique (min=0.0, max=27069.39)
+  limite_inferior: 14 unique (min=0.0, max=910.0)
+  limite_superior: 2703 unique (min=0.0, max=27069.77)
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  34.02              0.0            214.0
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  34.02              0.0            214.0
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  34.02              0.0            214.0
+====================================================================================================
+QVER_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=20786.93, max=257723.52)
+  limite_inferior: 2 unique -> ['15051.71', '451.71']
+  limite_superior: 1 unique -> ['inf']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar     valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  52082.64           451.71              inf
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  47577.49           451.71              inf
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  47577.55           451.71              inf
+====================================================================================================
+QVER_UHE.parquet  shape=(11220, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 310 unique (min=0.0, max=234734.36)
+  limite_inferior: 24 unique (min=0.0, max=14600.0)
+  limite_superior: 15 unique (min=0.0, max=inf)
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5    0.0              0.0              inf
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5    0.0              0.0              inf
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5    0.0              0.0              inf
+====================================================================================================
+REE.parquet  shape=(12, 2)
+dtypes: {'codigo_ree': 'int64', 'ree': 'str'}
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  ree: 12 unique -> ['BMONTE', 'IGUACU', 'ITAIPU', 'MADEIRA', 'MAN-AP', 'NORDESTE', 'NORTE', 'PARANA', 'PRNPANEMA', 'SUDESTE', 'SUL', 'TPIRES']
+   codigo_ree       ree
+0           1   SUDESTE
+1           2       SUL
+2           3  NORDESTE
+====================================================================================================
+SBM.parquet  shape=(6, 3)
+dtypes: {'codigo_submercado': 'Int64', 'submercado': 'str', 'nome_submercado': 'str'}
+  codigo_submercado: 6 unique -> ['1', '11', '2', '3', '4', '99']
+  submercado: 6 unique -> ['FC', 'IV', 'N', 'NE', 'S', 'SE']
+  nome_submercado: 6 unique -> ['NOFICT1', 'NORDESTE', 'NORTE', 'SUDESTE', 'SUL']
+   codigo_submercado submercado nome_submercado
+0                  1         SE         SUDESTE
+1                  2          S             SUL
+2                  3         NE        NORDESTE
+====================================================================================================
+TEMPO.parquet  shape=(9, 3)
+dtypes: {'etapa': 'str', 'tempo': 'float64', 'execucao': 'int64'}
+  etapa: 5 unique -> ['Leitura de Dados e Impressão', 'MILP', 'PL', 'PL.CalcCMO', 'PL.Int.Fix']
+  tempo: 9 unique -> ['1056.0', '1086.0', '438.0', '469.0', '48.0', '564.0', '6726.0', '714.0', '786.0']
+  execucao: 1 unique -> ['0']
+  etapa   tempo  execucao
+0    PL    48.0         0
+1    PL   564.0         0
+2    PL  1056.0         0
+====================================================================================================
+TITULO.parquet  shape=(1, 1)
+dtypes: {'titulo': 'str'}
+  titulo: 1 unique -> ['TE  PMO - MARCO/24 - ABRIL/24 - REV 1 - FCF COM CVAR - 12 REE - VALOR ESPERADO']
+                                                                           titulo
+0  TE  PMO - MARCO/24 - ABRIL/24 - REV 1 - FCF COM CVAR - 12 REE - VALOR ESPERADO
+====================================================================================================
+UHE.parquet  shape=(165, 6)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'ree': 'str', 'submercado': 'str', 'usina': 'str'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  ree: 12 unique -> ['BMONTE', 'IGUACU', 'ITAIPU', 'MADEIRA', 'MAN-AP', 'NORDESTE', 'NORTE', 'PARANA', 'PRNPANEMA', 'SUDESTE', 'SUL', 'TPIRES']
+  submercado: 4 unique -> ['N', 'NE', 'S', 'SE']
+  usina: 165 unique (min=14 DE JULHO, max=XINGO)
+   codigo_usina  codigo_ree  codigo_submercado     ree submercado         usina
+0             1          10                  1  PARANA         SE      CAMARGOS
+1             2          10                  1  PARANA         SE      ITUTINGA
+2             4          10                  1  PARANA         SE  FUNIL-GRANDE
+====================================================================================================
+UTE.parquet  shape=(89, 4)
+dtypes: {'codigo_usina': 'int64', 'usina': 'str', 'codigo_submercado': 'int64', 'submercado': 'str'}
+  codigo_usina: 89 unique (min=1, max=434)
+  usina: 89 unique (min=ANGRA 1, max=XAVANTES)
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  submercado: 4 unique -> ['N', 'NE', 'S', 'SE']
+   codigo_usina        usina  codigo_submercado submercado
+0             1      ANGRA 1                  1         SE
+1           108     XAVANTES                  1         SE
+2           110  N.PIRATININ                  1         SE
+====================================================================================================
+VAGUA_UHE.parquet  shape=(11220, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 165 unique (min=1, max=315)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 761 unique (min=-1.25, max=8001253.45)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5   0.05             -inf              inf
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5   0.05             -inf              inf
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5   0.05             -inf              inf
+====================================================================================================
+VARMF_SBM.parquet  shape=(272, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 272 unique (min=41120.88, max=308219.37)
+  limite_inferior: 4 unique -> ['185041.66', '23349.27', '26344.4', '27629.62']
+  limite_superior: 4 unique -> ['375632.9', '47893.65', '58550.56', '78730.24']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  307419.55        185041.66         375632.9
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  307401.46        185041.66         375632.9
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  307389.29        185041.66         375632.9
+====================================================================================================
+VARMF_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=454614.57, max=461028.25)
+  limite_inferior: 1 unique -> ['262364.95']
+  limite_superior: 1 unique -> ['560807.35']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  454643.02        262364.95        560807.35
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  454621.25        262364.95        560807.35
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  454615.24        262364.95        560807.35
+====================================================================================================
+VARMF_UHE.parquet  shape=(8024, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 118 unique (min=1, max=314)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 7068 unique (min=0.04, max=45303.34)
+  limite_inferior: 116 unique (min=0.01, max=27695.19)
+  limite_superior: 116 unique (min=0.26, max=54400.0)
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  718.75            120.0            792.0
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  718.88            120.0            792.0
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  719.01            120.0            792.0
+====================================================================================================
+VARMI_SBM.parquet  shape=(272, 10)
+dtypes: {'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 272 unique (min=41134.03, max=308219.37)
+  limite_inferior: 4 unique -> ['185041.66', '23349.27', '26344.4', '27629.62']
+  limite_superior: 4 unique -> ['375632.9', '47893.65', '58550.56', '78730.24']
+   codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  307443.39        185041.66         375632.9
+1                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  307419.55        185041.66         375632.9
+2                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  307401.46        185041.66         375632.9
+====================================================================================================
+VARMI_SIN.parquet  shape=(68, 9)
+dtypes: {'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 68 unique (min=454614.57, max=461028.25)
+  limite_inferior: 1 unique -> ['262364.95']
+  limite_superior: 1 unique -> ['560807.35']
+   estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar      valor  limite_inferior  limite_superior
+0        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  454674.77        262364.95        560807.35
+1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  454643.02        262364.95        560807.35
+2        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  454621.25        262364.95        560807.35
+====================================================================================================
+VARMI_UHE.parquet  shape=(8024, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 118 unique (min=1, max=314)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 7079 unique (min=0.04, max=45237.66)
+  limite_inferior: 116 unique (min=0.01, max=27695.19)
+  limite_superior: 116 unique (min=0.26, max=54400.0)
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar   valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  718.62            120.0            792.0
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  718.75            120.0            792.0
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  718.88            120.0            792.0
+====================================================================================================
+VARPF_UHE.parquet  shape=(8024, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 118 unique (min=1, max=314)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 4351 unique (min=0.0, max=100.0)
+  limite_inferior: 1 unique -> ['0.0']
+  limite_superior: 1 unique -> ['100.0']
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  89.10              0.0            100.0
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  89.12              0.0            100.0
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  89.14              0.0            100.0
+====================================================================================================
+VARPI_UHE.parquet  shape=(8024, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 118 unique (min=1, max=314)
+  codigo_ree: 12 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '8', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 4354 unique (min=0.0, max=100.0)
+  limite_inferior: 1 unique -> ['0.0']
+  limite_superior: 1 unique -> ['100.0']
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             1          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5  89.08              0.0            100.0
+1             1          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5  89.10              0.0            100.0
+2             1          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5  89.12              0.0            100.0
+====================================================================================================
+VCALHA_UHE.parquet  shape=(7616, 12)
+dtypes: {'codigo_usina': 'int64', 'codigo_ree': 'int64', 'codigo_submercado': 'int64', 'estagio': 'int64', 'data_inicio': 'datetime64[ns, UTC]', 'data_fim': 'datetime64[ns, UTC]', 'cenario': 'int64', 'patamar': 'int64', 'duracao_patamar': 'float64', 'valor': 'float64', 'limite_inferior': 'float64', 'limite_superior': 'float64'}
+  codigo_usina: 92 unique (min=4, max=315)
+  codigo_ree: 11 unique -> ['1', '10', '11', '12', '2', '3', '4', '5', '6', '7', '9']
+  codigo_submercado: 4 unique -> ['1', '2', '3', '4']
+  estagio: 68 unique (min=1, max=68)
+  data_inicio: 68 unique (min=2024-03-03 00:00:00+00:00, max=2024-03-08 22:00:00+00:00)
+  data_fim: 68 unique (min=2024-03-03 00:30:00+00:00, max=2024-03-09 00:00:00+00:00)
+  cenario: 1 unique -> ['1']
+  patamar: 3 unique -> ['0', '1', '2']
+  duracao_patamar: 4 unique -> ['0.5', '2.0', '6.0', '8.0']
+  valor: 141 unique (min=0.0, max=1714.1)
+  limite_inferior: 1 unique -> ['-inf']
+  limite_superior: 1 unique -> ['inf']
+   codigo_usina  codigo_ree  codigo_submercado  estagio               data_inicio                  data_fim  cenario  patamar  duracao_patamar  valor  limite_inferior  limite_superior
+0             4          10                  1        1 2024-03-03 00:00:00+00:00 2024-03-03 00:30:00+00:00        1        2              0.5    0.0             -inf              inf
+1             4          10                  1        2 2024-03-03 00:30:00+00:00 2024-03-03 01:00:00+00:00        1        2              0.5    0.0             -inf              inf
+2             4          10                  1        3 2024-03-03 01:00:00+00:00 2024-03-03 01:30:00+00:00        1        2              0.5    0.0             -inf              inf
+====================================================================================================
+VERSAO.parquet  shape=(1, 1)
+dtypes: {'versao': 'str'}
+  versao: 1 unique -> ['21']
+  versao
+0     21

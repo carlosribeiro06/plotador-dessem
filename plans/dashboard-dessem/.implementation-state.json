@@ -1,0 +1,495 @@
+{
+  "plan": "dashboard-dessem",
+  "last_updated": "2026-09-10T16:43:28Z",
+  "rigor": "full",
+  "mode": "Rigoroso",
+  "scaffolded": false,
+  "scaffolding": "epic-1",
+  "progressive": true,
+  "execution_strategy": "continuous",
+  "tickets": {
+    "ticket-001-configure-gitignore-and-untrack-data.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 1,
+      "scores": {
+        "readiness": 0.94,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
+    },
+    "ticket-002-create-pyproject-and-package-skeleton.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 2,
+      "scores": {
+        "readiness": 0.94,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
+    },
+    "ticket-003-add-settings-json-and-config-loader.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.94,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
+    },
+    "ticket-004-add-logging-setup-module.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 2,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-005-add-run-manifest-module.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 2,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-006-add-cli-entry-point-and-pipeline-stub.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.94,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
+    },
+    "ticket-007-add-project-claude-md-and-readme-skeleton.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 2,
+      "scores": {
+        "readiness": 0.94,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
+    },
+    "ticket-008-verify-toolchain-quality-gates.md": {
+      "epic": "epic-01-project-foundation",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 2,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-009-define-parquet-schema-contracts.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-010-add-chart-registry-mechanics.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 2,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-011-declare-enabled-chart-specs.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-012-add-synthetic-sintese-fixtures.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-013-implement-scenario-and-deck-discovery.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-014-implement-typed-parquet-readers.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-015-implement-registry-loading-and-labels.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.94,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
+    },
+    "ticket-016-implement-deck-timeline-and-chaining.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.94,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
+    },
+    "ticket-017-define-dashboard-data-store.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 2,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-018-implement-series-consolidation.md": {
+      "epic": "epic-02-data-layer",
+      "status": "pending",
+      "detail_level": "detailed",
+      "points": 3,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 0.86,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
+    },
+    "ticket-019-build-brand-theme-module.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-020-export-compact-json-payload.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-021-assemble-single-file-html-shell.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-022-implement-js-chart-renderer-core.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-023-implement-view-mode-and-deck-selector.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-024-implement-absolute-difference-toggle.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-025-render-sin-level-charts.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-026-render-submarket-and-interchange-charts.md": {
+      "epic": "epic-03-dashboard-core",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-027-render-hydro-plant-charts.md": {
+      "epic": "epic-04-plant-and-scalar-charts",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-028-implement-name-and-code-filters.md": {
+      "epic": "epic-04-plant-and-scalar-charts",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-029-render-thermal-plant-charts.md": {
+      "epic": "epic-04-plant-and-scalar-charts",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-030-render-cost-bar-charts.md": {
+      "epic": "epic-04-plant-and-scalar-charts",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-031-render-computational-time-bar-charts.md": {
+      "epic": "epic-04-plant-and-scalar-charts",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-032-enforce-output-size-strategy.md": {
+      "epic": "epic-04-plant-and-scalar-charts",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-033-wire-end-to-end-pipeline.md": {
+      "epic": "epic-05-delivery-and-legacy-removal",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-034-add-example-data-integration-test.md": {
+      "epic": "epic-05-delivery-and-legacy-removal",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-035-run-legacy-parity-check.md": {
+      "epic": "epic-05-delivery-and-legacy-removal",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 3
+    },
+    "ticket-036-write-user-documentation.md": {
+      "epic": "epic-05-delivery-and-legacy-removal",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-037-polish-cli-usability-and-errors.md": {
+      "epic": "epic-05-delivery-and-legacy-removal",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 2
+    },
+    "ticket-038-remove-legacy-scripts.md": {
+      "epic": "epic-05-delivery-and-legacy-removal",
+      "status": "pending",
+      "detail_level": "outline",
+      "points": 1
+    }
+  },
+  "epics": {
+    "epic-01-project-foundation": {
+      "phase": "executing",
+      "learning_extracted": false,
+      "estimate": "~2.5-3.5 h (High)"
+    },
+    "epic-02-data-layer": {
+      "phase": "executing",
+      "learning_extracted": false,
+      "estimate": "~4-5.5 h (High)"
+    },
+    "epic-03-dashboard-core": {
+      "phase": "outline",
+      "learning_extracted": false,
+      "estimate": "~3-5 h (Low, outline)"
+    },
+    "epic-04-plant-and-scalar-charts": {
+      "phase": "outline",
+      "learning_extracted": false,
+      "estimate": "~2-3.5 h (Low, outline)"
+    },
+    "epic-05-delivery-and-legacy-removal": {
+      "phase": "outline",
+      "learning_extracted": false,
+      "estimate": "~2-3.5 h (Low, outline)"
+    }
+  },
+  "open_questions": [
+    {
+      "id": 1,
+      "blocking": false,
+      "summary": "Cost total definition defaults to PRESENTE + FUTURO; VIOLACOES and PEQUENAS PENALIDADES configurable.",
+      "affects": [
+        "ticket-030-render-cost-bar-charts.md"
+      ]
+    },
+    {
+      "id": 2,
+      "blocking": false,
+      "summary": "UHE 'Volume armazenado' ships both VARMF_UHE (hm3) and VARPF_UHE (percent).",
+      "affects": [
+        "ticket-011-declare-enabled-chart-specs.md",
+        "ticket-027-render-hydro-plant-charts.md"
+      ]
+    },
+    {
+      "id": 3,
+      "blocking": false,
+      "summary": "UHE 'Vazao' ships both QAFL_UHE (afluente) and QINC_UHE (incremental).",
+      "affects": [
+        "ticket-011-declare-enabled-chart-specs.md",
+        "ticket-027-render-hydro-plant-charts.md"
+      ]
+    },
+    {
+      "id": 4,
+      "blocking": false,
+      "summary": "Resolved 2026-09-10: the 240 exemplo worktree deletions are intentional. ticket-001 stages them via git rm -r --cached (index only); the developer commits them with .gitignore.",
+      "affects": [
+        "ticket-001-configure-gitignore-and-untrack-data.md",
+        "ticket-038-remove-legacy-scripts.md"
+      ],
+      "resolved": "2026-09-10"
+    },
+    {
+      "id": 5,
+      "blocking": false,
+      "summary": "Resolved 2026-09-10: example tree rebuilt from git HEAD into exemplo/caso_oficial and exemplo/caso_gurobi (2 decks each, gitignored). ticket-034 defaults to it, DESSEM_DASHBOARD_EXEMPLO overrides, skip when absent.",
+      "affects": [
+        "ticket-034-add-example-data-integration-test.md",
+        "ticket-035-run-legacy-parity-check.md"
+      ],
+      "resolved": "2026-09-10"
+    }
+  ]
+}
