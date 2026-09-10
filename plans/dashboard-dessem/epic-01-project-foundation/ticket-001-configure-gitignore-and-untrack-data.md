@@ -46,8 +46,17 @@ for this ticket's own commit. Nothing is restored or deleted from disk.
 
 1. Create `.gitignore` at the repository root with English comments, covering: `exemplo/`, `*.pdf`, `.claude/settings.local.json`,
    `__pycache__/`, `*.py[cod]`, `.venv/`, `.mypy_cache/`, `.pytest_cache/`, `.ruff_cache/`,
-   `*.egg-info/`, `logs/`, `output/`, `dashboard_dessem.html` and `*.html` at the root, plus a
+   `*.egg-info/`, `logs/*`, `output/*`, `dashboard_dessem.html` and `*.html` at the root, plus a
    negation keeping `**/.gitkeep` tracked.
+
+   > **Amended 2026-09-10** (developer decision at gate G7 during execution): the two runtime
+   > directories use the **content** patterns `logs/*` and `output/*`, not the directory patterns
+   > `logs/` and `output/`. A trailing-slash directory pattern makes git prune the directory without
+   > listing it, so per `gitignore(5)` — "It is not possible to re-include a file if a parent
+   > directory of that file is excluded" — the mandated final `!**/.gitkeep` negation could never
+   > re-include `logs/.gitkeep` or `output/.gitkeep`, and requirement 4 below would be unreachable.
+   > With `logs/*` the directory is still listed, so the existing final negation is sufficient and no
+   > extra per-directory negation lines are needed.
 2. `logo/` and `*.md` must **not** be ignored.
 3. Remove `exemplo/**` and every `__pycache__` directory from the git index without touching the
    working tree, using `git rm -r --cached`.
@@ -133,7 +142,10 @@ force-push.
 ### Patterns to Follow
 
 - `.gitignore` comments in English, per Rigoroso mode.
-- Ignore directories with a trailing slash (`logs/`, not `logs`).
+- Ignore directories with a trailing slash (`exemplo/`, not `exemplo`) — **except** the two runtime
+  directories that must keep a tracked placeholder, which use the content form `logs/*` and
+  `output/*` so the final `!**/.gitkeep` negation can still apply (see the amendment under
+  requirement 1).
 - Keep the `!**/.gitkeep` negation as the final line of the file.
 
 ### Pitfalls to Avoid
