@@ -14,6 +14,7 @@ import pytest
 from dessem_dashboard import pipeline
 from dessem_dashboard.cli import build_parser, main
 from dessem_dashboard.config import load_settings
+from dessem_dashboard.errors import DashboardError
 
 
 @pytest.fixture(autouse=True)
@@ -82,6 +83,16 @@ def _write_settings(tmp_path: Path) -> Path:
     return settings_path
 
 
+def _settings_and_two_casos(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """Write the temporary settings.json and create two scenario directories beside it."""
+    settings_path = _write_settings(tmp_path)
+    caso_a = tmp_path / "caso_a"
+    caso_b = tmp_path / "caso_b"
+    caso_a.mkdir()
+    caso_b.mkdir()
+    return settings_path, caso_a, caso_b
+
+
 def test_main_missing_casos_exits_2_with_casos_in_stderr(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -110,11 +121,7 @@ def test_build_parser_help_contains_all_flags_and_cenario_word() -> None:
 def test_main_successful_run_writes_manifest_and_log_with_first_basename_as_reference(
     tmp_path: Path,
 ) -> None:
-    settings_path = _write_settings(tmp_path)
-    caso_a = tmp_path / "caso_a"
-    caso_b = tmp_path / "caso_b"
-    caso_a.mkdir()
-    caso_b.mkdir()
+    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
 
     exit_code = main(["--casos", str(caso_a), str(caso_b), "--settings", str(settings_path)])
 
@@ -129,11 +136,7 @@ def test_main_successful_run_writes_manifest_and_log_with_first_basename_as_refe
 
 
 def test_main_explicit_referencia_is_honoured_in_manifest_params(tmp_path: Path) -> None:
-    settings_path = _write_settings(tmp_path)
-    caso_a = tmp_path / "caso_a"
-    caso_b = tmp_path / "caso_b"
-    caso_a.mkdir()
-    caso_b.mkdir()
+    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
 
     exit_code = main(
         [
@@ -156,11 +159,7 @@ def test_main_explicit_referencia_is_honoured_in_manifest_params(tmp_path: Path)
 def test_main_unknown_referencia_exits_2_naming_value(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    settings_path = _write_settings(tmp_path)
-    caso_a = tmp_path / "caso_a"
-    caso_b = tmp_path / "caso_b"
-    caso_a.mkdir()
-    caso_b.mkdir()
+    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
 
     with pytest.raises(SystemExit) as exc_info:
         main(
@@ -194,11 +193,7 @@ def test_main_duplicate_casos_basenames_exits_2_naming_duplicate(
 
 
 def test_main_nivel_log_debug_sets_root_logger_level(tmp_path: Path) -> None:
-    settings_path = _write_settings(tmp_path)
-    caso_a = tmp_path / "caso_a"
-    caso_b = tmp_path / "caso_b"
-    caso_a.mkdir()
-    caso_b.mkdir()
+    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
 
     exit_code = main(
         [
@@ -219,11 +214,7 @@ def test_main_nivel_log_debug_sets_root_logger_level(tmp_path: Path) -> None:
 def test_main_default_saida_equals_settings_output_dir_and_default_filename(
     tmp_path: Path,
 ) -> None:
-    settings_path = _write_settings(tmp_path)
-    caso_a = tmp_path / "caso_a"
-    caso_b = tmp_path / "caso_b"
-    caso_a.mkdir()
-    caso_b.mkdir()
+    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
 
     exit_code = main(["--casos", str(caso_a), str(caso_b), "--settings", str(settings_path)])
 
@@ -250,6 +241,24 @@ def test_main_malformed_settings_exits_2_with_config_error_message_and_no_traceb
     assert "settings.json inválido" in captured.err
     assert "Traceback" not in captured.err
     assert "Traceback" not in captured.out
+
+
+def test_main_dashboard_error_from_pipeline_is_logged_and_returns_1(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
+
+    def _raise(**_: object) -> pipeline.RunResult:
+        raise DashboardError("falha simulada no pipeline")
+
+    monkeypatch.setattr(pipeline, "run", _raise)
+
+    exit_code = main(["--casos", str(caso_a), str(caso_b), "--settings", str(settings_path)])
+
+    assert exit_code == 1
+    log_text = (tmp_path / "logs" / "dashboard.log").read_text(encoding="utf-8")
+    assert "falha simulada no pipeline" in log_text
+    assert "Traceback" in log_text
 
 
 def test_pipeline_run_returns_data_volumes_matching_number_of_casos(tmp_path: Path) -> None:

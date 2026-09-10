@@ -15,35 +15,36 @@ from pathlib import Path
 
 from dessem_dashboard import __version__
 
+# Git provenance is resolved against the installed package, never against the caller's working
+# directory: a run started from an unrelated repository must not record that repository's sha as
+# the provenance of this dashboard. Tests override this to point at a throwaway repository.
+_GIT_ANCHOR = Path(__file__).resolve().parent
 
-def _git_sha() -> str | None:
-    """Return the 40-character HEAD commit sha, or None outside a git checkout."""
+
+def _git_output(args: Sequence[str]) -> str | None:
+    """Return the stripped stdout of `git <args>`, or None outside a git checkout."""
     try:
         result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
+            ["git", *args],
             capture_output=True,
             text=True,
             check=True,
-            cwd=Path.cwd(),
+            cwd=_GIT_ANCHOR,
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
     return result.stdout.strip()
 
 
+def _git_sha() -> str | None:
+    """Return the 40-character HEAD commit sha, or None outside a git checkout."""
+    return _git_output(["rev-parse", "HEAD"])
+
+
 def _git_dirty() -> bool | None:
     """Return whether the working tree has uncommitted changes, or None outside a git checkout."""
-    try:
-        result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            check=True,
-            cwd=Path.cwd(),
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
-    return len(result.stdout.strip()) > 0
+    status = _git_output(["status", "--porcelain"])
+    return None if status is None else len(status) > 0
 
 
 def _jsonable(value: object) -> object:
@@ -78,7 +79,7 @@ def write_run_manifest(
         "python": platform.python_version(),
         "platform": platform.platform(),
         "package_version": __version__,
-        "params": _jsonable(dict(params)),
+        "params": _jsonable(params),
         "data_volumes": dict(data_volumes) if data_volumes is not None else {},
         "warnings": list(warnings),
         "elapsed_seconds": round(elapsed_s, 3),

@@ -73,6 +73,31 @@ propagates. A `params` value that is not JSON-serialisable after the `Path` conv
 
 ## Acceptance Criteria
 
+> **Amended twice during execution (2026-09-10), both approved by the developer.** Recorded here so
+> the plan, not only the session transcript, carries the paper trail.
+>
+> 1. **AC3's `git_dirty is True` is demonstrated, not asserted in a persisted test.** AC3 as written
+>    depends on ambient repository state; since the orchestrator commits after every ticket, the tree
+>    is otherwise clean, and the assertion would fail on a clean checkout — exactly what ticket-008's
+>    epic gate produces. AC3 was demonstrated once against the real repository (`git_sha`
+>    `dce1236…`, `git_dirty` `True`), while the persisted test covers the clean -> dirty transition in
+>    a throwaway `git init` repository built inside `tmp_path`. At the repository root the tests
+>    assert only the 40-hex `git_sha` shape plus `isinstance(git_dirty, bool)`.
+>    At the epic-01 boundary the `code-reviewer` found that first version of the throwaway-repo test
+>    was **vacuous**: it wrote both manifests inside the throwaway repo, so the untracked output
+>    directory alone dirtied the tree and the assertion passed even with the tracked-file
+>    modification deleted. Fixed by writing both manifests outside the repo; the fix was
+>    mutation-tested (removing the modification now fails the test) by the orchestrator and
+>    independently reproduced by the guardian.
+> 2. **The Implementation Guide's `cwd=Path.cwd()` was replaced by a package anchor.** Step 2
+>    prescribed anchoring the git calls to the current working directory. The epic-01 `code-reviewer`
+>    showed this is an audit-integrity defect: `git_sha` is the manifest's only code-identity field
+>    (`package_version` is the static `"0.1.0"`), so running the installed console script from an
+>    unrelated git repository would record **that** repository's HEAD as the dashboard's provenance.
+>    `manifest.py` now uses a module-level `_GIT_ANCHOR = Path(__file__).resolve().parent`, kept as a
+>    constant so tests can monkeypatch it. A regression test asserts the process working directory is
+>    irrelevant to provenance.
+
 - [ ] Given `tmp_path` as the output directory, when
       `write_run_manifest(tmp_path, params={"casos": [Path("/a")], "referencia": "a"},
       elapsed_s=1.23456)` is called, then `tmp_path/"run_manifest.json"` exists and

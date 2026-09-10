@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from dessem_dashboard import manifest as manifest_module
 from dessem_dashboard.manifest import write_run_manifest
 
 _GIT_SHA_PATTERN = re.compile(r"[0-9a-f]{40}")
@@ -109,24 +110,33 @@ def test_write_run_manifest_leaves_scalar_param_values_untouched(tmp_path: Path)
 def test_write_run_manifest_outside_git_checkout_yields_none_git_fields(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(manifest_module, "_GIT_ANCHOR", tmp_path)
     manifest_path = write_run_manifest(tmp_path / "output", params={}, elapsed_s=0.0)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert data["git_sha"] is None
     assert data["git_dirty"] is None
 
 
-def test_write_run_manifest_at_repository_root_has_valid_git_sha(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_run_manifest_at_repository_root_has_valid_git_sha(tmp_path: Path) -> None:
     # git_dirty is intentionally not asserted here: the real repository tree state is
     # ambient and non-deterministic across checkouts (see throwaway-repo test below).
-    repo_root = Path(__file__).resolve().parent.parent
-    monkeypatch.chdir(repo_root)
     manifest_path = write_run_manifest(tmp_path, params={}, elapsed_s=0.0)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert _GIT_SHA_PATTERN.fullmatch(data["git_sha"])
     assert isinstance(data["git_dirty"], bool)
+
+
+def test_write_run_manifest_git_provenance_ignores_the_process_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Provenance must identify the code that produced the dashboard, so a run launched from an
+    # unrelated directory must still record this package's sha rather than None or a foreign sha.
+    outside = tmp_path / "unrelated"
+    outside.mkdir()
+    monkeypatch.chdir(outside)
+    manifest_path = write_run_manifest(tmp_path / "output", params={}, elapsed_s=0.0)
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert _GIT_SHA_PATTERN.fullmatch(data["git_sha"])
 
 
 def test_write_run_manifest_git_dirty_reflects_clean_then_modified_tree(
@@ -141,15 +151,18 @@ def test_write_run_manifest_git_dirty_reflects_clean_then_modified_tree(
         ["-c", "user.email=test@example.com", "-c", "user.name=Test", "commit", "-m", "initial"],
         cwd=repo,
     )
-    monkeypatch.chdir(repo)
+    monkeypatch.setattr(manifest_module, "_GIT_ANCHOR", repo)
 
-    clean_manifest = write_run_manifest(repo / "out_clean", params={}, elapsed_s=0.0)
+    # Both manifests are written OUTSIDE the throwaway repository. Writing them inside it would
+    # leave an untracked file that makes the tree dirty on its own, so the dirty assertion below
+    # would pass even without the tracked-file modification.
+    clean_manifest = write_run_manifest(tmp_path / "out_clean", params={}, elapsed_s=0.0)
     clean_data = json.loads(clean_manifest.read_text(encoding="utf-8"))
     assert clean_data["git_dirty"] is False
     assert _GIT_SHA_PATTERN.fullmatch(clean_data["git_sha"])
 
     (repo / "tracked.txt").write_text("modified\n", encoding="utf-8")
 
-    dirty_manifest = write_run_manifest(repo / "out_dirty", params={}, elapsed_s=0.0)
+    dirty_manifest = write_run_manifest(tmp_path / "out_dirty", params={}, elapsed_s=0.0)
     dirty_data = json.loads(dirty_manifest.read_text(encoding="utf-8"))
     assert dirty_data["git_dirty"] is True
