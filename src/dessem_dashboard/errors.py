@@ -21,3 +21,7 @@ class DataFileError(DashboardError):
 
 class RegistryError(DashboardError):
     """Raised when a chart registry key is duplicate, unknown, or a spec fails validation."""
+
+
+class DiscoveryError(DashboardError):
+    """Raised when scenario or deck discovery finds an invalid input or filesystem layout."""
