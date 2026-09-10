@@ -98,15 +98,40 @@ usable axis.
       `timeline.stages[0].duration_hours` equals `0.5` and `timeline.stages[5].duration_hours`
       equals `2.0`.
 - [ ] Given the two timelines of `caso_a` from the `scenario_tree` fixture, when
-      `validate_chaining(order_timelines(timelines), stages_per_deck=4)` is called, then it returns
+      `validate_chaining(order_timelines(timelines), stages_per_deck=48)` is called, then it returns
       an empty list.
+
+> **Amended 2026-09-10 during execution: the criterion above said `stages_per_deck=4`, which made it
+> unsatisfiable.** The `scenario_tree` fixture builds each deck with 48 half-hour stages followed by
+> 6-hour stages (50 in total), so the chaining windows meet exactly only at 48: measured, deck 1's
+> 48-stage window ends at `2024-03-04 00:00+00:00`, precisely where deck 2's first stage begins, for
+> a gap of 0 h. At `stages_per_deck=4` the window ends at `2024-03-03 02:00+00:00`, leaving a
+> **22-hour gap**, so `validate_chaining` must return a `lacuna` warning and could never return an
+> empty list. 48 is also `chaining.stages_per_deck`'s binding default (`planning-context.md`
+> decision 5) and the value Appendix A.3 documents as producing exact contiguity.
+>
+> Root cause, for the record: `make_sintese_dir`'s own generator defaults are `half_hour_stages=4,
+> n_stages=6` — the values the criterion above and acceptance criterion 1 were written against —
+> while ticket-012's `scenario_tree` deliberately overrides them to 48/50 to mirror the real 24-hour
+> chaining window. Acceptance criterion 1 remains correct because it generates its own single deck at
+> the generator defaults; only this criterion, which consumes `scenario_tree`, needed the value
+> corrected. The following criterion ("the same `stages_per_deck`") therefore also means 48, and it
+> builds its own pair with a deliberate 30-minute gap, so it needs no change.
 - [ ] Given two timelines whose second deck starts 30 minutes after the first window ends, when
       `validate_chaining` is called with the same `stages_per_deck`, then it returns exactly one
       message containing the Portuguese word `lacuna` and both deck dates.
 - [ ] Given `{"caso_a": [2024-03-03, 2024-03-04], "caso_b": [2024-03-03]}`, when
       `align_deck_dates` is called, then the returned dates equal
       `(date(2024, 3, 3), date(2024, 3, 4))` and the warning list holds exactly one message
-      containing `caso_b` and `2024-03-04`.
+      containing `caso_b` and the date rendered as `04/03/2024`.
+
+> **Amended 2026-09-10 during execution.** The criterion above originally asked for the date as the
+> ISO literal `2024-03-04`, which contradicts this ticket's own "Patterns to Follow" rule that every
+> Portuguese message formats dates with `%d/%m/%Y` — the operator-facing format fixed by
+> `dashboard.date_format` in Appendix B. A message cannot carry both renderings, and an
+> operator-facing warning must use the Portuguese one. The date is still named; only its rendering
+> follows the project-wide rule. The returned date TUPLE is unaffected and is still asserted by
+> `date(...)` equality.
 - [ ] Given an `EST.parquet` whose `estagio` values are `[1, 2, 4]`, when `load_deck_timeline` is
       called, then it raises `SchemaError` naming the deck and the index `3`, and
       `.venv/bin/pytest tests/test_timeline.py -q` exits 0.
