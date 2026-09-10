@@ -66,7 +66,7 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-009 | Define the Parquet schema contracts | epic-02 | completed | Detailed | 0.96 | 0.88 | ACCEPTABLE |
 | ticket-010 | Add the chart registry mechanics | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-011 | Declare the enabled chart specs | epic-02 | completed | Detailed | 0.96 | 0.95 | EXCELLENT |
-| ticket-012 | Add the synthetic synthesis fixtures | epic-02 | pending | Detailed | 0.96 | -- | -- |
+| ticket-012 | Add the synthetic synthesis fixtures | epic-02 | completed | Detailed | 0.96 | 0.88 | ACCEPTABLE |
 | ticket-013 | Implement scenario and deck discovery | epic-02 | pending | Detailed | 0.96 | -- | -- |
 | ticket-014 | Implement the typed Parquet readers | epic-02 | pending | Detailed | 0.96 | -- | -- |
 | ticket-015 | Implement registry loading and labels | epic-02 | pending | Detailed | 0.94 | -- | -- |

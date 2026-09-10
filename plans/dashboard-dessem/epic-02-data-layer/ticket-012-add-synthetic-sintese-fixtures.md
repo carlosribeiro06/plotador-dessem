@@ -55,10 +55,26 @@ its file list from.
 5. UHE-level files use `hydro_codes`, except `VARMF_UHE` and `VARPF_UHE`, which use
    `reservoir_codes`, reproducing the real non-rectangular coverage. `VARPF_UHE` values stay within
    0 to 100.
-6. Submarket-level files use `submarket_codes`, which by default include the fictitious code 11 so
-   the filtering of ticket-015 can be tested. `INT_SBP` uses `pair_codes`.
-7. `SBM.parquet` uses the nullable `Int64` dtype for `codigo_submercado` and sets
-   `nome_submercado` to `None` for code 11, reproducing the real NaN long name.
+6. Submarket-level files use `submarket_codes`, which by default include **both** fictitious codes,
+   11 and 99, so the filtering of ticket-015 can be tested against each of them. `INT_SBP` uses
+   `pair_codes`.
+7. `SBM.parquet` uses the nullable `Int64` dtype for `codigo_submercado`, and reproduces the real
+   long names: `1` SE/SUDESTE, `2` S/SUL, `11` FC/**NOFICT1**, `99` IV/**None**.
+
+> **Amended 2026-09-10 during execution, approved by the developer — requirements 6 and 7 as
+> originally written were factually wrong.** They set `submarket_codes = (1, 2, 11)` and put the null
+> `nome_submercado` on code **11**, justifying it as "reproducing the real NaN long name". Both
+> binding documents disagree and agree with each other: `planning-context.md` ("Data facts") and
+> Appendix A.4 of the master plan both record **11 = FC/NOFICT1**, which has a real long name, and
+> **99 = IV/NaN**, which is the code that actually carries the null. The ticket's own justification
+> clause shows the intent was fidelity, so this is a defect in the attribution rather than a
+> deliberate fixture-only simplification.
+>
+> The correction also improves coverage: `settings.json` defaults `submarkets.fictitious_codes` to
+> `[11, 99]`, so including both codes exercises ticket-015's `include_fictitious` filter against each
+> of them, while the null long name now sits on the code that really has it. Note the consequence for
+> downstream tickets: every submarket-level fixture file now carries **four** codes rather than three,
+> so row counts differ from the original ticket text.
 8. `CUSTOS.parquet` holds the four `parcela` rows and `TEMPO.parquet` holds the five `etapa` values
    with three separate `PL` rows, matching Appendix A.5.
 9. Create `tests/conftest.py` exposing two fixtures: `sintese_dir(tmp_path)` returning a single
@@ -106,7 +122,8 @@ so a typo in a test does not silently produce a complete directory.
       the first stage of the second deck.
 - [ ] Given the generated `VARMF_UHE.parquet` and `SBM.parquet`, when both are read, then
       `VARMF_UHE` contains only `reservoir_codes` in `codigo_usina`, and `SBM.codigo_submercado` has
-      dtype `Int64` with `nome_submercado` null for code 11.
+      dtype `Int64` with `nome_submercado` equal to `NOFICT1` for code 11 and null for code 99
+      (amended 2026-09-10 — see the note under requirement 7).
 
 ## Implementation Guide (Technical Details)
 

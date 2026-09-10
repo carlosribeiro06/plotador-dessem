@@ -19,6 +19,9 @@ dev = [
   # pandas ships no py.typed marker, so mypy --strict cannot see through `import pandas`.
   # These stubs give the data layer real DataFrame/Series types instead of Any.
   "pandas-stubs>=3.0",
+  # The synthetic Parquet fixtures seed numpy's default_rng for reproducible values. numpy arrives
+  # transitively with pandas, but the test helpers import it directly, so it is declared here.
+  "numpy>=2.0",
 ]
 
 [project.scripts]
