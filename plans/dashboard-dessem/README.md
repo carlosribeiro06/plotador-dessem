@@ -59,7 +59,7 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-002 | Create `pyproject.toml` and the package skeleton | epic-01 | completed | Detailed | 0.94 | 0.90 | EXCELLENT |
 | ticket-003 | Add `settings.json` and the validating config loader | epic-01 | completed | Detailed | 0.94 | 1.00 | EXCELLENT |
 | ticket-004 | Add the audit logging setup module | epic-01 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
-| ticket-005 | Add the run manifest module | epic-01 | pending | Detailed | 0.96 | -- | -- |
+| ticket-005 | Add the run manifest module | epic-01 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-006 | Add the CLI entry point and the pipeline stub | epic-01 | pending | Detailed | 0.94 | -- | -- |
 | ticket-007 | Add the project `CLAUDE.md` and the README skeleton | epic-01 | pending | Detailed | 0.94 | -- | -- |
 | ticket-008 | Verify the toolchain quality gates | epic-01 | pending | Detailed | 0.96 | -- | -- |
