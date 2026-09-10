@@ -56,6 +56,25 @@ are installed but not yet imported by any module.
 5. Implement `validate_series_columns(frame, level, *, source) -> None` as a thin wrapper over
    `validate_columns` using `series_columns(level)`.
 
+> **Two notes added during execution (2026-09-10), both approved by the developer.**
+>
+> 1. **`pandas-stubs` was added as a dev dependency.** This is the first ticket to import `pandas`
+>    into `src/`, and `pandas 3.0.5` ships no `py.typed` marker, so `mypy --strict` failed with
+>    `import-untyped` — breaking acceptance criterion 5. ticket-008 requirement 5 pre-authorised a
+>    scoped `[[tool.mypy.overrides]]` for exactly this case, but that would make `DataFrame` resolve
+>    to `Any` and erase type checking across the whole data layer. `pandas-stubs==3.0.5.260730` is
+>    version-aligned with the installed pandas and was measured to leave `mypy src` completely clean
+>    (9 files, zero findings), so the developer chose the stubs over the override. Declared as
+>    `pandas-stubs>=3.0` in the `dev` extra, per ticket-002's no-exact-pins rule.
+> 2. **The units of the 19 disabled chart keys came from the data, not from the plan.** Appendix A.6
+>    lists the 23 enabled keys with units, but names the 19 disabled ones without any. Rather than
+>    guess, the implementer validated the source first — 21 of the 23 enabled keys appear in the real
+>    `METADADOS_OPERACAO.parquet` and their `unidade` values match Appendix A.6 exactly — and then
+>    transcribed the 19 disabled keys' units from that same file, cross-checked across both example
+>    scenarios and both decks. `FALLBACK_UNITS` therefore holds 42 keys, of which 19 are grounded in
+>    data inspection rather than in the master plan. Those charts ship disabled, and ticket-011
+>    re-checks units against `METADADOS_OPERACAO` at load time.
+
 ### Inputs
 
 A pandas `DataFrame` and the expected column list; no file I/O in this module.

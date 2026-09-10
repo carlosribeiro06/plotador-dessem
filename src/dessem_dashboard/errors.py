@@ -9,3 +9,11 @@ class DashboardError(Exception):
 
 class ConfigError(DashboardError):
     """Raised when settings.json is missing, malformed, or fails validation."""
+
+
+class SchemaError(DashboardError):
+    """Raised when a DataFrame's columns do not match a declared schema."""
+
+
+class DataFileError(DashboardError):
+    """Raised when a synthesis data file is missing or cannot be read."""

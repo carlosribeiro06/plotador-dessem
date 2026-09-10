@@ -16,6 +16,9 @@ dev = [
   "pytest-cov>=5",
   "ruff>=0.6",
   "mypy>=1.11",
+  # pandas ships no py.typed marker, so mypy --strict cannot see through `import pandas`.
+  # These stubs give the data layer real DataFrame/Series types instead of Any.
+  "pandas-stubs>=3.0",
 ]
 
 [project.scripts]
