@@ -10,6 +10,12 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
+# Coverage artifacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
 # Packaging
 *.egg-info/
 
