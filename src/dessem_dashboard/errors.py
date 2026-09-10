@@ -17,3 +17,7 @@ class SchemaError(DashboardError):
 
 class DataFileError(DashboardError):
     """Raised when a synthesis data file is missing or cannot be read."""
+
+
+class RegistryError(DashboardError):
+    """Raised when a chart registry key is duplicate, unknown, or a spec fails validation."""

@@ -64,7 +64,7 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-007 | Add the project `CLAUDE.md` and the README skeleton | epic-01 | completed | Detailed | 0.94 | 1.00 | EXCELLENT |
 | ticket-008 | Verify the toolchain quality gates | epic-01 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-009 | Define the Parquet schema contracts | epic-02 | completed | Detailed | 0.96 | 0.88 | ACCEPTABLE |
-| ticket-010 | Add the chart registry mechanics | epic-02 | pending | Detailed | 0.96 | -- | -- |
+| ticket-010 | Add the chart registry mechanics | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-011 | Declare the enabled chart specs | epic-02 | pending | Detailed | 0.96 | -- | -- |
 | ticket-012 | Add the synthetic synthesis fixtures | epic-02 | pending | Detailed | 0.96 | -- | -- |
 | ticket-013 | Implement scenario and deck discovery | epic-02 | pending | Detailed | 0.96 | -- | -- |
