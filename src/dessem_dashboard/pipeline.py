@@ -31,7 +31,7 @@ def run(
     scenario_dirs: Sequence[Path],
     output_file: Path,
     reference: str,
-    settings: Settings,
+    settings: Settings,  # noqa: ARG001
 ) -> RunResult:
     """Compare the given scenarios and write the dashboard to `output_file`."""
     # Epic 5 ticket-033 replaces this body with parquet reading, consolidation and HTML generation.

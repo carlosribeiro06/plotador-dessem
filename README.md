@@ -219,9 +219,27 @@ Quality gate, run from the repository root, in this order:
 ```
 
 `ruff format --check` only reports formatting problems; it never rewrites files (`ruff format`
-without `--check` does). `ticket-008` (`plans/dashboard-dessem/epic-01-project-foundation/`) is the
-ticket that runs this gate end to end and records the verified command output and the measured
-coverage baseline.
+without `--check` does).
+
+All four commands must exit 0. Verified baseline, measured at the end of Epic 1:
+
+| Command | Result |
+| ------- | ------ |
+| `ruff check src tests` | `All checks passed!` |
+| `ruff format --check src tests` | `11 files already formatted` |
+| `mypy src` | `Success: no issues found in 7 source files` |
+| `pytest --cov=dessem_dashboard --cov-report=term-missing` | `47 passed`, total coverage **95 %** |
+
+Total coverage is **95 %**, against a required floor of 80 % (raised to 85 % in Epic 5). Later
+epics must not regress below that floor.
+
+`[tool.ruff.lint]` in `pyproject.toml` selects 20 rule families explicitly, because ruff's default
+set (`E4`, `E7`, `E9`, `F`) is narrower than this project needs. Four families are deliberately not
+selected, since they contradict binding plan decisions instead of revealing defects: `TRY003`
+(error messages must name the offending settings key), `PLC0415` (the `rich` import is guarded
+inside `try`/`except` by design), `T201` (the stderr message for an invalid `settings.json` is
+specified behaviour) and `PLR2004` (literal comparisons are intentional in tests). The rationale is
+repeated as a comment next to the `select` list.
 
 ## Roadmap
 

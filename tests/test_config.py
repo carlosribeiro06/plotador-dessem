@@ -98,7 +98,7 @@ def test_load_settings_missing_leaf_key_raises_config_error_naming_dotted_key(
 ) -> None:
     data = _valid()
     del data["chaining"]["stages_per_deck"]
-    with pytest.raises(ConfigError, match="chaining.stages_per_deck"):
+    with pytest.raises(ConfigError, match=re.escape("chaining.stages_per_deck")):
         load_settings(_write(tmp_path, data))
 
 

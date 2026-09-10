@@ -75,7 +75,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--modo-inicial",
         choices=_VIEW_MODES,
         default="encadeado",
-        help="Modo de visão pré-selecionado no dashboard ('deck' ou 'encadeado'). Padrão: encadeado.",
+        help="Modo de visão pré-selecionado no dashboard. Padrão: encadeado.",
     )
     parser.add_argument(
         "--nivel-log",
