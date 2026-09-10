@@ -28,8 +28,19 @@ therefore the single source of every human-readable label in the dashboard.
 
 `src/dessem_dashboard/data/` holds `__init__.py`, `schemas.py`, `discovery.py` and `readers.py`.
 `read_registry` returns validated frames and preserves the `Int64` dtype. `FALLBACK_UNITS` in
-`schemas.py` covers all 42 chart keys. The ticket-012 fixtures write `SBM.parquet` with a null
-`nome_submercado` for code 11 and write `METADADOS_OPERACAO.parquet` from `FALLBACK_UNITS`.
+`schemas.py` covers all 42 chart keys. The ticket-012 fixtures write `SBM.parquet` with the four
+codes `1` SE/SUDESTE, `2` S/SUL, `11` FC/`NOFICT1` and `99` IV with a **null** `nome_submercado`,
+and write `METADADOS_OPERACAO.parquet` from `FALLBACK_UNITS`.
+
+> **Amended 2026-09-10 during execution.** This paragraph and the second acceptance criterion
+> originally said the null `nome_submercado` sat on code **11**. That described ticket-012's
+> *original* requirement 7, which was itself factually wrong and was corrected during execution:
+> `planning-context.md` ("Data facts") and Appendix A.4 of the master plan both record **11 =
+> FC/NOFICT1**, which has a real long name, and **99 = IV/NaN**, the code that actually carries the
+> null. The shipped `tests/fixtures_sintese.py` now generates all four codes accordingly, and
+> `tests/test_readers.py` already asserts the null on code 99. The behaviour requirement 6 describes
+> is unchanged — a null `nome_submercado` falls back to `short_name`; only the code that exercises it
+> moves from 11 to 99.
 
 ## Specification
 
@@ -92,10 +103,12 @@ degradable warning. `RegistryError` for an unknown chart key in `unit_for`. No b
       `registries.hydro[1].name` equals the name written by the fixture,
       `registries.submarkets[1].short_name` equals `"SE"` and `registries.rees[1]` is a non-empty
       string.
-- [ ] Given a `sintese_dir` whose `SBM.parquet` holds `codigo_submercado=11` with a null
-      `nome_submercado`, when the registries are loaded, then `registries.submarkets[11].long_name`
-      equals `registries.submarkets[11].short_name` and
-      `registries.submarkets[11].fictitious` is `True`.
+- [ ] Given a `sintese_dir` whose `SBM.parquet` holds `codigo_submercado=99` with a null
+      `nome_submercado`, when the registries are loaded, then `registries.submarkets[99].long_name`
+      equals `registries.submarkets[99].short_name` (that is, `"IV"`) and
+      `registries.submarkets[99].fictitious` is `True`; and code 11, which has the real long name
+      `NOFICT1`, keeps `long_name == "NOFICT1"` while its `fictitious` flag is also `True`
+      (amended 2026-09-10 — see the note under "Current State").
 - [ ] Given a `sintese_dir` whose `METADADOS_OPERACAO.parquet` has no row for `QTUR_UHE`, when the
       registries are loaded, then `registries.unit_for("QTUR_UHE")` equals `"m3/s"` from
       `FALLBACK_UNITS`, and `registries.unit_for("NAO_EXISTE")` raises `RegistryError`.

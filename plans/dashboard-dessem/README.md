@@ -69,7 +69,7 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-012 | Add the synthetic synthesis fixtures | epic-02 | completed | Detailed | 0.96 | 0.88 | ACCEPTABLE |
 | ticket-013 | Implement scenario and deck discovery | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-014 | Implement the typed Parquet readers | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
-| ticket-015 | Implement registry loading and labels | epic-02 | pending | Detailed | 0.94 | -- | -- |
+| ticket-015 | Implement registry loading and labels | epic-02 | completed | Detailed | 0.94 | 1.00 | EXCELLENT |
 | ticket-016 | Implement the deck timeline and chaining | epic-02 | pending | Detailed | 0.94 | -- | -- |
 | ticket-017 | Define the dashboard data store | epic-02 | pending | Detailed | 0.96 | -- | -- |
 | ticket-018 | Implement series consolidation | epic-02 | pending | Detailed | 0.96 | -- | -- |
