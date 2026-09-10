@@ -80,9 +80,22 @@ not required.
 
 ### Error Handling
 
-`StoreError` for every violation in requirements 2, 4, 5 and 6, with a Portuguese message naming the
-chart key, the entity, the scenario and the deck involved, and, for the length mismatch, both
-lengths. No bare `except`.
+`StoreError` for every violation in requirements 2, 3, 4 and 5 (amended 2026-09-10 — see the note
+below), with a Portuguese message naming the chart key, the entity, the scenario and the deck
+involved, and, for the length mismatch, both lengths. No bare `except`.
+
+> **Amended 2026-09-10 during execution.** This paragraph originally listed requirements "2, 4, 5
+> and 6". Requirement 6 (`set_entities` / `entities`) specifies no error condition whatsoever — its
+> documented behaviour for an unregistered chart is to return an empty tuple — and neither the
+> acceptance criteria nor any of the thirteen Testing Requirements groups exercise one. Requirement
+> 3, by contrast, explicitly requires `deck_axis` and `chained_axis` to raise `StoreError` when the
+> axis was never set, and the Testing Requirements demand exactly that ("`StoreError` when an unset
+> axis is requested"), yet requirement 3 was absent from the list. The list was off by one: read it
+> as 2, 3, 4 and 5. Treating it literally would have meant inventing an untested duplicate-entity
+> guard in `set_entities` to satisfy a summary sentence, contradicting requirement 6's own prose.
+> Repeated `set_entities` and `add_scalar` calls therefore overwrite, mirroring the documented
+> overwrite behaviour of `set_deck_axis` and `set_chained_axis`; only `add_series` raises on a
+> duplicate key, which is the one duplicate check any requirement actually states (requirement 4).
 
 ## Dependencies
 

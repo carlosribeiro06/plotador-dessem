@@ -25,3 +25,7 @@ class RegistryError(DashboardError):
 
 class DiscoveryError(DashboardError):
     """Raised when scenario or deck discovery finds an invalid input or filesystem layout."""
+
+
+class StoreError(DashboardError):
+    """Raised when DashboardData construction or population violates one of its invariants."""
