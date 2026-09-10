@@ -62,9 +62,48 @@ Available and tested: `discovery.discover_scenarios`, `readers.read_series`, `re
 8. Phase 5, scalars: read `CUSTOS.parquet` and `TEMPO.parquet` per deck and store the raw parcels and
    the raw stage times through `add_scalar`, one entry per (`parcela` or `etapa`, scenario, deck).
    Do **not** compute the total or the group sums here; tickets 030 and 031 own those.
-9. Degradation: a missing source file, a deck missing from a scenario, or an entity absent from a
-   file produces exactly one Portuguese warning naming the chart, the scenario and the deck, and the
-   corresponding series is simply not stored.
+9. Degradation, split by which binding decision governs the case (amended 2026-09-10 during
+   execution — see the note below):
+   - a **missing source file** produces exactly one Portuguese warning naming the chart, the
+     scenario and the deck, and the corresponding series is **not stored** (master plan decision 18:
+     a warning plus a gap);
+   - a **deck missing from a scenario** is reported by the single structural warning that
+     `align_deck_dates` already emits per (scenario, missing date), which requirement 2 pushes into
+     the store; it is **not** repeated per chart. The series is likewise not stored, and the chained
+     array of every affected entity is padded with `None` across that deck window so it still
+     matches the chained axis length (orchestrator ruling 2026-09-10 — see the second note below);
+   - an **entity absent from a deck file that itself exists** produces exactly one Portuguese
+     warning per (chart, scenario, deck) stating how many entities were absent, and that entity
+     array **is stored, filled entirely with `None`** on the deck axis, and padded with `None`
+     across that deck window in the chained array (master plan decision 17: missing
+     (entity, stage) combinations are filled with `null` so the JSON shape stays uniform).
+
+> **Amended 2026-09-10 during execution.** Requirement 9 originally bundled all three cases under
+> "the corresponding series is simply not stored". That holds for a missing file and a missing deck,
+> which master plan decision 18 governs, but not for an entity absent from a file that exists:
+> decision 17 says consolidation "fills missing (entity, stage) with `null`" precisely because
+> "coverage is not guaranteed rectangular" and `null` "keeps the browser code and the JSON shape
+> uniform". An entity absent from one deck file is exactly a full set of missing (entity, stage)
+> pairs. This ticket already describes the decision-17 behaviour twice — "Suggested Approach" step 4
+> ("a plant present in only one deck still appears with `None` elsewhere") and the Testing
+> Requirements item ("a plant present in one deck and absent from the other appears in the entity
+> list with `None` values for the missing deck") — so the original requirement text contradicted
+> both the binding decision and the rest of its own ticket. The warning is one per
+> (chart, scenario, deck) naming the count, never one per entity: with `VCALHA_UHE` covering 92 of
+> 165 plants, per-entity warnings would flood the operator.
+
+> **Orchestrator ruling 2026-09-10, on the missing-deck case.** The implementing agent disclosed that
+> it reported a deck missing from a scenario through the structural `align_deck_dates` warning rather
+> than emitting an additional chart-specific warning, and asked for a ruling. **The resolution is
+> accepted and requirement 9 now states it.** Three reasons. First, "naming the chart" does not
+> describe this case: a missing deck is absent for all 23 enabled charts simultaneously, so there is
+> no single chart to name. Second, `align_deck_dates` was built in ticket-016 for precisely this
+> fact and requirement 2 already directs its warnings into the store, so a per-chart warning would
+> duplicate an existing one. Third, 23 near-identical warnings for one missing deck is exactly the
+> flood the entity-absence amendment above was written to prevent; applying the opposite rule here
+> would be inconsistent. The operator still learns the fact once, naming the scenario and the date in
+> `%d/%m/%Y`. What must remain true, and is verified: the per-deck series is not stored, and every
+> affected chained array is still padded to the full chained axis length.
 10. Log at INFO the start and end of each phase with `log_step`, including the number of files read,
     the number of series stored and the elapsed time, and log the final `value_count()`.
 
@@ -108,6 +147,15 @@ missing `EST.parquet` is not caught, because the deck then has no axis and no la
       `omit=("GTER_UTE.parquet",)`, when `build_dashboard_data` is called, then it returns normally,
       `data.warnings()` contains exactly one message naming `GTER_UTE` and `caso_b`, and
       `data.has_series("GTER_UTE", "1", "caso_b", data.deck_dates[1])` is `False`.
+
+      > **Measurement note added 2026-09-10 during execution.** "Contains exactly one message naming
+      > `GTER_UTE` and `caso_b`" is a count of the *matching* messages, not the length of
+      > `warnings()`. At `chaining.stages_per_deck = 4` the store also holds the chaining warnings
+      > required by requirement 2, because the `scenario_tree` decks carry 48 half-hour stages
+      > followed by two six-hour stages, so a 4-stage window ends at 02:00 and leaves a 22-hour
+      > `lacuna` before the next deck (measured while verifying ticket-016). Assert with a filter
+      > such as `len([w for w in data.warnings() if "GTER_UTE" in w and "caso_b" in w]) == 1`;
+      > `len(data.warnings()) == 1` will fail.
 - [ ] Given the fixture default where `VARMF_UHE` covers only `reservoir_codes` while `GHID_UHE`
       covers all `hydro_codes`, when `build_dashboard_data` is called, then
       `{e.entity_id for e in data.entities("VARMF_UHE")}` equals `{"1", "2"}` and
@@ -199,7 +247,11 @@ missing `EST.parquet` is not caught, because the deck then has no axis and no la
 - entity order follows `sort_key`, alphabetical by plant name for the plant charts;
 - fictitious submarket 11 excluded from `CMO_SBM` when `include_fictitious` is false and included
   when true;
-- `INT_SBP` keeps pairs involving code 11 in both settings;
+- `INT_SBP` keeps pairs involving code 11 in both settings. **This test must regenerate the fixture
+  with an explicit `pair_codes` that includes code 11**, for example
+  `pair_codes=((1, 2), (2, 1), (1, 11))`: the generator default is `((1, 2), (2, 1))`, which contains
+  no code-11 pair at all, so an assertion written against the default tree would pass vacuously
+  while proving nothing (added 2026-09-10 during execution, after measuring the generator defaults);
 - scalars: `CUSTOS` stores four parcels per scenario and deck, `TEMPO` stores the raw stage rows with
   no division by 60;
 - a plant present in one deck and absent from the other appears in the entity list with `None`
@@ -219,8 +271,20 @@ unchanged.
 - [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
 - [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent.
 - [ ] No missing value is stored as `float('nan')`, verified by a test asserting `None`.
-- [ ] Every degradation path produces a Portuguese warning naming the chart, the scenario and the
-      deck.
+- [ ] Every degradation path produces a Portuguese warning, addressed to whichever scope the case
+      belongs to (resynced 2026-09-10 with the amended requirement 9): a **missing source file**
+      names the chart, the scenario and the deck; an **entity absent from an existing file** names
+      the chart, the scenario, the deck and how many entities were absent; a **deck missing from a
+      scenario** names the scenario and the date only, through the single structural
+      `align_deck_dates` warning, because a missing deck has no single chart to name.
+
+> **Resynced 2026-09-10.** This bullet previously required every degradation path to name "the
+> chart", which the amendment to requirement 9 and the orchestrator ruling on the missing-deck case
+> deliberately made false: a deck absent from a scenario is absent for all 23 enabled charts at
+> once, so naming one chart is incoherent and naming all of them is the warning flood the amendment
+> exists to prevent. Caught by the implementation-guardian during verification, as documentation
+> drift rather than an implementation defect. The requirement and the ruling control; this bullet now
+> agrees with them.
 
 ## Effort Estimate
 

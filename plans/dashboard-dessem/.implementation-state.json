@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-10T23:05:12Z",
+  "last_updated": "2026-09-11T00:12:30Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -469,7 +469,7 @@
     },
     "ticket-018-implement-series-consolidation.md": {
       "epic": "epic-02-data-layer",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "detailed",
       "points": 3,
       "scores": {
@@ -480,8 +480,19 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
+        },
+        "quality": 1.0,
+        "quality_breakdown": {
+          "conformance": 1.0,
+          "scope_adherence": 1.0,
+          "lint_cleanliness": 1.0,
+          "type_safety": 1.0,
+          "test_delta": 1.0
         }
-      }
+      },
+      "agent": "python-task-automation-developer",
+      "quality_scored": true,
+      "workflow_step": null
     },
     "ticket-019-build-brand-theme-module.md": {
       "epic": "epic-03-dashboard-core",
@@ -678,6 +689,43 @@
       "affects": [
         "ticket-034-add-example-data-integration-test.md",
         "ticket-035-run-legacy-parity-check.md"
+      ],
+      "resolved": "2026-09-10"
+    },
+    {
+      "id": 6,
+      "blocking": false,
+      "summary": "Resolved 2026-09-10 by the developer (epic-03 decision E3-1): the renderer is tested with Python-only assertions on the generated HTML and JSON plus a manual checklist under docs/. No JS engine and no Node toolchain (measured: node and npm are absent from this WSL environment). Accepted trade-off: the browser-side difference computation of master plan decision 8 has no automated test, mitigated by keeping the JS thin and naming the case in the checklist.",
+      "affects": [
+        "ticket-021-assemble-single-file-html-shell.md",
+        "ticket-022-implement-js-chart-renderer-core.md",
+        "ticket-023-implement-view-mode-and-deck-selector.md",
+        "ticket-024-implement-absolute-difference-toggle.md",
+        "ticket-025-render-sin-level-charts.md",
+        "ticket-026-render-submarket-and-interchange-charts.md"
+      ],
+      "resolved": "2026-09-10"
+    },
+    {
+      "id": 7,
+      "blocking": false,
+      "summary": "Resolved 2026-09-10 by the developer (epic-03 decision E3-2): the chart heading is always the curated ChartSpec.title; Registries.title_for supplies an additive subtitle or hover text where it differs. Measured against the real METADADOS_OPERACAO: the registry name is better where the curated title is an acronym (CMO, EARMF) but would collapse the hm3-versus-percent and afluente-versus-incremental distinctions that resolved master plan open questions 2 and 3.",
+      "affects": [
+        "ticket-020-export-compact-json-payload.md",
+        "ticket-022-implement-js-chart-renderer-core.md",
+        "ticket-025-render-sin-level-charts.md",
+        "ticket-026-render-submarket-and-interchange-charts.md",
+        "ticket-027-render-hydro-plant-charts.md",
+        "ticket-029-render-thermal-plant-charts.md"
+      ],
+      "resolved": "2026-09-10"
+    },
+    {
+      "id": 8,
+      "blocking": false,
+      "summary": "Resolved 2026-09-10 by orchestrator ruling: URL-hash state shared by the deck selector and the level navigation is OUT OF SCOPE. The spec does not require linkable views, so refinement must not introduce hash routing. Reopen only on an explicit developer request.",
+      "affects": [
+        "ticket-023-implement-view-mode-and-deck-selector.md"
       ],
       "resolved": "2026-09-10"
     }
