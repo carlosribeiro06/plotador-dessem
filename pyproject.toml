@@ -1,0 +1,45 @@
+[project]
+name = "dessem-dashboard"
+version = "0.1.0"
+description = "Interactive offline HTML dashboard comparing DESSEM synthesis results across scenarios."
+requires-python = ">=3.12"
+dependencies = [
+  "pandas>=3.0",
+  "pyarrow>=17",
+  "plotly>=6",
+  "rich>=13",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=5",
+  "ruff>=0.6",
+  "mypy>=1.11",
+]
+
+[project.scripts]
+dessem-dashboard = "dessem_dashboard.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"dessem_dashboard.dashboard.assets" = ["*"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=dessem_dashboard --cov-report=term-missing"
+testpaths = ["tests"]
