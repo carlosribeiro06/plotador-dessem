@@ -77,6 +77,19 @@ def _values_from_series(values: pd.Series) -> tuple[float | None, ...]:
     return tuple(None if pd.isna(value) else float(value) for value in values)
 
 
+def _reindexed_values(pivoted: pd.DataFrame, length: int) -> dict[str, tuple[float | None, ...]]:
+    """Reindex pivoted onto stages 1..length and convert every column to a value tuple.
+
+    Reindexing is what turns a stage absent from the file into NaN, and therefore into None, per
+    decision 17. Both the deck axis and the chaining window derive from the same pivot through
+    this one function, so the two lengths cannot diverge in how they treat a gap.
+    """
+    reindexed = pivoted.reindex(index=range(1, length + 1))
+    return {
+        str(entity_id): _values_from_series(reindexed[entity_id]) for entity_id in pivoted.columns
+    }
+
+
 def _entity_id_series(frame: pd.DataFrame, level: AggregationLevel) -> pd.Series:
     """Return frame's entity_id column, per the identity rule of master-plan requirement 6."""
     if level is AggregationLevel.SIN:
@@ -137,19 +150,9 @@ def _read_chart_deck(
     pivoted = frame.assign(entity_id=_entity_id_series(frame, level)).pivot(
         index="estagio", columns="entity_id", values="valor"
     )
-    deck_reindexed = pivoted.reindex(index=range(1, deck_axis_length + 1))
-    window_reindexed = pivoted.reindex(index=range(1, window_length + 1))
-
-    entity_deck_values = {
-        str(entity_id): _values_from_series(deck_reindexed[entity_id])
-        for entity_id in pivoted.columns
-    }
-    entity_window_values = {
-        str(entity_id): _values_from_series(window_reindexed[entity_id])
-        for entity_id in pivoted.columns
-    }
     return _ChartDeckReading(
-        entity_deck_values=entity_deck_values, entity_window_values=entity_window_values
+        entity_deck_values=_reindexed_values(pivoted, deck_axis_length),
+        entity_window_values=_reindexed_values(pivoted, window_length),
     )
 
 

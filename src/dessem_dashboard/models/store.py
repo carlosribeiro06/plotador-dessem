@@ -22,6 +22,15 @@ import pandas as pd
 from dessem_dashboard.data.registries import Registries
 from dessem_dashboard.errors import StoreError
 
+# Operator-facing date rendering for every message this module raises, per binding decision 2 and
+# settings.dashboard.date_format. Kept in one place so no error can drift into ISO.
+_DATE_FORMAT: Final = "%d/%m/%Y"
+
+
+def _axis_label(deck_date: date | None) -> str:
+    """Render an axis key for an error message: the deck date, or the chained-axis label."""
+    return "encadeado" if deck_date is None else deck_date.strftime(_DATE_FORMAT)
+
 
 @dataclass(frozen=True, slots=True)
 class EntityRef:
@@ -133,7 +142,7 @@ class DashboardData:
             return self._axes[deck_date]
         except KeyError as err:
             raise StoreError(
-                f"Nenhum eixo de tempo registrado para o deck de {deck_date.strftime('%d/%m/%Y')}"
+                f"Nenhum eixo de tempo registrado para o deck de {deck_date.strftime(_DATE_FORMAT)}"
             ) from err
 
     def chained_axis(self) -> TimeAxis:
@@ -164,7 +173,7 @@ class DashboardData:
         axis was ever registered for deck_date, when len(values) differs from that axis' length
         (naming both lengths), or when this four-part key was already populated.
         """
-        axis_label = "encadeado" if deck_date is None else deck_date.strftime("%d/%m/%Y")
+        axis_label = _axis_label(deck_date)
 
         if scenario not in self.scenarios:
             raise StoreError(
@@ -206,7 +215,7 @@ class DashboardData:
         try:
             return self._series[(chart_key, entity_id, scenario, deck_date)]
         except KeyError as err:
-            axis_label = "encadeado" if deck_date is None else deck_date.strftime("%d/%m/%Y")
+            axis_label = _axis_label(deck_date)
             raise StoreError(
                 f"Série não encontrada: '{chart_key}' (entidade '{entity_id}', cenário "
                 f"'{scenario}', deck {axis_label})"
@@ -254,7 +263,7 @@ class DashboardData:
         if scenario not in self.scenarios:
             raise StoreError(
                 f"Cenário desconhecido '{scenario}' ao adicionar o escalar '{chart_key}' "
-                f"(série '{series_name}', deck {deck_date.strftime('%d/%m/%Y')})"
+                f"(série '{series_name}', deck {deck_date.strftime(_DATE_FORMAT)})"
             )
         key = (series_name, scenario, deck_date)
         self._scalars.setdefault(chart_key, {})[key] = value
