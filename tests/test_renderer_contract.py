@@ -487,6 +487,15 @@ def test_checklist_epic_4_section_replaces_the_ticket_028_placeholder() -> None:
     defect). Requirement 12 authorises replacing exactly this one test with this one, naming
     what the checklist must carry once ticket-028 has run rather than before.
 
+    Narrowed 2026-09-11 to resolve cross-ticket collision 6 (ticket-031's escalation, ruled the
+    same day): this test used to also assert that no top-level heading followed section 8
+    anywhere in the rest of the file. That held only until ticket-031 appended its own
+    ``## 9.`` section, and the assertion was over-broad from birth -- proving the placeholder is
+    gone and that section 8 itself carries real plant-filter content never required section 8 to
+    be the file's *last* section. Scoped now to section 8's own slice, from its heading to the
+    next top-level heading (or end of file), so a later ticket appending further sections cannot
+    fail a claim this test never needed to make.
+
     Proven to fail against the pre-ticket checklist content before this test was written: piping
     ``git show HEAD:docs/checklist-manual-dashboard.md`` (the commit immediately before this
     ticket's own) through this same check raises AssertionError on ``Not yet written`` still
@@ -498,14 +507,11 @@ def test_checklist_epic_4_section_replaces_the_ticket_028_placeholder() -> None:
 
     heading = "## 8. Plant name and code filters"
     assert heading in text
-    section_index = text.index(heading)
-    # No other top-level heading follows: this section is the last one in the file, exactly as
-    # the placeholder it replaces was required to be. A percentage-of-file threshold (the
-    # deleted test's own approach) does not scale to this section's length: at 26 numbered
-    # steps, its heading sits at 77 percent of the file despite being the file's last heading.
-    assert "\n## " not in text[section_index + len(heading) :]
+    section_start = text.index(heading)
+    next_heading_start = text.find("\n## ", section_start + len(heading))
+    section_end = len(text) if next_heading_start == -1 else next_heading_start
+    section_text = text[section_start:section_end]
 
-    section_text = text[section_index:]
     assert "Usinas hidrelétricas" in section_text
     assert "Filtrar por nome" in section_text
     assert "Filtrar por código" in section_text

@@ -181,3 +181,58 @@ than in the automated suite (epic decision E3-1).
     **Expected result:** each chart keeps its own filter text and its own selected plant; the two
     charts' filters and selections do not synchronise with each other, and both survive the level
     round trip.
+
+## 9. Cost and time bar charts
+
+`Custo Presente, Futuro e Total` and `Tempo Computacional` (tickets 030 and 031) are the
+dashboard's only two grouped-bar charts; every other step above verifies a line chart. Both render
+through the same kind-driven bar path, so this one section covers them together.
+
+27. Navigate to `Execução`.
+
+    **Expected result:** two charts appear, `Custo Presente, Futuro e Total` and `Tempo
+    Computacional`, each drawing vertical bars rather than lines.
+
+28. On `Custo Presente, Futuro e Total`, hover any bar and read its category label on the X axis.
+
+    **Expected result:** each category label combines a deck date and a parcel name (for example
+    `03/03/2024 - PRESENTE`) -- never a raw timestamp and never a date the browser has reparsed,
+    since the label is the same deck key shown elsewhere in the dashboard. One bar per scenario
+    appears at each category, in the scenario's own colour.
+
+29. Still on the cost chart, hover over one category (the unified hover shows every bar at that
+    category at once) and compare the `TOTAL` bar's value against the sum of the parcel bars
+    beside it.
+
+    **Expected result:** at every category, `TOTAL` equals the sum of the parcel bars beside it,
+    to the number of decimals configured in `output.decimals`.
+
+    As a known and accepted caveat: `PRESENTE` and `FUTURO` are expected to differ by orders of
+    magnitude, so the `PRESENTE` bar may be invisible at the default zoom next to `FUTURO` and
+    `TOTAL`. Read it through the unified hover instead, or a box zoom on the Y axis around the
+    smaller bars. A log axis was rejected for this chart because it cannot render the signed
+    Diferença view of step 31 below -- a log scale has no representation for a negative or zero
+    difference. **Read and record** the two magnitudes shown for `PRESENTE` and `FUTURO` at one
+    category on this build: that measurement, not an assumption, is what settles whether the scale
+    gap is large enough to warrant a further ticket.
+
+30. On `Tempo Computacional`, repeat steps 28 and 29 for the `MILP`, `PL`, `Leitura` and `TOTAL`
+    bars.
+
+    **Expected result:** the Y axis reads `min`; `TOTAL` equals the sum of `MILP`, `PL` and
+    `Leitura` at every category, to the configured decimals; and every value is a plausible number
+    of minutes for a DESSEM stage (tens to a few hundred), never a raw count of seconds.
+
+31. Switch the value toggle (`#value-toggle`) from `Absoluto` to `Diferença` while `Execução` is
+    the active level.
+
+    **Expected result:** on both charts, the reference scenario's bars fall to exactly zero at
+    every category, every other scenario's bar becomes `scenario - referência`, and each chart's
+    Y-axis title gains the suffix ` (diferença)`.
+
+32. Switch back to `Absoluto`, then exercise the mode toggle (`Por deck` / `Encadeado`) and the
+    deck selector while `Execução` stays active.
+
+    **Expected result:** neither bar chart changes at all -- the bars, their categories and their
+    values are identical across every combination of view mode and deck (`planning-context.md`
+    decision 5), since both charts already show every deck at once.

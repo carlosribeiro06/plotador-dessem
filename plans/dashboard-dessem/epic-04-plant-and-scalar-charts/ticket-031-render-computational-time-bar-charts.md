@@ -188,12 +188,96 @@ and why the test that proves it must drop a group from `stage_groups`.
    H1, where the checklist asserted that level navigation did not work. Have the step ask the
    operator to **read and record** the two magnitudes from the chart, which also turns this caveat
    into the measurement that settles whether a further ticket is warranted.
-10. Change no JavaScript, no CSS, no HTML template, no `payload.py`, no `builder.py`, no `theme.py`
+10. **Amend two tests outside this ticket's original file list, and nothing else — authorised
+    2026-09-11 to resolve cross-ticket collision 6.**
+
+    **(a) `tests/test_renderer_contract.py::test_checklist_epic_4_section_replaces_the_ticket_028_placeholder`.**
+    That test asserts `"\n## " not in text[section_index + len(heading):]` — that no top-level
+    heading follows section 8 — while requirement 9 of this ticket appends a section 9. The two
+    cannot both hold. The assertion was over-broad from birth: what it needed to prove is that
+    ticket-028's placeholder is gone and that section 8 carries real plant-filter content. "No
+    heading follows anywhere in the rest of the file" was an addition that encoded a fact true only
+    until the next ticket appended a section — the same "precondition that this work has not
+    happened yet" shape as spec defect 16, which is what that very test was written to fix. The
+    orchestrator wrote it and owns the error.
+
+    Narrow it: keep the `Not yet written` check and the `## 8. Plant name and code filters` heading
+    check, but scope the content assertions to section 8's **own** slice — from its heading to the
+    next `\n## ` or end of file — and assert the plant-filter strings inside that slice. Rewrite
+    the stale comment: it currently states that this section is the file's last, which this ticket
+    makes false. Add nothing else to that module and weaken no other assertion in it.
+
+    **(b) `tests/test_payload.py`'s `_settings_dict` helper.** Its docstring claims it builds a dict
+    "matching the repository's own values", but it hard-codes
+    `time.stage_groups = {"PL": ["PL"]}` while the shipped `settings.json` carries three groups:
+    `MILP -> ["MILP"]`, `PL -> ["PL", "PL.Int.Fix", "PL.CalcCMO"]` and
+    `Leitura -> ["Leitura de Dados e Impressão"]`. This is spec defect 20 and the fourth instance
+    of defect 15's shape — a claim about the test suite that does not hold — this time inside a
+    test helper describing itself. It is load-bearing here: requirement 7's `len(tempo) == 4` is
+    reachable only with the real three-group default, since three groups plus `TOTAL` is four.
+    Correct the hard-coded value to the shipped default and make the docstring true. Change nothing
+    else in that helper, and leave the `custos` assertion ticket-030 amended untouched.
+
+    **(c) `tests/test_charts_costs.py::test_payload_tempo_scalars_still_has_five_raw_etapa_keys_proving_the_pass_through_branch`
+    — authorised 2026-09-11, cross-ticket collision 7.** Ticket-030 wrote that test to prove its
+    `aggregate` dispatch left `TEMPO` alone. Requirement 1 of this ticket routes `TEMPO` through
+    `aggregate_times`, so the property the test's own name asserts — `proving_the_pass_through_branch`
+    — becomes false unconditionally, and no implementation choice avoids it. Measured: `assert 2 == 5`.
+    This is the same shape as collision 6 one ticket earlier: a test written by ticket N encoding a
+    precondition that ticket N+1 exists to destroy.
+
+    Replace it, and make the replacement **stronger than what it replaces**. The original is a bare
+    `len(tempo) == 5`, which names no key and is exactly the vacuous-length shape this plan has
+    twice recorded as a failure mode. Assert the **key set** instead: under this module's own narrow
+    `time.stage_groups = {"PL": ["PL"]}`, `TEMPO`'s scalars must be exactly `{"PL", "TOTAL"}`. That
+    single assertion carries three properties the old one did not — that `TEMPO` is no longer
+    pass-through, that aggregating `CUSTOS` does not disturb it, and that the time path honours the
+    settings of the module calling it. Rename the test for what it now proves. Change nothing else
+    in `tests/test_charts_costs.py`; in particular leave
+    `test_aggregate_passthrough_returns_raw_unchanged_and_by_identity_for_a_series_chart`, which is
+    what still proves dispatch isolation generically.
+
+    > **Spec defect 21, the fifth instance of defect 15's shape.** This ticket's Context asserts
+    > that the three `tests/test_payload.py` assertions "are the only assertions in the repository
+    > that this ticket's requirements force to change". Collision 7 falsifies that: the
+    > `test_charts_costs.py` assertion above is a fourth, and it was already in the repository when
+    > requirement 10 was written. The claim was made about the test suite without running it. The
+    > lesson is now recorded five times over: **a claim about what the suite contains is verifiable
+    > by running the suite, and refinement, readiness scoring and orchestrator amendment all check
+    > it by reading.**
+
+11. Change no JavaScript, no CSS, no HTML template, no `payload.py`, no `builder.py`, no `theme.py`
     and no epic-02 module. In particular do not divide by 60 in `consolidate.py`, which ticket-018
     deliberately leaves in seconds, and do not divide in the asset, which E3-1 keeps free of data
     shaping.
-11. Add no `ChartSpec`, no settings key, no stacked or percentage geometry, no per-chart decimals, no
+12. Add no `ChartSpec`, no settings key, no stacked or percentage geometry, no per-chart decimals, no
     `execucao` dimension and no second Y axis.
+
+### Rulings on the escalation of 2026-09-11
+
+The specialist raised three design questions alongside collision 6. All three are ruled here so the
+work resumes without a second round trip.
+
+- **The lenient group sum against the strict `TOTAL` is correct.** A group's own sum omits a cell
+  only when *every* present member lacks a value there, summing over whichever members do carry
+  one; `TOTAL`'s sum over groups stays strict, omitting a cell unless every emitted group has a
+  non-`None` value, exactly as `aggregate_costs` does. The asymmetry is deliberate and the
+  specialist's reconciliation of the two requirement wordings is accepted: a group's member etapas
+  are internal to one bar, so a partial sum there degrades one bar's precision, while the groups
+  themselves are separately displayed bars, so a partial `TOTAL` would report a number that is
+  simply wrong. The plan has already paid for that distinction once — the epic-02 `TEMPO` defect
+  destroyed 67.8 percent of the PL time by overwriting rows rather than summing them, and the fix
+  needed `min_count=1` precisely so an all-`NaN` group did not become `0.0`. Add the explicit
+  non-vacuous test locking in this reading, since the ticket's own testing requirements exercise
+  only the all-members-missing case.
+- **Requirement 1's "change nothing else in the module" is read literally, as the specialist
+  proposed.** `aggregate_costs` stays byte-identical; `aggregate_times` gets its own private
+  helpers. The Suggested Approach's softer hint at extracting a shared helper is advisory and loses
+  to the requirement, on the same precedence the ticket-030 specialist applied to the
+  `buildBarTraces` placement.
+- **Loading the real `settings.json` for acceptance criterion 4 is correct**, and
+  `tests/test_config.py::test_load_settings_repository_settings_json_has_expected_defaults` is the
+  precedent. Touch no other module's settings dict.
 
 ### Inputs
 
@@ -297,9 +381,14 @@ is added anywhere, and `build_payload` still never mutates `data`.
 ### Key Files to Create/Modify
 
 - `src/dessem_dashboard/dashboard/scalars.py` (modify: `aggregate_times` plus one dispatch branch)
-- `tests/test_payload.py` (modify: three assertions and one test name)
+- `tests/test_payload.py` (modify: three assertions, one test name, and the `_settings_dict`
+  `stage_groups` value plus its docstring — requirement 10b)
 - `tests/test_charts_times.py` (create)
 - `docs/checklist-manual-dashboard.md` (modify: append one section for both bar charts)
+- `tests/test_renderer_contract.py` (modify: only the one assertion and comment requirement 10a
+  names — added to this list on 2026-09-11 to resolve cross-ticket collision 6)
+- `tests/test_charts_costs.py` (modify: only the one test requirement 10c names — added on
+  2026-09-11 to resolve cross-ticket collision 7)
 
 ### Patterns to Follow
 
@@ -384,7 +473,7 @@ parity comparison — MILP, the PL group, Leitura and the total, in minutes — 
 
 ## Definition of Done
 
-- [ ] The four files exist — three modified, one created — and all five acceptance criteria pass.
+- [ ] The six files exist — five modified, one created — and all five acceptance criteria pass.
 - [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
 - [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent.
 - [ ] The `PL` group sums three distinct etapas without re-summing their repeated executions, and the
@@ -394,10 +483,16 @@ parity comparison — MILP, the PL group, Leitura and the total, in minutes — 
 - [ ] `grep -rn "unit_divisor" src/` names exactly two modules, `config.py` and
       `dashboard/scalars.py` — it names only `config.py` today — so a division that leaked into
       `consolidate.py`, `builder.py` or an asset fails this check.
-- [ ] `tests/test_charts_costs.py`, `tests/test_charts_sin.py`, `tests/test_charts_submarket.py`,
+- [ ] `tests/test_charts_costs.py` passes **as amended by requirement 10c** — exactly one test
+      replaced by a stronger key-set assertion, everything else in the module untouched.
+- [ ] `tests/test_charts_sin.py`, `tests/test_charts_submarket.py`,
       `tests/test_charts_hydro.py`, `tests/test_charts_thermal.py`, `tests/test_charts_filters.py`,
-      `tests/test_builder.py`, `tests/test_renderer_contract.py`, `tests/test_renderer_controls.py`
-      and `tests/test_renderer_value_mode.py` all pass unchanged. `tests/test_payload.py` passes
+      `tests/test_builder.py`, `tests/test_renderer_controls.py`
+      and `tests/test_renderer_value_mode.py` all pass unchanged.
+- [ ] `tests/test_renderer_contract.py` passes **as amended by requirement 10a** — exactly one
+      assertion narrowed to section 8's own slice and its stale comment rewritten, with every other
+      assertion in the module untouched.
+- [ ] `tests/test_payload.py` passes
       **as amended** by requirement 7.
 - [ ] The new checklist section was walked by hand in a browser with the console open, and it records
       the cost-scale caveat.

@@ -428,15 +428,27 @@ def test_payload_custos_scalars_has_exactly_presente_futuro_total_with_full_cove
     assert custos["series"] == {}  # type: ignore[index]
 
 
-def test_payload_tempo_scalars_still_has_five_raw_etapa_keys_proving_the_pass_through_branch(
+def test_payload_tempo_scalars_is_no_longer_pass_through_under_this_modules_narrow_stage_groups(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
+    """Replaces ...proving_the_pass_through_branch (cross-ticket collision 7): ticket-030 wrote
+    that test to prove its own aggregate dispatch left TEMPO untouched, and ticket-031's
+    requirement 1 routes TEMPO through aggregate_times unconditionally, which makes the old
+    test's own name false regardless of how that routing is implemented (measured: assert 2 ==
+    5). A bare length, as the old test asserted, names no key and cannot tell "TEMPO now has two
+    other series" apart from "TEMPO still has five, just renamed" -- exactly the vacuous-length
+    shape this plan has recorded twice before. Asserting the key set instead carries three
+    properties the length could not: TEMPO is no longer pass-through; building CUSTOS in the same
+    payload does not disturb it; and the time path honours this module's own settings
+    (time.stage_groups = {"PL": ["PL"]}) rather than some other default -- {"PL", "TOTAL"} is
+    reachable only if the "PL" group is read from these settings and no other group is invented.
+    """
     payload = _build_payload_dict(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
     tempo = payload["charts"]["TEMPO"]["scalars"]  # type: ignore[index]
 
-    assert len(tempo) == 5  # type: ignore[arg-type]
+    assert set(tempo) == {"PL", "TOTAL"}  # type: ignore[arg-type]
 
 
 def test_payload_custos_total_for_caso_a_recomputed_from_the_parquet_file_with_pandas(

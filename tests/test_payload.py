@@ -38,7 +38,13 @@ _HAND_BUILT_DECK_KEY = "03/03/2024"
 
 
 def _settings_dict(*, decimals: int, disabled: Sequence[str]) -> dict[str, Any]:
-    """Build a settings.json-shaped dict matching the repository's own values, with knobs."""
+    """Build a settings.json-shaped dict matching the repository's own values, with knobs.
+
+    time.stage_groups matches the shipped settings.json's three groups -- MILP, PL (covering
+    PL, PL.Int.Fix and PL.CalcCMO) and Leitura -- rather than a narrower placeholder, so this
+    docstring's own claim holds: spec defect 20 was a prior {"PL": ["PL"]} value that covered
+    only one of the fixture's five etapas while claiming to match the repository default.
+    """
     return {
         "project": "dessem-dashboard",
         "paths": {
@@ -56,7 +62,14 @@ def _settings_dict(*, decimals: int, disabled: Sequence[str]) -> dict[str, Any]:
         "discovery": {"sintese_dirname": "sintese"},
         "chaining": {"stages_per_deck": 48},
         "costs": {"total_parcels": ["PRESENTE", "FUTURO"]},
-        "time": {"stage_groups": {"PL": ["PL"]}, "unit_divisor": 60.0},
+        "time": {
+            "stage_groups": {
+                "MILP": ["MILP"],
+                "PL": ["PL", "PL.Int.Fix", "PL.CalcCMO"],
+                "Leitura": ["Leitura de Dados e Impressão"],
+            },
+            "unit_divisor": 60.0,
+        },
         "submarkets": {"include_fictitious": False, "fictitious_codes": [11, 99]},
         "dashboard": {
             "title": "Comparação de Resultados do DESSEM",
@@ -250,7 +263,7 @@ def test_build_payload_scenario_tree_charts_shape_and_representative_values(
     tempo = charts["TEMPO"]
     assert tempo["series"] == {}
     assert tempo["entities"] == []
-    assert len(tempo["scalars"]) == 5
+    assert len(tempo["scalars"]) == 4
 
 
 def test_build_payload_uniform_keys_are_empty_for_the_kind_that_does_not_apply(
@@ -635,7 +648,7 @@ def test_payload_json_escapes_less_than_in_entity_label_and_round_trips(tmp_path
 # --- scalars shape: CUSTOS and TEMPO, and no division by time.unit_divisor ---------------------
 
 
-def test_build_payload_custos_and_tempo_scalars_shape_and_no_division_by_unit_divisor(
+def test_build_payload_custos_and_tempo_scalars_shape(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     settings = _build_settings(tmp_path, decimals=2)
@@ -650,11 +663,11 @@ def test_build_payload_custos_and_tempo_scalars_shape_and_no_division_by_unit_di
     # ticket-030 requirement 6 routes CUSTOS through scalars.aggregate: with the default
     # costs.total_parcels = ["PRESENTE", "FUTURO"], the fixture's four raw parcelas become the
     # three displayed series {"PRESENTE", "FUTURO", "TOTAL"}, dropping VIOLACOES and PEQUENAS
-    # PENALIDADES from the bars. TEMPO stays untouched by that same requirement's pass-through
-    # branch until ticket-031 adds its own aggregation, which is what the unchanged len(tempo)
-    # below still proves.
+    # PENALIDADES from the bars. ticket-031 requirement 1 routes TEMPO through its own
+    # aggregate_times: the fixture's five raw etapas become the four displayed series
+    # {"MILP", "PL", "Leitura", "TOTAL"} the shipped three-group time.stage_groups names.
     assert len(custos) == 3
-    assert len(tempo) == 5
+    assert len(tempo) == 4
     for scalars in (custos, tempo):
         for by_scenario in scalars.values():
             assert set(by_scenario) == {"caso_a", "caso_b"}
@@ -664,9 +677,17 @@ def test_build_payload_custos_and_tempo_scalars_shape_and_no_division_by_unit_di
     raw = pd.read_parquet(
         scenario_tree["caso_a"] / "deck_um" / "sintese" / "TEMPO.parquet", engine="pyarrow"
     )
-    expected_pl = round(float(raw.loc[raw["etapa"] == "PL", "tempo"].sum()), 2)
-    assert tempo["PL"]["caso_a"]["03/03/2024"] == expected_pl
-    assert expected_pl > 60
+    raw_pl_seconds = float(
+        raw.loc[raw["etapa"].isin(["PL", "PL.Int.Fix", "PL.CalcCMO"]), "tempo"].sum()
+    )
+    expected_pl_minutes = round(raw_pl_seconds / 60.0, 2)
+    assert tempo["PL"]["caso_a"]["03/03/2024"] == expected_pl_minutes
+    # The assertion this ticket replaces pinned the raw-second figure and asserted it exceeded
+    # 60 -- proving the payload carried seconds while the Y axis already claimed minutes (epic-03
+    # learnings section 7a). This companion assertion proves the opposite now holds: the payload
+    # value is the converted minutes figure, not the raw seconds one, so the division is proven
+    # rather than assumed.
+    assert tempo["PL"]["caso_a"]["03/03/2024"] != round(raw_pl_seconds, 2)
 
 
 # --- caplog: the two INFO log lines and their volume fields ------------------------------------

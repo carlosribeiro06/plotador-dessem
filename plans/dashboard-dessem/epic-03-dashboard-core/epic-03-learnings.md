@@ -262,7 +262,7 @@ checklist covers both (steps 10 and 17).
 
 ---
 
-## 7a. One live defect shipped by this epic, knowingly recorded
+## 7a. One live defect shipped by this epic, knowingly recorded — CLOSED 2026-09-11 by ticket-031
 
 **The `TEMPO` Y axis has been labelled `min` while carrying seconds since ticket-025.** Found by the
 Epic 4 refinement, not by any guardian, because each half is individually correct:
@@ -281,6 +281,27 @@ owns it.
 **The generalisable point**: a unit label and the value it labels were specified in two different
 tickets, and nothing checked them against each other. Where a label asserts something about data
 produced elsewhere, one of the two tickets has to own the correspondence — or a test does.
+
+**Closed 2026-09-11 by ticket-031, with the measurement.** `aggregate_times` in
+`dashboard/scalars.py` now divides by `time.unit_divisor` exactly once — `grep -rln "unit_divisor"
+src/` names only `config.py` and `dashboard/scalars.py` — and the renamed
+`test_build_payload_custos_and_tempo_scalars_shape` no longer asserts the raw-second form. On
+`caso_a`/`03/03/2024`, reproduced independently by the ticket-031 guardian from the fixture and the
+shipped `settings.json`: the `PL` etapa alone was **4492.11 s**, the `PL` group sums its three
+distinct etapas to **8905.16 s**, and the payload now carries `round(8905.16 / 60.0, 2) =` **148.42
+min**. The axis label and the value it labels finally agree.
+
+The raw-second references that remain in `tests/test_consolidate.py`,
+`tests/test_fixtures_sintese.py` and `tests/test_readers.py` are **correct and deliberate**: they
+sit below `scalars.py`, where ticket-018 keeps seconds on purpose. Only the payload and document
+layers were ever wrong.
+
+**What the closure adds to the generalisable point.** The defect survived eight guardians because
+every one of them verified a ticket against its own requirements, and no ticket owned the
+correspondence. It was found by the *refinement of a later epic* reading the shipped code against
+its own plan — which is an argument for refining late epics against the built artefact rather than
+against the plan alone, and the reason epic 5's refinement should re-read `payload.py`,
+`scalars.py` and the asset before it writes anything.
 
 ## 8. Process facts
 

@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T10:53:59Z",
+  "last_updated": "2026-09-11T12:22:13Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -852,7 +852,7 @@
     },
     "ticket-031-render-computational-time-bar-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 2,
       "scores": {
@@ -863,8 +863,29 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
-        }
-      }
+        },
+        "quality": 1.0
+      },
+      "agent": "python-task-automation-developer",
+      "workflow_step": "guardian_approved",
+      "quality_breakdown": {
+        "conformance": 1.0,
+        "scope_adherence": 1.0,
+        "lint_cleanliness": 1.0,
+        "type_safety": 1.0,
+        "test_delta": 1.0
+      },
+      "quality_scored": true,
+      "notes": [
+        "CLOSES THE ONLY KNOWN DEFECT SHIPPED BY THIS PROJECT - epic-03-learnings section 7a. The TEMPO Y axis was labelled 'min' while carrying seconds since ticket-025, and the suite POSITIVELY asserted that no division had happened, checking the PL figure exceeded 60. It asserted both halves of a contradiction, and no guardian caught it because each half was individually correct. Measured closure, reproduced independently by the guardian from the fixture and the shipped settings.json: PL was 4492.11 raw seconds for the etapa alone; the PL GROUP sums 4492.11 + the two other etapas to 8905.16 seconds, and round(8905.16 / 60.0, 2) = 148.42 minutes is what the payload now carries. unit_divisor appears in exactly two modules, config.py and dashboard/scalars.py, so the division happens once. No test anywhere still pins a second-valued TEMPO at the payload or document layer; the raw-second references in test_consolidate.py, test_fixtures_sintese.py and test_readers.py are below scalars.py, where ticket-018 deliberately keeps seconds.",
+        "THREE AMENDMENTS AND TWO ESCALATIONS, the most of any ticket in this plan. The specialist stopped twice before touching an unauthorised file, both times correctly. Requirement 10 grew three parts: 10a for collision 6, 10b for spec defect 20, 10c for collision 7.",
+        "CROSS-TICKET COLLISION 6 - ORCHESTRATOR'S OWN ERROR. Ticket-028 requirement 12, which the orchestrator authored today to fix spec defect 16, had the specialist write a test asserting the plant-filter checklist section 'sits last in the file'. Ticket-031 requirement 9 appends a section 9. The assertion encoded a precondition true only until the next ticket ran - defect 16's OWN shape, reproduced one level up by the fix for defect 16. Narrowed to section 8's own slice.",
+        "CROSS-TICKET COLLISION 7, same shape one ticket later. Ticket-030's test_payload_tempo_scalars_still_has_five_raw_etapa_keys_proving_the_pass_through_branch asserted TEMPO was still pass-through; requirement 1 here routes it through aggregate_times. Measured as 'assert 2 == 5'. The replacement was required to be STRONGER than what it replaced: the original was a bare len(tempo) == 5 naming no key - the vacuous-length shape recorded twice before - and the replacement asserts the exact key set {PL, TOTAL} under the module's own narrow stage_groups, carrying three properties the length could not distinguish.",
+        "SPEC DEFECTS 20 AND 21, the fourth and fifth instances of defect 15's shape. 20: test_payload.py's _settings_dict docstring claimed it matched the repository's own values while hard-coding time.stage_groups = {PL: [PL]} against a shipped settings.json carrying three groups - a test helper misdescribing itself, and load-bearing, since three groups plus TOTAL is the four that requirement 7 needs. 21: this ticket's Context claimed the three test_payload.py assertions were 'the only assertions in the repository that this ticket's requirements force to change', which collision 7 falsified.",
+        "THE LENIENT-GROUP / STRICT-TOTAL ASYMMETRY, verified the ticket-030 way - by building both wrong implementations and measuring. Making TOTAL lenient produced 15.0 where the correct answer is to omit the cell: a silently wrong, too-low total. Making a group strict produced None where the correct value is 10.0: a needlessly dropped bar. The asymmetry is right because a group's member etapas are internal to one bar, so a partial sum costs that bar precision, while the groups are separately displayed bars, so a partial TOTAL reports a number that is simply wrong.",
+        "A SPECIALIST FINDING ITS OWN TEST WRONG, worth carrying forward as the standard: its first -0.0 test was arithmetically impossible, and rather than adjust the code it traced WHY - TOTAL sums already-normalised group values, and IEEE 754 addition of a value and its exact negation yields +0.0, so -0.0 is reachable only at the group conversion step. It then retargeted the test at the path that can actually produce it.",
+        "OUTSTANDING by design: the manual browser walk of checklist section 9, steps 27-32. E3-1 owns the limit. The guardian noted step 30's qualitative 'tens to a few hundred' minutes range is a sanity check, not a claimed measurement, so it does not repeat spec defect 17."
+      ]
     },
     "ticket-032-enforce-output-size-strategy.md": {
       "epic": "epic-04-plant-and-scalar-charts",
@@ -1010,7 +1031,9 @@
         "AMENDED 2026-09-11, tickets 030 and 031, spec defect 17 and a third new shape for the catalogue: A QUANTITATIVE CLAIM ATTRIBUTED TO A SOURCE ITS AUTHOR COULD NOT REACH. Ticket-030 asserted 'In the real data FUTURO is about 2.3e8 R$ while PRESENTE is about 5.9e4 R$'. Those figures appear nowhere in the repository outside that sentence; planning-context.md records the CUSTOS schema and the legacy total but no magnitudes, and the real data lives under exemplo/, which every agent on this plan is forbidden to read. Ticket-031 had propagated them into a MANUAL CHECKLIST STEP, which is the epic-03 H1 defect class: a checklist telling the operator what to expect from data it never measured. Both corrected to state the direction without false precision; ticket-031's step now asks the operator to read and record the two magnitudes instead, which turns the caveat into the measurement that settles whether a further ticket is warranted. The design decision itself is unchanged - the reasoning it rests on does not depend on the exact figures.",
         "LEGACY-PARITY TENSION found 2026-09-11 while auditing ticket-030, recorded there and owned by ticket-035. Plotadores/Custos.py, the tool being replaced, emits THREE separate cost figures with the Y-axis titles 'Custo Presente (R$)', 'Custo Futuro (R$)' and 'Custo Total de Operacao (R$)'. Ticket-030 ships ONE grouped bar chart, which is what the single registry entry _scalar('CUSTOS', 'Custo Presente, Futuro e Total') and planning-context.md's 'bars per deck' describe, and a three-chart split needs three new ChartSpec entries in the epic-02 charts/specs.py, which ticket-030's Out of Scope forbids. Deliberately NOT restructured here: the design is internally coherent and expanding scope unilaterally would touch an epic-02 module. But the parity check must not be read as passing merely because the totals agree - the new dashboard shows one chart where the legacy showed three.",
         "AUDIT of ticket-032 and of the 030->031 chain, 2026-09-11: clean. enabled_specs() is still 23 after tickets 027-029 (no ChartSpec added), so ticket-032 AC1's graficos=23 and its charts.disabled=[VARPF_UHE] -> graficos=22 case both hold. write_dashboard still returns Path, with three call sites in test_builder.py depending on it, so ticket-032's do-not-change-the-return-type pitfall is accurate. output_volumes does not exist yet and is created by ticket-032 requirement 2 - a forward reference, not a stale one. The 030->031 chain on test_payload.py is correctly sequenced: 030 changes the custos length assertion from 4 to 3 and explicitly leaves the test name and every tempo assertion to 031, and 031 describes the state as 'after ticket-030'. They must never be parallelised - they edit the same test function.",
-        "LIVE DEFECT OWNERSHIP VERIFIED, 2026-09-11: the TEMPO axis labelled 'min' while carrying seconds (epic-03-learnings section 7a) is genuinely FIXED by ticket-031, not merely assigned to it. Requirement 1 adds aggregate_times with a unit_divisor parameter and divides by it; requirement 7 renames the test to drop 'and_no_division_by_unit_divisor' and replaces the raw-second PL assertion with the converted one; requirement 8 proves the new assertions can fail by setting unit_divisor to 1.0 in a variant. The ticket states the point explicitly - the division 'is what makes the axis label true'. The defect closes when 031 lands, and the suite stops positively asserting both halves of a contradiction."
+        "LIVE DEFECT OWNERSHIP VERIFIED, 2026-09-11: the TEMPO axis labelled 'min' while carrying seconds (epic-03-learnings section 7a) is genuinely FIXED by ticket-031, not merely assigned to it. Requirement 1 adds aggregate_times with a unit_divisor parameter and divides by it; requirement 7 renames the test to drop 'and_no_division_by_unit_divisor' and replaces the raw-second PL assertion with the converted one; requirement 8 proves the new assertions can fail by setting unit_divisor to 1.0 in a variant. The ticket states the point explicitly - the division 'is what makes the axis label true'. The defect closes when 031 lands, and the suite stops positively asserting both halves of a contradiction.",
+        "CROSS-TICKET COLLISIONS 6 AND 7, both in ticket-031, both the SAME SHAPE and both authorised as narrowings: a test written by ticket N encoding a precondition that ticket N+1 exists to destroy. (6) ticket-028's replacement checklist test asserted the plant-filter section 'sits last in the file' - ORCHESTRATOR-AUTHORED, and the error is the orchestrator's: it was written to fix spec defect 16 and reproduced defect 16's own shape one level up, since ticket-031 appends a section 9. (7) ticket-030's test_payload_tempo_scalars_still_has_five_raw_etapa_keys_proving_the_pass_through_branch asserted TEMPO is still pass-through; requirement 1 of ticket-031 routes it through aggregate_times, measured as 'assert 2 == 5'. BOTH replacements were made stronger than what they replaced - the checklist test scoped to section 8's own slice, and the bare len(tempo)==5 upgraded to an exact key-set comparison. GENERALISABLE RULE for epic 5 and any future plan: before writing a test that pins a document's or a payload's SHAPE, check whether a later ticket changes that shape - and never assert 'nothing follows' or 'X is unchanged' when a later ticket is scheduled to follow or change it.",
+        "SPEC DEFECT 21, the fifth instance of defect 15's shape. Ticket-031's Context claimed the three tests/test_payload.py assertions 'are the only assertions in the repository that this ticket's requirements force to change'. False: the test_charts_costs.py assertion of collision 7 was a fourth and was already in the repository. Five instances now: defect 15 (an all-null array was covered), 18 (_function_body existed), 19 (thirteen members), 20 (_settings_dict mirrors settings.json) and 21 (only three assertions change). EVERY ONE was a claim about the test suite made without running it, and every one was catchable in seconds by grep or pytest. Refinement, readiness scoring and orchestrator amendment all verify by READING. The cheap fix for epic 5: any ticket sentence asserting what the suite does or does not contain must be measured before the ticket is scored."
       ],
       "open_decisions_for_developer": [
         "Cost scale: PRESENTE and FUTURO are expected to differ by orders of magnitude, so a shared linear bar axis may render PRESENTE invisible. Ticket-030 ships the grouped bars as specified; a log axis or a split chart is out of scope and needs a developer ruling. NOTE the correction of 2026-09-11: this entry previously quoted 'FUTURO about 2.3e8, PRESENTE about 5.9e4' as observed values. They were not observed - spec defect 17 - and the orchestrator propagated them twice before checking. The magnitudes will be measured by ticket-031's checklist step on real data.",
@@ -1021,7 +1044,13 @@
     "epic-05-delivery-and-legacy-removal": {
       "phase": "outline",
       "learning_extracted": false,
-      "estimate": "~2-3.5 h (Low, outline)"
+      "estimate": "~2-3.5 h (Low, outline)",
+      "refinement_inputs": [
+        "ORDERING RISK CHECKED AND ABSENT, 2026-09-11. The epic-05 dependency order is strictly sequential 033 -> 034 -> 035 -> 036 -> 037 -> 038, so ticket-038's deletion of Plotadores/ happens AFTER ticket-035's legacy parity check. The parity check therefore still has its reference implementation in the working tree when it runs. Do not reorder these two under any circumstances.",
+        "TICKET-035 INHERITS THE COST-CHART PARITY TENSION recorded in ticket-030's Context. Plotadores/Custos.py emits THREE separate cost figures with the Y-axis titles 'Custo Presente (R$)', 'Custo Futuro (R$)' and 'Custo Total de Operacao (R$)'. The new dashboard ships ONE grouped bar chart, deliberately, and one series may be invisible on a shared linear axis where the legacy gave it its own. The parity check must NOT be read as passing merely because the totals agree - the presentation differs, and the developer has to see that on real data and rule. Refine ticket-035 to compare presentation as well as values.",
+        "TICKET-038 OPEN QUESTION ANSWERED BY MEASUREMENT, 2026-09-11: no __pycache__ path is tracked any more (git ls-files finds none) and .gitignore line 2 covers __pycache__/, so ticket-001 already handled it. Ticket-038 has nothing to do there and should drop that question rather than re-investigate it.",
+        "TICKET-038's OTHER OPEN QUESTION - delete Plotadores/ outright or move it to legacy/ for one release - now has an argument on the record for keeping it reachable. The cost-chart presentation decision above is unresolved and its only evidence is Plotadores/Custos.py. Deleting outright leaves that evidence only in git history, which is recoverable but not discoverable by someone reading the working tree. At minimum the README note ticket-038 also asks about should say where the legacy plotters went and that the cost-chart presentation question predates their removal."
+      ]
     }
   },
   "open_questions": [
