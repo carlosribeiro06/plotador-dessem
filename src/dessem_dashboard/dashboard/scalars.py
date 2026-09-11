@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 _TOTAL_SERIES_NAME = "TOTAL"
 _TOTAL_PARCELS_SETTINGS_KEY = "costs.total_parcels"
 _STAGE_GROUPS_SETTINGS_KEY = "time.stage_groups"
+_UNIT_DIVISOR_SETTINGS_KEY = "time.unit_divisor"
+# The only divisor consistent with FALLBACK_UNITS["TEMPO"] = "min" in data/schemas.py: that label
+# is hard-coded there, independently of this setting, so a divisor other than 60.0 makes the two
+# sides disagree without either one raising (epic-04 boundary review finding 3).
+_EXPECTED_UNIT_DIVISOR = 60.0
 
 ScalarsByName = dict[str, dict[str, dict[str, float | None]]]
 
@@ -91,7 +96,7 @@ def aggregate_costs(raw: ScalarsByName, *, parcels: Sequence[str], decimals: int
     }
 
     total: dict[str, dict[str, float | None]] = {}
-    for scenario, deck_key in pairs:
+    for scenario, deck_key in sorted(pairs):
         values: list[float] = []
         for parcel in present_parcels:
             value = result[parcel].get(scenario, {}).get(deck_key)
@@ -157,12 +162,27 @@ def aggregate_times(
     emitted group carries a non-None value there: the groups ARE separately displayed bars, so a
     partial TOTAL would stop equalling what the operator can already add up beside it on the
     chart.
+
+    unit_divisor other than 60.0 is also logged once as a Portuguese warning, naming the "min"
+    label that FALLBACK_UNITS["TEMPO"] (data/schemas.py) hard-codes independently of this setting
+    and that would then no longer match the values this function divides and emits (epic-04
+    boundary review finding 3: the two sides were pinned by separate tests and never together).
     """
     if _TOTAL_SERIES_NAME in stage_groups:
         raise ConfigError(
             f"Chave '{_STAGE_GROUPS_SETTINGS_KEY}' não pode incluir um grupo chamado "
             f"'{_TOTAL_SERIES_NAME}': essa série é calculada a partir dos demais grupos, não é "
             "configurável"
+        )
+
+    if unit_divisor != _EXPECTED_UNIT_DIVISOR:
+        logger.warning(
+            "Configuração '%s' = %s difere de %s: o eixo Y do gráfico TEMPO continua rotulado "
+            "'min' (FALLBACK_UNITS['TEMPO'] em data/schemas.py), que deixa de corresponder à "
+            "unidade dos valores exibidos",
+            _UNIT_DIVISOR_SETTINGS_KEY,
+            unit_divisor,
+            _EXPECTED_UNIT_DIVISOR,
         )
 
     result: ScalarsByName = {}
@@ -189,7 +209,7 @@ def aggregate_times(
         }
 
         group_series: dict[str, dict[str, float | None]] = {}
-        for scenario, deck_key in pairs:
+        for scenario, deck_key in sorted(pairs):
             values = [
                 value
                 for member in present_members
@@ -220,7 +240,7 @@ def aggregate_times(
     }
 
     total: dict[str, dict[str, float | None]] = {}
-    for scenario, deck_key in pairs_total:
+    for scenario, deck_key in sorted(pairs_total):
         group_values: list[float] = []
         for group_name in emitted_groups:
             value = result[group_name].get(scenario, {}).get(deck_key)

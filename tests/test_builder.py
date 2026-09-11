@@ -72,6 +72,10 @@ def _settings_dict(
     logo_file defaults to the real repository logo's absolute path, so every test that does not
     exercise the logo error paths gets a document that actually embeds a valid image, exactly as
     the first acceptance criterion requires.
+
+    One deliberate divergence: `time.stage_groups` is reduced to the single `PL` group,
+    so these tests do not depend on the shipped three-group default. Correct this sentence
+    rather than the value.
     """
     return {
         "project": "dessem-dashboard",

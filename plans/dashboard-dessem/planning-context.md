@@ -141,7 +141,13 @@ commands that must run inside WSL go through `wsl.exe -e bash -lc '<cmd>'`.
   R$/MWh, hm3, m3/s, %, 10^3 R$, 10^6 R$`. `nome_*` is NaN for `VAGUA_UHE` and `VCALHA_UHE`. Use it
   for chart titles/units with a static fallback table.
 - `CUSTOS.parquet`: `parcela ∈ {PRESENTE, FUTURO, VIOLACOES, PEQUENAS PENALIDADES}`, `valor_esperado`
-  (R$), `desvio_padrao`. Legacy total = PRESENTE + FUTURO.
+  (**10^3 R$**, not plain R$ — see epic-04-boundary review finding 1), `desvio_padrao`. Legacy total
+  = PRESENTE + FUTURO. Verified from `reference/parquet-schemas.txt`: `CUSTOS.PRESENTE` = 58667.5674
+  tracks `COP_SIN`'s reference-deck sum (406.6581 R$/h x 144 h = 58558.77, ratio 1.0019);
+  `CUSTOS.FUTURO` = 228420390.34615 tracks `CFU_SIN` = 228917.0446721 at `10^6 R$` (i.e.
+  2.28917e11 R$) at ratio 0.9978 when `CUSTOS.FUTURO` is read as `10^3 R$`, versus 1000x too small
+  when read as plain R$. `METADADOS_OPERACAO.unidade`'s own value set above never includes plain
+  `R$` either — only `10^3 R$` and `10^6 R$`.
 - `TEMPO.parquet`: `etapa ∈ {Leitura de Dados e Impressão, MILP, PL (several rows), PL.Int.Fix,
   PL.CalcCMO}`, `tempo` (seconds), `execucao`. Legacy divides by 60 and plots MILP, PL group, Leitura,
   total.

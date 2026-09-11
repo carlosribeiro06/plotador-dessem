@@ -340,8 +340,16 @@ names.
 
 | File | Shape | Columns | Handling |
 | ---- | ----- | ------- | -------- |
-| `CUSTOS.parquet` | (4, 3) | `parcela:str`, `valor_esperado:float64` in R$, `desvio_padrao:int64` | `parcela` is one of `PRESENTE`, `FUTURO`, `VIOLACOES`, `PEQUENAS PENALIDADES`; grouped bars by deck date; total is the sum of `costs.total_parcels`, default `PRESENTE` plus `FUTURO` |
+| `CUSTOS.parquet` | (4, 3) | `parcela:str`, `valor_esperado:float64` in **10^3 R$** (not plain R$; see note below), `desvio_padrao:int64` | `parcela` is one of `PRESENTE`, `FUTURO`, `VIOLACOES`, `PEQUENAS PENALIDADES`; grouped bars by deck date; total is the sum of `costs.total_parcels`, default `PRESENTE` plus `FUTURO` |
 | `TEMPO.parquet` | (9, 3) | `etapa:str`, `tempo:float64` in seconds, `execucao:int64` | `etapa` is one of `Leitura de Dados e Impressão`, `MILP`, `PL` (several rows), `PL.Int.Fix`, `PL.CalcCMO`; groups come from `time.stage_groups`, default `MILP`, `PL` as `PL` plus `PL.Int.Fix` plus `PL.CalcCMO`, and `Leitura`, plus a total; **divide by 60** to plot minutes |
+
+`CUSTOS.valor_esperado`'s unit, verified from `reference/parquet-schemas.txt` (epic-04 boundary
+review finding 1): `CUSTOS.PRESENTE` (58667.5674 raw) tracks `COP_SIN`'s reference-deck sum
+(406.6581 R$/h x 144 h = 58558.77, ratio 1.0019); `CUSTOS.FUTURO` (228420390.34615 raw) tracks
+`CFU_SIN` (228917.0446721 at `10^6 R$`, i.e. 2.28917e11 R$) at ratio 0.9978 when read as `10^3 R$`,
+versus 1000x too small when read as plain R$. `METADADOS_OPERACAO.unidade`'s value set above never
+includes plain `R$` either — only `10^3 R$` and `10^6 R$` alongside `MW`, `MWh`, `R$/MWh`, `hm3`,
+`m3/s`, `%`.
 
 ### A.6 Chart catalogue: spec item to source file
 
@@ -371,7 +379,7 @@ control.
 | 19 | UHE | Vazão afluente | `QAFL_UHE` | m3/s | hydro plant |
 | 20 | UHE | Vazão incremental | `QINC_UHE` | m3/s | hydro plant |
 | 21 | UTE | Geração | `GTER_UTE` | MW | thermal plant |
-| 22 | EXECUCAO | Custo presente, futuro e total | `CUSTOS` | R$ | none, bars by deck |
+| 22 | EXECUCAO | Custo presente, futuro e total | `CUSTOS` | 10^3 R$ | none, bars by deck |
 | 23 | EXECUCAO | Tempo computacional | `TEMPO` | min | none, bars by deck |
 
 Shipped **disabled** as registry entries only, enabled by editing `charts.disabled` or the spec:

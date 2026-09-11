@@ -46,7 +46,7 @@ See "Phases & Estimates" below.
 | epic-01 | Project foundation and repo hygiene | 001-008 | 17 | detailed | completed |
 | epic-02 | Data layer | 009-018 | 28 | detailed | completed |
 | epic-03 | Dashboard core | 019-026 | 24 | refined | completed |
-| epic-04 | Plant-level and scalar charts | 027-032 | 15 | refined | executing |
+| epic-04 | Plant-level and scalar charts | 027-032 | 15 | refined | completed |
 | epic-05 | Delivery, validation and legacy removal | 033-038 | 14 | outline | outline |
 
 Total: 38 tickets, 98 points. Detailed tickets are sized at 30 minutes of agent time or less.

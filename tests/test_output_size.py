@@ -66,7 +66,14 @@ _EXTRA_ENTITY_VALUE = 123.45
 
 
 def _settings_dict(*, size_warning_mb: float = 50, disabled: Sequence[str] = ()) -> dict[str, Any]:
-    """Build a settings.json-shaped dict matching the repository's own values, with two knobs."""
+    """Build a settings.json-shaped dict matching the repository's own values.
+
+    Two knobs, and one deliberate divergence from
+    `time.stage_groups`: it is deliberately reduced to the single `PL` group, so these tests
+    do not depend on the shipped three-group default. Correct this sentence rather than the
+    value -- changing it would move the `TEMPO` bar count, and a measured byte range in
+    `tests/test_output_size.py`.
+    """
     return {
         "project": "dessem-dashboard",
         "paths": {

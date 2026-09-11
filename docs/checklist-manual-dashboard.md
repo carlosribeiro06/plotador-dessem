@@ -1,4 +1,4 @@
-# Manual Release Checklist — Dashboard (Epic 3)
+# Manual Release Checklist — Dashboard
 
 ## Purpose
 
@@ -11,7 +11,8 @@ none of them should require interpretation.
 
 Steps 1 to 20 cover the whole of Epic 3 (tickets 019–026): the offline shell, the renderer core,
 the view-mode and deck controls, the Absoluto/Diferença toggle, and the SIN, submarket and
-interchange charts. Steps 21 onward cover Epic 4's plant name and code filters (ticket-028).
+interchange charts. Steps 21 to 26 cover Epic 4's plant name and code filters (ticket-028). Steps
+27 to 32 cover Epic 4's cost and time bar charts (tickets 030–031).
 
 Interface strings are quoted exactly as they render, in Portuguese, because that is the language of
 every dashboard UI string (`CLAUDE.md`); the prose around them is English, per the Rigoroso mode
@@ -56,11 +57,11 @@ decision E3-1 means no test parses this file, so a syntax error would otherwise 
    back to `SIN` and confirm the reverse. Level switching is a re-render, not a page reload, so the
    browser must not navigate.
 
-   **Note on the two levels Epic 3 does not populate:** clicking `Usinas hidrelétricas`,
-   `Usinas termelétricas` or `Execução` must still switch — the nav button becomes pressed and the
-   previous level's charts disappear — but their chart areas are expected to be **empty frames**
-   until Epic 4 renders them. Empty plot areas under those three headings are correct at this
-   milestone; a nav button that does not respond is not.
+   **Note on the three plant-level and scalar headings:** clicking `Usinas hidrelétricas`,
+   `Usinas termelétricas` or `Execução` must switch — the nav button becomes pressed and the
+   previous level's charts disappear — and each of those three levels now renders its own charts
+   (Epic 4, tickets 027–031; verified by steps 21 to 32 below). An empty plot area under any of
+   those three headings is a **defect**, exactly like a nav button that does not respond.
 
 ## 4. Por deck and Encadeado modes
 
@@ -216,12 +217,23 @@ through the same kind-driven bar path, so this one section covers them together.
     category on this build: that measurement, not an assumption, is what settles whether the scale
     gap is large enough to warrant a further ticket.
 
+    As a reference order of magnitude -- a value read from the committed
+    `reference/parquet-schemas.txt` dump, not a promise about this build's own data -- `PRESENTE`
+    is about `5.87e4` and `FUTURO` is about `2.28e8`, both in `10^3 R$`, on that reference deck. If
+    this build's own `PRESENTE`/`FUTURO` pair differs from that pair by a further factor of about
+    1000 in either direction, suspect a unit regression on the Y-axis label (epic-04 boundary
+    review finding 1) rather than accepting the chart at face value.
+
 30. On `Tempo Computacional`, repeat steps 28 and 29 for the `MILP`, `PL`, `Leitura` and `TOTAL`
     bars.
 
-    **Expected result:** the Y axis reads `min`; `TOTAL` equals the sum of `MILP`, `PL` and
-    `Leitura` at every category, to the configured decimals; and every value is a plausible number
-    of minutes for a DESSEM stage (tens to a few hundred), never a raw count of seconds.
+    **Expected result:** the Y axis reads `min`. Record the four values shown for `MILP`, `PL`,
+    `Leitura` and `TOTAL` at one category rather than judging them against a plausibility band --
+    a single etapa can legitimately run from under a minute to close to two hours, so no fixed
+    band is a valid pass/fail criterion. The one relation that must hold exactly, to the configured
+    decimals, is `TOTAL == MILP + PL + Leitura`. As a reference value -- read from the committed
+    `reference/parquet-schemas.txt` dump, not a promise about this build's own data -- `TOTAL` on
+    the reference deck is the sum of every row of `TEMPO.tempo` divided by 60, about `198.1` min.
 
 31. Switch the value toggle (`#value-toggle`) from `Absoluto` to `Diferença` while `Execução` is
     the active level.

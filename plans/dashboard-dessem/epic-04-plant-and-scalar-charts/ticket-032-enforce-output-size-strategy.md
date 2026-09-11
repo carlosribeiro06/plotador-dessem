@@ -257,7 +257,7 @@ packaged asset. `plotly_bundle_bytes()` failing would mean a broken `plotly` ins
    criterion 5's size difference collapses below the floor. Restore each. The last mutation is the
    one that matters, because it is the only evidence that ticket-027's omission is what produces the
    saving.
-9. Run the whole suite once at the end. It takes about 220 s, and this is the last ticket of the
+9. Run the whole suite once at the end. It takes about 10 minutes — measured at 564 s and 618 s in two epic-boundary runs, not the 220 s an earlier draft claimed — and this is the last ticket of the
    epic, so the epic-boundary gate — `ruff check`, `ruff format --check`, `mypy src`,
    `pytest --cov` — runs against the complete Epic 4 surface.
 
@@ -353,7 +353,7 @@ property.
 - [ ] The two files exist — one modified, one created — and all five acceptance criteria pass.
 - [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
 - [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent, and the full suite —
-      about 220 s — is green, since this is the epic-boundary run.
+      about 10 minutes — is green, since this is the epic-boundary run.
 - [ ] `write_dashboard` still returns `output_file`, still writes the same bytes, and still logs
       `caminho=` and `bytes=`; the MiB figure is an added field on the same INFO line.
 - [ ] The threshold produces exactly one Portuguese WARNING above it and none at or below it, proven

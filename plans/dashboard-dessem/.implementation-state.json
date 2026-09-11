@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T13:19:23Z",
+  "last_updated": "2026-09-11T14:06:51Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -1032,8 +1032,8 @@
       }
     },
     "epic-04-plant-and-scalar-charts": {
-      "phase": "executing",
-      "learning_extracted": false,
+      "phase": "completed",
+      "learning_extracted": true,
       "estimate": "~2.5-3.5 h (High, refined; 15 points)",
       "refined": true,
       "readiness_scored": true,
@@ -1064,7 +1064,43 @@
         "quality_min": 1.0,
         "quality_avg": 1.0,
         "readiness_avg": 0.99,
-        "below_gate": 0
+        "below_gate": 0,
+        "suite_after_boundary": 602,
+        "suite_duration_seconds_measured": [
+          564,
+          618
+        ]
+      },
+      "simplifier_ran": true,
+      "reviewer_ran": true,
+      "boundary_findings": {
+        "reviewer_critical": 2,
+        "reviewer_important": 2,
+        "simplifier_applied": 1,
+        "simplifier_recommended": 6,
+        "fixed": 5,
+        "deferred": [
+          "C1 -> follow-up ticket: the strict-TOTAL block is implemented twice, verbatim, 21 lines each, in aggregate_costs and aggregate_times. Extracting _strict_total and _cell_pairs needs a waiver of ticket-031 requirement 1, which froze aggregate_costs byte-identical. Not waived post-hoc at the boundary; the seam and the mypy caveat (sum() over list[float | None] is rejected under --strict) are recorded in the simplifier report.",
+          "C3 -> follow-up ticket, tests only: fourteen copies of the _settings_dict/_build_settings/_build_data scaffold, plus _read_js_asset in eight modules and _function_body in five. Per-module copies are a RECORDED convention, so de-duplicating is a plan-level ruling, not a boundary edit.",
+          "data-kind is written to the document and pinned by four tests but read by nothing - dashboard.js branches on chart[KEYS.KIND] from the payload instead. Harmless today, a divergence source if someone later reads the attribute. Spec defect in ticket-030 requirement 7.",
+          "An empty plant-chart option list would render a blank chart and leave the no-match message permanently visible, contradicting checklist step 25. Unreachable on real data because all_entity_ids is a union of PRESENT ids. Cheap guard recorded if it ever bites.",
+          "Checklist steps 24 and 29 each contain one instruction that is not achievable as written (a flex-layout claim about where the no-match message renders, and a unified-hover comparison that needs three hovers because each category is deck-parcel). Cosmetic but they are false instructions in the only behavioural gate."
+        ],
+        "critical": [
+          "FINDING 1: FALLBACK_UNITS['CUSTOS'] declared 'R$' for values in '10^3 R$' - a 1000x labelling error on a chart intended for official cost comparison. Section 5's defect shape exactly, two epics later: value from ticket-018, fallback unit from ticket-010, axis label from ticket-025, chart from ticket-030, each correct alone, NO TICKET OWNED THE CORRESPONDENCE - and unlike TEMPO's 'min', nothing asserted CUSTOS's unit at all. THREE independent anchors, all from the committed reference/parquet-schemas.txt and each verified twice (orchestrator then specialist): COP_SIN summed over the 144 h horizon vs CUSTOS.PRESENTE gives ratio 1.0019; CFU_SIN vs CUSTOS.FUTURO read as 10^3 R$ gives 0.9978 (0.000998 as plain R$); and METADADOS_OPERACAO's eight declared units never include bare R$ at all. Fixed, gated by a test, and the arithmetic now lives in a comment at the constant so the next reader can check rather than trust.",
+          "FINDING 2: the checklist's only surviving instruction about the UHE/UTE/Execucao levels told the operator that an EMPTY CHART AREA IS CORRECT - written at the epic-03 boundary, invalidated by the very epic that populated those three levels. Under E3-1 the checklist is the only behavioural gate for four rendering tickets, so an operator finding a genuinely blank hydro level would have recorded a pass and stopped looking. Root cause is ownership, not carelessness: ticket-028 owned section 8, ticket-031 owned section 9, nobody owned the document. Rule recorded for epic 5: any ticket appending to the checklist re-reads the whole file for claims its own epic invalidates."
+        ],
+        "orchestrator_errors": [
+          "SPEC DEFECT 17 WAS A MIS-RULING, and it is the reason finding 1 had no gate. The orchestrator declared ticket-030's cost magnitudes fabricated because a grep for the rendered figures found nothing - but reference/parquet-schemas.txt is tracked, committed, 84 KB, listed in planning-context.md's own Sources table, and gives PRESENTE 5.866757e+04 and FUTURO 2.284204e+08 at lines 92-93. The figures were correct. The amendment deleted verified facts, and removing them from checklist step 29 removed the only order-of-magnitude expectation the cost chart had. Retracted in epic-04-learnings.md section 1. META-LESSON: the measure-do-not-assert rule can be applied to the wrong quantity - measuring that a string is absent is not measuring that a fact is unverifiable.",
+          "STALE SUITE DURATION propagated into six dispatches: the orchestrator wrote 'about 5 to 5.5 minutes' and ticket-032 claimed 'about 220 s'. Measured twice at the boundary: 564 s and 618 s, i.e. about 10 minutes. Ticket-032 corrected with both measurements cited."
+        ],
+        "notes": [
+          "THE BOUNDARY EARNED ITS COST HERE MORE THAN ANYWHERE ELSE IN THE PLAN. All six tickets passed their guardians at 1.00, and the boundary still found a 1000x unit error, a checklist instructing the operator to ignore a real failure, a non-reproducible artifact, and an orchestrator mis-ruling. Not one of those is visible to a green suite, and not one could be caught by a gate that verifies a ticket against its own requirements.",
+          "BYTE-FOR-BYTE REPRODUCIBILITY was broken and no test could see it. scalars.py iterated a set[tuple[str, str]] to insert the scenario/deck keys of every aggregated scalar series, so insertion order followed the per-process randomised string hash and the same inputs produced byte-different HTML. Invisible to the suite because the only repeatability test compares two builds INSIDE ONE PROCESS. Verified by running under PYTHONHASHSEED - and the first attempt nearly refuted it, since three seeds agreed by chance; confirming the seed was propagating and widening the sample showed seed 777 reversing even the outer key order. Fixed with sorted() at three sites; 601/601 then passed under PYTHONHASHSEED=777, proving nothing depended on the arbitrary order.",
+          "A CONFIGURABLE DIVISOR UNDER A HARD-CODED LABEL (finding 3): time.unit_divisor is a documented tunable validated only as positive, while FALLBACK_UNITS['TEMPO'] is the constant 'min'. Setting unit_divisor to 1.0 would re-introduce the exact defect ticket-031 had just closed, with every test green, because the tests pinned the two halves separately and never together. Fixed with a Portuguese warning plus one test that asserts label and divisor AS A PAIR. General rule: where a label and a value are separately configurable, a test must assert their correspondence, not each half.",
+          "THE SIMPLIFIER'S MOST VALUABLE OUTPUT WAS NOT A SIMPLIFICATION. It correctly filed the reproducibility defect in its own section as 'not a simplification - please rule on this one' rather than burying it among refactors. It also predicted that its single applied edit might trip ruff's isort rule, which it did.",
+          "MEASURING BEAT ESTIMATING TWICE MORE AT THIS BOUNDARY. The simplifier estimated the live defect-20 docstring residue at five modules; measurement found ELEVEN, spanning epic 3 as well as epic 4. And the correct fix was the one it argued for: fix the DOCSTRING, not the value, because changing stage_groups would move the TEMPO bar count and the measured byte range in test_output_size.py."
+        ]
       }
     },
     "epic-05-delivery-and-legacy-removal": {

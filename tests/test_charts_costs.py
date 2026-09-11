@@ -103,6 +103,10 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
     costs.total_parcels stays at the repository default ["PRESENTE", "FUTURO"]: every test that
     exercises a different parcel set calls aggregate/aggregate_costs directly over a hand-built
     raw mapping instead, which needs no settings.json at all.
+
+    One deliberate divergence: `time.stage_groups` is reduced to the single `PL` group,
+    so these tests do not depend on the shipped three-group default. Correct this sentence
+    rather than the value.
     """
     return {
         "project": "dessem-dashboard",
@@ -426,6 +430,12 @@ def test_payload_custos_scalars_has_exactly_presente_futuro_total_with_full_cove
             assert set(by_deck) == {"03/03/2024", "04/03/2024"}
     assert custos["entities"] == []  # type: ignore[index]
     assert custos["series"] == {}  # type: ignore[index]
+    # CUSTOS shares COP_SIN/CFU_SIN's unit, not R$: CUSTOS.PRESENTE (58667.5674 raw) tracks
+    # COP_SIN's 144 h sum (406.6581 R$/h x 144 h = 58558.77, ratio 1.0019 to PRESENTE); CUSTOS.
+    # FUTURO (228420390.34615 raw) tracks CFU_SIN (228917.0446721 at 10^6 R$, i.e. 2.28917e11
+    # R$) at ratio 0.9978 when read as 10^3 R$, versus 1000x too small when read as plain R$
+    # (epic-04 boundary review finding 1; schemas.py's FALLBACK_UNITS comment has the full figures).
+    assert custos["unit"] == "10^3 R$"  # type: ignore[index]
 
 
 def test_payload_tempo_scalars_is_no_longer_pass_through_under_this_modules_narrow_stage_groups(

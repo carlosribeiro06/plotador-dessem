@@ -20,6 +20,7 @@ import pandas as pd
 
 from dessem_dashboard.charts.registry import ChartKind, ChartSpec, enabled_specs
 from dessem_dashboard.config import Settings
+from dessem_dashboard.dashboard.scalars import ScalarsByName
 from dessem_dashboard.dashboard.scalars import aggregate as aggregate_scalars
 from dessem_dashboard.logging_setup import log_step
 from dessem_dashboard.models.store import DashboardData, TimeAxis
@@ -93,11 +94,9 @@ def _build_series(
     return result
 
 
-def _build_scalars(
-    data: DashboardData, chart_key: str, *, decimals: int
-) -> dict[str, dict[str, dict[str, float | None]]]:
+def _build_scalars(data: DashboardData, chart_key: str, *, decimals: int) -> ScalarsByName:
     """Build chart_key's scalars entry: series name -> scenario -> deck key -> rounded value."""
-    result: dict[str, dict[str, dict[str, float | None]]] = {}
+    result: ScalarsByName = {}
     for (series_name, scenario, deck_date), value in data.scalars(chart_key).items():
         deck_key = data.deck_axis(deck_date).key
         by_scenario = result.setdefault(series_name, {})
@@ -129,7 +128,7 @@ def _build_chart_entry(
     subtitle = registry_title if registry_title not in (None, spec.title) else None
     unit = data.registries.unit_for(spec.key)
 
-    scalars: dict[str, dict[str, dict[str, float | None]]]
+    scalars: ScalarsByName
     series: dict[str, dict[str, dict[str, list[float | None]]]]
     if spec.kind is ChartKind.SERIES:
         entities = data.entities(spec.key)

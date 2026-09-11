@@ -27,6 +27,7 @@ from dessem_dashboard.dashboard.payload import build_payload
 from dessem_dashboard.dashboard.scalars import ScalarsByName, aggregate_times
 from dessem_dashboard.data.consolidate import build_dashboard_data
 from dessem_dashboard.data.discovery import discover_scenarios
+from dessem_dashboard.data.schemas import FALLBACK_UNITS
 from dessem_dashboard.errors import ConfigError
 from dessem_dashboard.models.store import DashboardData
 
@@ -479,6 +480,43 @@ def test_aggregate_times_group_sums_present_members_leniently_unlike_the_strict_
 
     assert "03/03/2024" in result["PL"]["caso_a"]
     assert result["PL"]["caso_a"]["03/03/2024"] == round((200.0 + 400.0) / 60.0, 2)
+
+
+# --- epic-04 boundary review finding 3 (2026-09-11): unit_divisor and the pinned "min" label ----
+# --- are checked TOGETHER, not each in its own test ----------------------------------------------
+
+
+def test_aggregate_times_unit_divisor_and_pinned_min_label_checked_together(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """FALLBACK_UNITS["TEMPO"] (data/schemas.py) hard-codes "min" independently of
+    time.unit_divisor; this module's own criterion-1 test above pins the 60.0 divisor and
+    tests/test_charts_costs.py's payload test pins the "min" label, but each does so alone, so
+    neither would notice the two drifting apart if only one side changed -- exactly the defect
+    epic 3 shipped and ticket-031 closed, reintroducible by a one-line settings.json edit. This
+    test calls aggregate_times with the two divisors in the same body and checks both halves of
+    the pairing at once: the matching divisor (60.0) stays silent, and the mismatched one (1.0)
+    warns while naming the exact label read from FALLBACK_UNITS itself, not a copy of the
+    literal.
+    """
+    caplog.set_level(logging.WARNING, logger=_SCALARS_LOGGER_NAME)
+
+    aggregate_times(
+        _RAW_FIVE_ETAPAS, stage_groups=_DEFAULT_STAGE_GROUPS, unit_divisor=60.0, decimals=2
+    )
+    assert [r for r in caplog.records if r.name == _SCALARS_LOGGER_NAME] == []
+
+    caplog.clear()
+    aggregate_times(
+        _RAW_FIVE_ETAPAS, stage_groups=_DEFAULT_STAGE_GROUPS, unit_divisor=1.0, decimals=2
+    )
+    matching = [
+        record
+        for record in caplog.records
+        if record.name == _SCALARS_LOGGER_NAME and record.args == ("time.unit_divisor", 1.0, 60.0)
+    ]
+    assert len(matching) == 1
+    assert f"'{FALLBACK_UNITS['TEMPO']}'" in matching[0].getMessage()
 
 
 # --- non-vacuity proofs: the three mutations of Suggested Approach step 8 -----------------------

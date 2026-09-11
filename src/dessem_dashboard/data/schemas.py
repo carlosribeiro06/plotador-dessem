@@ -121,7 +121,12 @@ FALLBACK_UNITS: Mapping[str, str] = MappingProxyType(
         "QAFL_UHE": "m3/s",
         "QINC_UHE": "m3/s",
         "GTER_UTE": "MW",
-        "CUSTOS": "R$",
+        # CUSTOS.PRESENTE (58667.5674 raw) tracks COP_SIN summed over the reference deck's 144 h
+        # horizon (406.6581 R$/h x 144 h = 58558.77, ratio 1.0019); CUSTOS.FUTURO (228420390.34615
+        # raw) tracks CFU_SIN (228917.0446721 at 10^6 R$, i.e. 2.28917e11 R$) at ratio 0.9978 when
+        # read as 10^3 R$, versus 0.000998 (1000x too small) when read as plain R$. Both parcels
+        # share COP_SIN/CFU_SIN's unit, not R$ (epic-04 boundary review finding 1).
+        "CUSTOS": "10^3 R$",
         "TEMPO": "min",
         # Disabled registry entries (Appendix A.6, below the enabled table).
         "MER_SIN": "MW",
