@@ -212,3 +212,31 @@ def test_load_settings_int_for_include_fictitious_raises_config_error(tmp_path: 
     data["submarkets"]["include_fictitious"] = 0
     with pytest.raises(ConfigError, match="include_fictitious"):
         load_settings(_write(tmp_path, data))
+
+
+def test_load_settings_rotate_max_bytes_negative_raises_config_error(tmp_path: Path) -> None:
+    data = _valid()
+    data["logging"]["rotate_max_bytes"] = -1
+    with pytest.raises(ConfigError, match=re.escape("logging.rotate_max_bytes")):
+        load_settings(_write(tmp_path, data))
+
+
+def test_load_settings_rotate_max_bytes_zero_raises_config_error(tmp_path: Path) -> None:
+    data = _valid()
+    data["logging"]["rotate_max_bytes"] = 0
+    with pytest.raises(ConfigError, match=re.escape("logging.rotate_max_bytes")):
+        load_settings(_write(tmp_path, data))
+
+
+def test_load_settings_rotate_backups_negative_raises_config_error(tmp_path: Path) -> None:
+    data = _valid()
+    data["logging"]["rotate_backups"] = -5
+    with pytest.raises(ConfigError, match=re.escape("logging.rotate_backups")):
+        load_settings(_write(tmp_path, data))
+
+
+def test_load_settings_rotate_backups_zero_loads(tmp_path: Path) -> None:
+    data = _valid()
+    data["logging"]["rotate_backups"] = 0
+    settings = load_settings(_write(tmp_path, data))
+    assert settings.logging.rotate_backups == 0

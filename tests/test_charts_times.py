@@ -87,6 +87,20 @@ def _raw_group_seconds(
     return total
 
 
+# --- the module docstring above claims _DEFAULT_STAGE_GROUPS is "the shipped settings.json's ---
+# --- own time.stage_groups": this proves it, instead of merely asserting the four group names --
+
+
+def test_default_stage_groups_literal_matches_the_repository_settings_json() -> None:
+    """_DEFAULT_STAGE_GROUPS must equal, member for member, settings.json's own
+    time.stage_groups: dropping an etapa from either side without updating the other -- for
+    example settings.json losing "PL.CalcCMO" while this literal still lists it -- would
+    otherwise pass every other test in this module and degrade the shipped Tempo Computacional
+    chart's TOTAL by one etapa, signalled by nothing louder than a single logger.warning."""
+    settings = load_settings(_REPO_SETTINGS)
+    assert settings.time.stage_groups == _DEFAULT_STAGE_GROUPS
+
+
 # --- settings/data/document/payload builders, following tests/test_charts_costs.py's pattern --
 
 

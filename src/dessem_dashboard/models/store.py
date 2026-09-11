@@ -23,7 +23,10 @@ from dessem_dashboard.data.registries import Registries
 from dessem_dashboard.errors import StoreError
 
 # Operator-facing date rendering for every message this module raises, per binding decision 2 and
-# settings.dashboard.date_format. Kept in one place so no error can drift into ISO.
+# settings.dashboard.date_format. This copy formats message text only; the payload's real
+# deck-key format lives in data/consolidate.py's own _DATE_FORMAT (data/timeline.py carries a
+# third copy, also message-only). Deliberately not shared: fusing a data-contract format with a
+# message format would couple two concerns that merely agree today.
 _DATE_FORMAT: Final = "%d/%m/%Y"
 
 

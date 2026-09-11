@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T22:15:00Z",
+  "last_updated": "2026-09-11T23:45:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -1558,59 +1558,79 @@
     }
   ],
   "plan_scoring_summary": {
-    "computed": "2026-09-11, with tickets 037 and 038 still pending",
-    "tickets_completed": "36 of 38",
-    "points_completed": "96 of 99",
-    "points_note": "The plan total is 99 points, not the 98 the orchestrator had been repeating. Ticket-036 was re-sized from 2 to 3 during the epic-05 refinement and the running total was not re-derived. Recomputed from the state file rather than carried forward - the same unmeasured-claim shape this plan has found four times, caught here in the orchestrator's own progress reporting.",
-    "quality": {
-      "mean": 0.9878,
-      "min": 0.88,
-      "scored": 36
+    "tickets": "38/38 completed",
+    "points": "99/99",
+    "quality_mean": 0.9884,
+    "quality_min": 0.88,
+    "readiness_mean": 0.9684,
+    "readiness_min": 0.92,
+    "per_epic_quality": {
+      "epic-01-project-foundation": 0.988,
+      "epic-02-data-layer": 0.971,
+      "epic-03-dashboard-core": 1.0,
+      "epic-04-plant-and-scalar-charts": 1.0,
+      "epic-05-delivery-and-legacy-removal": 0.992
     },
-    "readiness": {
-      "mean": 0.9684,
-      "min": 0.92,
-      "scored": 38
+    "below_1.00": {
+      "ticket-009": 0.88,
+      "ticket-012": 0.88,
+      "ticket-002": 0.9,
+      "ticket-011": 0.95,
+      "ticket-034": 0.95
     },
-    "by_epic": {
-      "epic-01-project-foundation": {
-        "done": "8/8",
-        "points": 17,
-        "readiness": 0.948,
-        "quality": 0.988
-      },
-      "epic-02-data-layer": {
-        "done": "10/10",
-        "points": 28,
-        "readiness": 0.956,
-        "quality": 0.971
-      },
-      "epic-03-dashboard-core": {
-        "done": "8/8",
-        "points": 24,
-        "readiness": 0.988,
-        "quality": 1.0
-      },
-      "epic-04-plant-and-scalar-charts": {
-        "done": "6/6",
-        "points": 15,
-        "readiness": 0.99,
-        "quality": 1.0
-      },
-      "epic-05-delivery-and-legacy-removal": {
-        "done": "4/6",
-        "points": 12,
-        "readiness": 0.97,
-        "quality": 0.988
-      }
+    "guardian_rejections": 2,
+    "spec_defects_found_and_amended": 25,
+    "cross_ticket_collisions": 7,
+    "final_gate": "ruff clean, ruff format 61 files already formatted, mypy clean on 26 source files, 643 passed with zero skips across two chunks (338 + 305), 99% coverage (1542 statements, 14 missed)"
+  },
+  "plan_completed": "2026-09-11",
+  "plan_completion_fan_out": {
+    "code_simplifier": {
+      "scope": "the whole src/dessem_dashboard package, 20 modules and 3 static assets",
+      "files_modified": 2,
+      "edits": 4,
+      "headline": "aggregate_costs and aggregate_times each carried a byte-for-byte equivalent 22-line strict-TOTAL block, written weeks apart by two different tickets, differing only in loop-variable names and in spelling the same rounding two ways. Extracted as _strict_total, called from both. The sorted(pairs) reproducibility call, the -0.0 normalisation, TOTAL's last-key position and the list-emptiness test that lets a legitimate 0.0 cell through all survive; the lenient-group / strict-TOTAL asymmetry is now stated once in the helper's docstring instead of implied twice.",
+      "orchestrator_verification": "Re-checked against the failure the code was built to prevent, not against the suite alone: three CLI subprocesses under PYTHONHASHSEED 1, 777 and 31337 produced byte-identical 4,429,075-byte documents, one sha256 between them, each printing exactly one stdout line. Plus ruff, format, mypy clean and 103 affected tests green.",
+      "also_deleted": "a comment on _round_nonzero explaining that aggregate_costs kept its own inline ternary 'per requirement 1's literal change nothing else in the module' -- an expired ticket instruction documenting the duplication it caused.",
+      "behavioural_findings_left_unedited": 2
     },
-    "below_1_00": {
-      "ticket-002-create-pyproject-and-package-skeleton.md": 0.9,
-      "ticket-009-define-parquet-schema-contracts.md": 0.88,
-      "ticket-011-declare-enabled-chart-specs.md": 0.95,
-      "ticket-012-add-synthetic-sintese-fixtures.md": 0.88,
-      "ticket-034-add-example-data-integration-test.md": 0.95
-    },
-    "reading": "Five of thirty-six tickets scored below 1.00, and four of the five are in epics 1 and 2 - quality rose to a uniform 1.00 across epics 3 and 4 and stayed there. The fifth is ticket-034, scored 0.95 by the orchestrator rather than the guardian because the guardian REJECTED it and its protocol skips scoring on rejection; 0.8 conformance was recorded deliberately so the plan's only rejection stays visible in the plan's own record. DEFECT LEDGER, which is the more useful output than the scores: twenty-four spec defects, four orchestrator errors, one implementation gap. That ratio says the tickets and the orchestrator were the weak links, not the implementations - an argument for spending the next plan's effort on specification review rather than on more per-ticket verification. The dominant defect shape, at both ends, was THE UNMEASURED CLAIM: a magnitude attributed to unreadable data, a stale member count, a suite duration carried forward, a file structure described backwards, and a file count obtained by grep where only running the change answers. Every one cost minutes to fix and every one was catchable by running something instead of reading it."
-  }
+    "code_reviewer": {
+      "verdict": "PASS_WITH_WARNINGS",
+      "defects": 2,
+      "risks": 4,
+      "preferences": 3,
+      "false_positives_recorded": 10,
+      "headline": "F2, the highest-value residual: tests/test_charts_times.py declared _DEFAULT_STAGE_GROUPS with a comment claiming it repeats the shipped settings.json, and nothing compared the two. Dropping 'PL.CalcCMO' from the real file left all 638 tests green -- group names unchanged, and the integration test's TOTAL == MILP + PL + Leitura stays INTERNALLY consistent -- while the audited Tempo Computacional chart silently under-reported total computational time by one etapa. The only signal was a single logger.warning.",
+      "independently_reproduced": "23 settings leaf keys, 26 Python files, 7 error classes, 6 dashboard levels, 42 specs / 23 enabled / 19 disabled, the 10^3 R$ unit including re-deriving the ratio arithmetic from the committed dump, the 12-file chart-count blast radius, the absence of any fail_under or setup.cfg/.coveragerc/tox.ini, the log_step formula measured at exactly 25 lines for a 2x2 run, checklist step 30's 11887/60 = 198.117 min, checklist step 14's 'point 73 of 96' as 48 + 25, zero colour literals in dashboard.css, and the Rigoroso language split in both directions."
+    }
+  },
+  "plan_completion_fixes": {
+    "files": 9,
+    "test_count": "638 -> 643 (exactly the five tests added)",
+    "coverage": "99% (1542 statements, 14 missed), measured chunk-by-chunk with --cov-append",
+    "mutation_proofs": 2,
+    "applied": [
+      "F2: one assertion comparing tests/test_charts_times.py's _DEFAULT_STAGE_GROUPS against load_settings(_REPO_SETTINGS).time.stage_groups, proved to fail by dropping 'PL.CalcCMO' from settings.json (the sibling group-names-only test still passed, confirming the blind spot) and settings.json then restored byte-for-byte, verified with git diff.",
+      "F3: logging.rotate_max_bytes and rotate_backups moved from a plain int check to the existing _require_int_ge helper (>= 1 and >= 0). Both previously accepted values that SILENTLY DISABLE audit-log rotation: maxBytes=-1 never rotates, backupCount<=0 keeps no copy. Four new tests, three proved to fail under the reverted validation with 'DID NOT RAISE ConfigError'.",
+      "F1: README's settings.project row claimed the label appears in log lines and the run manifest; no module reads it. Rewritten honestly in the style the table already uses one row below for paths.log_dir. Adding project to the manifest was deliberately NOT done -- it is a schema change and is a decision for the developer.",
+      "F4: dashboard.js's KEYS comment claimed to name every payload field the file reads 'and no others', while buildLayout touches five deep-copied Plotly layout fields that are not KEYS values. Comment corrected; KEYS deliberately not extended, because tests assert against that file's source text.",
+      "F6(a): README said the run manifest lands 'beside' the document, false whenever --saida points outside paths.output_dir. Clause dropped.",
+      "N3: models/store.py's _DATE_FORMAT comment claimed the format is 'kept in one place' when it is declared three times, and only data/consolidate.py's copy produces the payload's deck keys. Reworded to the true division of responsibility.",
+      "tests/test_parity.py's provenance comment re-quoted: it justified a double-rounding pin by quoting a literal line the simplifier's extraction removed. Now quotes _round_nonzero(sum(values), decimals) and names _strict_total, so the audit trail still points at real code.",
+      "README quality-gate table re-measured after every other edit, because the extraction moved the statement count: 643 passed, 441.2 s, 1542 statements, 14 missed, 99%, with the chunked measurement methodology documented beside the table so a reader is not misled by numbers that no single command reproduces."
+    ],
+    "specialist_corrected_the_orchestrator": "The brief asserted that barmode is pinned by tests/test_theme.py's plotly_layout_template assertions. The specialist verified that template never sets barmode at all -- it is pinned by tests/test_charts_costs.py's source-text assertions on dashboard.js -- and chose the accurate attribution rather than introducing a new false claim while fixing an old one. Sixth orchestrator error of the run, corrected by measurement."
+  },
+  "open_decisions_for_developer_plan_level": [
+    "F5: a --casos typo exits 1 with the stdout contract honoured, but puts a 35-line Rich traceback box between the generic first line and the actionable DiscoveryError naming the path. ticket-037 deliberately kept both handlers as they are, and what it recorded was that a DashboardError still logs a traceback into the LOG FILE -- the console consequence of rich_tracebacks=True was never what that sentence described, and the owning test asserts only 'Traceback' in the log text and never inspects stderr. logger.exception with the error in the message would move the actionable text to line 1 and keep the traceback in the file.",
+    "F6(b)/(c): the run manifest has a fixed name in a fixed directory, so --saida outside paths.output_dir separates a document from its provenance, and two runs with different --saida leave only the second manifest. Options: write it next to --saida, or name it after the document's stem.",
+    "F1 alternative: add 'project': settings.project to the run manifest, which would make the original README sentence true and let an operator tag an official run in the audit trail. Costs the manifest schema, the README's ten-field enumeration and the manifest tests.",
+    "Simplifier finding: settings.submarkets.fictitious_codes is INERT in the path the README documents. load_registries defaults to a hard-coded (11, 99) and consolidate._load_registries never forwards the setting, so Submarket.fictitious -- and through it the SBM row filter -- ignores it. The setting is read exactly once, and only to decide which discarded codes get WARNED about. Nothing observes this because settings.json ships [11, 99] and every fixture uses the same values, but an operator adding a code would find that submarket still visible, against both the README and the no-hard-coded-tunables rule. Threading it through _load_registries changes a signature and a control path, which is why it was not done at plan close.",
+    "Simplifier finding: DeckRef.path and ScenarioRef.path are written by discovery and never read anywhere in src/ or tests/. Removing them is an interface change that would break eight DeckRef(..., path=...) constructions in tests/test_timeline.py.",
+    "Reviewer F3 residue, deliberately not fixed: discovery.sintese_dirname accepts \"\" (discovery then succeeds with each deck's sintese_dir pointing at itself and the run dies later on EST.parquet -- fail-late rather than fail-fast), and time.stage_groups accepts {} while its sibling costs.total_parcels is guarded with allow_empty=False.",
+    "N1: eleven of the fourteen uncovered statements are config.py error branches. The reviewer PROBED ALL ELEVEN and every one raises ConfigError with a clear Portuguese message naming the dotted key -- so this is a coverage gap on a correct implementation, closable with one parametrize. charts/registry.py:113's register() wrapper is called by neither src/ nor tests/ and is a removal candidate.",
+    "N2: submarkets.include_fictitious does not apply to the interchange level -- intended, test-owned, and the README is carefully scoped to submarket CHARTS -- but INT_SBP keeps every pair, so the Par de submercados selector offers FC (NOFICT1) and IV (IV) entries whose curves are flat zero. docs/checklist-manual-dashboard.md step 17 says nothing about it, so an operator walking the checklist meets it with no explanation. One sentence closes it.",
+    "N4: the checklist names some charts by registry key (GHID_SIN, CMO_SBM, INT_SBP, MER_SBM) and others by visible Portuguese title, while its preamble promises no step requires interpretation. Adding the title in parentheses at four places fixes it.",
+    "The human browser walk of docs/checklist-manual-dashboard.md (9 sections, 32 steps) remains outstanding BY DESIGN under E3-1. It is the only behavioural gate in the plan that no agent can close."
+  ]
 }

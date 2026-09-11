@@ -88,39 +88,52 @@ def aggregate_costs(raw: ScalarsByName, *, parcels: Sequence[str], decimals: int
         result[parcel] = series
         present_parcels.append(parcel)
 
+    result[_TOTAL_SERIES_NAME] = _strict_total(result, present_parcels, decimals=decimals)
+    return result
+
+
+def _round_nonzero(value: float, decimals: int) -> float:
+    """Round value to decimals, normalising a rounded -0.0 to 0.0."""
+    rounded = round(value, decimals)
+    return 0.0 if rounded == 0.0 else rounded
+
+
+def _strict_total(
+    series_by_name: ScalarsByName, names: Sequence[str], *, decimals: int
+) -> dict[str, dict[str, float | None]]:
+    """Sum names' series of series_by_name into the TOTAL series, under the strict rule.
+
+    A (scenario, deck_key) cell is emitted only when every one of names carries a non-None value
+    there, so a partially covered cell degrades by omission rather than by summing a subset:
+    aggregate_costs' parcels and aggregate_times' groups are themselves displayed bars, and a
+    partial TOTAL would stop equalling what the operator can already add up beside it on the
+    chart. Deliberately stricter than aggregate_times' own per-group sum, whose member etapas are
+    never displayed on their own and which is therefore lenient by design.
+
+    Sorting the (scenario, deck_key) set is a reproducibility requirement, not redundancy:
+    iterating the set directly follows the per-process randomised hash, which makes the generated
+    HTML non-reproducible.
+    """
     pairs: set[tuple[str, str]] = {
         (scenario, deck_key)
-        for parcel in present_parcels
-        for scenario, by_deck in result[parcel].items()
+        for name in names
+        for scenario, by_deck in series_by_name[name].items()
         for deck_key in by_deck
     }
 
     total: dict[str, dict[str, float | None]] = {}
     for scenario, deck_key in sorted(pairs):
         values: list[float] = []
-        for parcel in present_parcels:
-            value = result[parcel].get(scenario, {}).get(deck_key)
+        for name in names:
+            value = series_by_name[name].get(scenario, {}).get(deck_key)
             if value is None:
                 values = []
                 break
             values.append(value)
         if not values:
             continue
-        summed = round(sum(values), decimals)
-        total.setdefault(scenario, {})[deck_key] = 0.0 if summed == 0.0 else summed
-
-    result[_TOTAL_SERIES_NAME] = total
-    return result
-
-
-def _round_nonzero(value: float, decimals: int) -> float:
-    """Round value to decimals, normalising a rounded -0.0 to 0.0.
-
-    Private to aggregate_times: aggregate_costs keeps its own equivalent inline ternary
-    unchanged, per requirement 1's literal "change nothing else in the module".
-    """
-    rounded = round(value, decimals)
-    return 0.0 if rounded == 0.0 else rounded
+        total.setdefault(scenario, {})[deck_key] = _round_nonzero(sum(values), decimals)
+    return total
 
 
 def aggregate_times(
@@ -232,25 +245,5 @@ def aggregate_times(
             _STAGE_GROUPS_SETTINGS_KEY,
         )
 
-    pairs_total: set[tuple[str, str]] = {
-        (scenario, deck_key)
-        for group_name in emitted_groups
-        for scenario, by_deck in result[group_name].items()
-        for deck_key in by_deck
-    }
-
-    total: dict[str, dict[str, float | None]] = {}
-    for scenario, deck_key in sorted(pairs_total):
-        group_values: list[float] = []
-        for group_name in emitted_groups:
-            value = result[group_name].get(scenario, {}).get(deck_key)
-            if value is None:
-                group_values = []
-                break
-            group_values.append(value)
-        if not group_values:
-            continue
-        total.setdefault(scenario, {})[deck_key] = _round_nonzero(sum(group_values), decimals)
-
-    result[_TOTAL_SERIES_NAME] = total
+    result[_TOTAL_SERIES_NAME] = _strict_total(result, emitted_groups, decimals=decimals)
     return result

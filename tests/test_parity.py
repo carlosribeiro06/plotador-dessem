@@ -105,8 +105,8 @@ _REFERENCE_CUSTOS_FUTURO = 228420390.34615
 # PRESENTE and FUTURO to output.decimals INDIVIDUALLY first (58667.57 and 228420390.35 -- the
 # latter rounds UP because its third decimal is 6), and only then does aggregate_costs sum and
 # round again: round(58667.57 + 228420390.35, 2) = 228479057.92. The one-cent difference is the
-# double rounding, not a bug: it is the same rule aggregate_costs' own docstring documents
-# ("summed = round(sum(values), decimals)" over already-rounded per-parcel values). 228479057.92
+# double rounding, not a bug: it is the same rule dashboard.scalars._strict_total applies
+# ("_round_nonzero(sum(values), decimals)" over already-rounded per-parcel values). 228479057.92
 # is what a run of this pipeline over the reference deck actually produces; it is used below.
 _REFERENCE_CUSTOS_TOTAL_AT_TWO_DECIMALS = 228479057.92
 

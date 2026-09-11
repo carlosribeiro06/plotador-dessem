@@ -42,7 +42,7 @@ actually expected to change.
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `project` | `"dessem-dashboard"` | Project label used in log lines and in the run manifest. |
+| `project` | `"dessem-dashboard"` | Validated at load time (must be a string), but **read by no module**: no consumer of this key exists under `src/` (`grep -rn "project" src/` matches only the `Settings` dataclass field and the loader call in `config.py`). Neither the log lines nor `run_manifest.json` carry a project label: `manifest.write_run_manifest` writes exactly the ten fields enumerated in [What a run produces](#what-a-run-produces) below, none of them `project`. Changing this value has no observable effect. |
 
 ### Paths
 
@@ -242,8 +242,8 @@ programa.
 ### What a run produces
 
 A run writes exactly three things: the self-contained dashboard HTML at `--saida` (default
-`paths.output_dir/output.default_filename`), a `run_manifest.json` beside it inside
-`paths.output_dir`, and the rotating log file at `logging.file`. The dashboard embeds every value
+`paths.output_dir/output.default_filename`), a `run_manifest.json` inside `paths.output_dir`,
+and the rotating log file at `logging.file`. The dashboard embeds every value
 it needs — Plotly.js, the theme, the renderer script and the JSON data payload — so no other file
 is required to view it, and no network access is used at build time or view time.
 
@@ -600,7 +600,14 @@ repository as it stands at the end of this ticket:
 | `ruff check src tests` | `All checks passed!` |
 | `ruff format --check src tests` | `61 files already formatted` |
 | `mypy src` | `Success: no issues found in 26 source files` |
-| `pytest --cov=dessem_dashboard --cov-report=term-missing` | `638 passed, 1 warning in 441.41s (0:07:21)`; total coverage **99%** (1554 statements, 14 missed) |
+| `pytest --cov=dessem_dashboard --cov-report=term-missing` | `643 passed, 1 warning` across two chunked invocations totalling 441.2s (0:07:21); total coverage **99%** (1542 statements, 14 missed) |
+
+Measured as two sequential chunked invocations, `tests/test_[a-l]*.py` then `tests/test_[m-z]*.py`
+(the second with `--cov-append` so the reported coverage combines both), rather than as the single
+command shown above: on this development machine, a single `pytest --cov` run across the whole
+suite at once has repeatedly been killed by the OS for low memory. 338 passed in the first chunk
+and 305 in the second (338 + 305 = 643), zero skipped, one warning; wall clock was 4m44.5s +
+2m36.7s = 7m21.2s; the combined `.coverage` data reports 1542 statements with 14 missed (99%).
 
 Total coverage is **99%**, well above the Epic 5 convention of an **85% floor** (raised from 80%
 at the Epic 4/5 boundary). That floor is a convention checked by reading this number on every

@@ -5,7 +5,14 @@
 (function () {
   // Every payload field this file reads, and no others: KEYS is the single point of contact
   // between this file and the payload's key names, so a later rename breaks the read here
-  // instead of silently returning undefined.
+  // instead of silently returning undefined. KEYS gates only those payload keys, not the
+  // deep-copied Plotly layout object buildLayout mutates below: xaxis, yaxis, tickformat,
+  // hoverformat and barmode are that copied object's own field names, never a payload key. The
+  // template's shape (xaxis.type, xaxis/yaxis tickformat, hoverformat, gridcolor, the empty
+  // yaxis.title) is pinned on the Python side by tests/test_theme.py's plotly_layout_template
+  // assertions; buildLayout's own mutations of that copy -- deleting tickformat/hoverformat and
+  // setting xaxis.type/barmode for SCALAR_BY_DECK charts -- are pinned instead by
+  // tests/test_charts_costs.py's assertions on this file's own source text.
   const KEYS = Object.freeze({
     SCHEMA_VERSION: "schema_version",
     DECK_DATES: "deck_dates",

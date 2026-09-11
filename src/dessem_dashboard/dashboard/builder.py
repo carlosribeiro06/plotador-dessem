@@ -417,9 +417,8 @@ def plotly_bundle_bytes() -> int:
 
     The 4.3 MB `plotly.offline.get_plotlyjs()` read happens at most once per process: the value
     is a property of the installed `plotly` package version, never hard-coded, so a future
-    upgrade changes it here without a source edit. Consumed by `output_volumes` below and, from
-    ticket-033, by `pipeline.run` when it builds the `data_volumes` mapping
-    `manifest.write_run_manifest` records.
+    upgrade changes it here without a source edit. Consumed by `output_volumes` below, and
+    through it by the `data_volumes` mapping `manifest.write_run_manifest` records.
     """
     return len(plotly.offline.get_plotlyjs().encode("utf-8"))
 

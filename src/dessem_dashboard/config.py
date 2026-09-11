@@ -228,8 +228,8 @@ def _load_logging(raw: Mapping[str, object], *, base: Path) -> LoggingConfig:
     return LoggingConfig(
         level=_require_log_level(group, "level", prefix="logging"),
         file=_resolve_path(base, group, "file", prefix="logging"),
-        rotate_max_bytes=_require(group, "rotate_max_bytes", int, prefix="logging"),
-        rotate_backups=_require(group, "rotate_backups", int, prefix="logging"),
+        rotate_max_bytes=_require_int_ge(group, "rotate_max_bytes", 1, prefix="logging"),
+        rotate_backups=_require_int_ge(group, "rotate_backups", 0, prefix="logging"),
         use_rich=_require(group, "use_rich", bool, prefix="logging"),
     )
 
