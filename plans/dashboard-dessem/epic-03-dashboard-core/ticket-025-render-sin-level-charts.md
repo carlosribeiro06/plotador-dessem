@@ -198,6 +198,29 @@ generated from that same payload. No `try`/`catch` is added.
   call and three `KEYS` entries)
 - `tests/test_charts_sin.py` (create)
 
+> **Cross-ticket constraint collision, resolved 2026-09-11 during execution.** This is *not* one of
+> the plan's fourteen spec defects — neither document is wrong on its own, and that distinction
+> matters for the pattern catalogue. Requirement 2 needs `buildLayout` to behave differently in
+> difference mode, while ticket-024 shipped `tests/test_renderer_value_mode.py` asserting that the
+> quoted mode literal occurs **exactly once** in the asset, plus a sibling test that locks the exact
+> `if` line inside `buildTraces` by index. Three ways out were all blocked: a plain `if` in
+> `buildLayout` breaks the count; extracting a shared constant changes the locked `buildTraces` text;
+> and amending the ticket-024 test lies outside this ticket's two-file scope and would weaken a
+> verified assertion. The implementing agent confirmed the collision empirically by writing the
+> naive `if` first and watching that exact test fail.
+>
+> **Resolution:** `buildLayout` reaches the mode through an **unquoted** object-literal key with
+> computed access — identifier syntax rather than a string literal — so all three constraints hold,
+> no test is weakened and no file outside scope is touched. It also honours what the invariant is
+> actually for: exactly one place still *decides* the value mode, and `buildLayout` only looks up a
+> suffix.
+>
+> **Carried forward to Epic 4 refinement.** That assertion expresses "the literal lives only in
+> `buildTraces`" but enforces the stricter "appears once in the whole file". Tickets 027, 029, 030
+> and 031 extend this same asset and may need mode-dependent behaviour. If one of them hits the same
+> wall, the correct fix is to narrow the assertion to the `buildTraces` body, not to invent a second
+> workaround. Not worth changing while nothing needs it.
+
 ### Patterns to Follow
 
 - The frozen `KEYS` discipline: three new entries, no payload key literal anywhere else.

@@ -24,6 +24,9 @@
     REFERENCE: "reference",
     FORMATS: "formats",
     DECIMALS: "decimals",
+    UNIT: "unit",
+    LABELS: "labels",
+    Y_AXIS_DIFFERENCE_SUFFIX: "y_axis_difference_suffix",
   });
 
   let payload = null;
@@ -144,13 +147,30 @@
     return traces;
   }
 
+  // The one per-chart part of the layout: the Y-axis title, carrying the chart's unit in
+  // Absoluto mode and gaining the payload-supplied difference suffix in Diferenca mode. The
+  // mode is read through an unquoted object key rather than a second quoted comparison against
+  // the Diferenca mode name, because buildTraces already spends this file's one allowed quoted
+  // occurrence of that mode name; a second quoted occurrence here would silently double the
+  // count a sibling ticket's test locks at one. A missing key (Absoluto, or any other mode)
+  // resolves to undefined and contributes no suffix. A fresh deep copy per call, not a mutation
+  // of a shared object: Plotly.react writes computed properties into the layout it receives,
+  // and with several charts sharing one object one chart's axis range would leak into another.
+  function buildLayout(chartKey) {
+    const chart = payload[KEYS.CHARTS][chartKey];
+    const layout = JSON.parse(JSON.stringify(payload[KEYS.THEME][KEYS.LAYOUT]));
+    const differenceSuffixByMode = {
+      diferenca: payload[KEYS.LABELS][KEYS.Y_AXIS_DIFFERENCE_SUFFIX],
+    };
+    const suffix = differenceSuffixByMode[state.valueMode];
+    layout.yaxis.title = { text: chart[KEYS.UNIT] + (suffix === undefined ? "" : suffix) };
+    return layout;
+  }
+
   function renderChart(chartKey) {
     const container = document.getElementById("plot-" + chartKey);
     const traces = buildTraces(chartKey);
-    // A fresh copy per call: Plotly.react writes computed properties into the layout object it
-    // receives, so sharing one object across charts would leak one chart's axis range into
-    // another.
-    const layout = JSON.parse(JSON.stringify(payload[KEYS.THEME][KEYS.LAYOUT]));
+    const layout = buildLayout(chartKey);
     const config = {
       responsive: true,
       displaylogo: false,
@@ -249,6 +269,7 @@
     },
     axisKey: axisKey,
     buildTraces: buildTraces,
+    buildLayout: buildLayout,
     renderChart: renderChart,
     renderActiveGroup: renderActiveGroup,
     init: init,
