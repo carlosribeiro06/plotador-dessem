@@ -71,6 +71,28 @@ def test_setup_logging_use_rich_true_uses_rich_handler(tmp_path: Path) -> None:
     assert any(isinstance(h, RichHandler) for h in handlers)
 
 
+def test_setup_logging_use_rich_true_rich_handler_writes_to_stderr_not_stdout(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Regression for ticket-037 requirement 11: closes the correspondence at its source.
+
+    The test above asserts the handler's *type*; nothing asserted which *stream* it writes to,
+    which is exactly how `_build_console_handler` shipped a `RichHandler` with no explicit
+    `console=`, defaulting to stdout and mixing the whole log into a short CLI's one pipeable
+    stdout line (tests/test_cli.py's own regression covers that operator-facing contract; this
+    one guards the handler construction itself, so the next change to it cannot silently
+    redirect the stream again without a unit test failing right here).
+    """
+    log_file = tmp_path / "run.log"
+    setup_logging(level="INFO", log_file=log_file, use_rich=True)
+
+    logging.getLogger("dessem_dashboard.t").warning("mensagem de teste do console rich")
+
+    captured = capsys.readouterr()
+    assert "mensagem de teste do console rich" in captured.err
+    assert "mensagem de teste do console rich" not in captured.out
+
+
 def test_setup_logging_invalid_level_raises_config_error(tmp_path: Path) -> None:
     log_file = tmp_path / "run.log"
     with pytest.raises(ConfigError, match="VERBOSO"):

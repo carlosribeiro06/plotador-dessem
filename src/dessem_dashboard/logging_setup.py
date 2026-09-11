@@ -25,11 +25,17 @@ def _build_console_handler(*, use_rich: bool) -> logging.Handler:
     """Build the console handler: `RichHandler` when requested and importable, else plain."""
     if use_rich:
         try:
+            from rich.console import Console
             from rich.logging import RichHandler
         except ImportError:
             pass
         else:
-            rich_handler: logging.Handler = RichHandler(rich_tracebacks=True, show_path=False)
+            # An explicit stderr console keeps the log off stdout: Console() with no argument
+            # defaults to stdout, which would mix every log line into a short CLI's one
+            # pipeable result line (rules/python.md's stdout/logging split).
+            rich_handler: logging.Handler = RichHandler(
+                console=Console(stderr=True), rich_tracebacks=True, show_path=False
+            )
             rich_handler.setFormatter(logging.Formatter("%(message)s", datefmt="[%X]"))
             return rich_handler
     handler = logging.StreamHandler()

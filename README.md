@@ -219,6 +219,15 @@ options:
   --nivel-log {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Nível de log, sobrepondo logging.level definido em
                         settings.json.
+
+Exemplo de uso:
+
+  dessem-dashboard --casos exemplo/caso_oficial exemplo/caso_gurobi
+
+O primeiro diretório informado em --casos é o cenário de referência da
+visão de diferença, a menos que --referencia indique outro nome.
+settings.json é a fonte de todo caminho e todo parâmetro ajustável do
+programa.
 ```
 
 | Flag | Required | Default | Meaning |
@@ -237,6 +246,15 @@ A run writes exactly three things: the self-contained dashboard HTML at `--saida
 `paths.output_dir`, and the rotating log file at `logging.file`. The dashboard embeds every value
 it needs — Plotly.js, the theme, the renderer script and the JSON data payload — so no other file
 is required to view it, and no network access is used at build time or view time.
+
+On success, and only on success, `dessem-dashboard` also prints the resolved `--saida` path to
+**stdout** as its one and only line — no label, no prefix, nothing else — so a caller can capture
+it directly, for example `saida=$(dessem-dashboard --casos ...)` or
+`dessem-dashboard --casos ... > /dev/null` to discard everything but the exit code. Every failure
+path (a `DashboardError` from the pipeline, a malformed `settings.json`, or an argparse/
+configuration error such as a duplicate `--casos` basename or an unknown `--referencia`) leaves
+stdout empty; all diagnostics, progress and the per-warning lines described in
+[Logging and auditing](#logging-and-auditing) below go through `logging` instead, never stdout.
 
 `run_manifest.json` (`dessem_dashboard.manifest.write_run_manifest`) carries ten top-level fields:
 `timestamp_utc`, `git_sha` (the 40-character commit sha of the installed package's checkout, or
@@ -531,9 +549,16 @@ consolidation, and the two document-build steps — so a run can be reconstructe
 
 The rotating log file, `run_manifest.json`'s `warnings` field, and the dashboard's own `Avisos`
 section carry overlapping but not identical information. The **eight warning shapes** described in
-[Reading the dashboard](#reading-the-dashboard) above reach all three: `DashboardData.add_warning`
-both stores the message for the manifest and the `Avisos` section *and* is always paired with a
-`logger.warning`/`log_step` call, so every one of them is also in the log. The log file additionally
+[Reading the dashboard](#reading-the-dashboard) above reach all three, but not through the same
+mechanism: `DashboardData.add_warning` only appends to the list the `Avisos` section renders and
+`run_manifest.json` stores; it is `cli.main` that turns that list into console and log-file output,
+logging each distinct message as one `logger.warning` line right after the pipeline returns and
+before the manifest is written. That loop is capped at `cli._MAX_LOGGED_WARNINGS` (20) lines — a
+single (scenario, deck) whose synthesis folder is missing can otherwise raise up to 23 per-chart
+warnings on its own, and up to 92 across two scenarios and two decks — so one malformed tree cannot
+flood the console; past the cap, one further `logger.warning` line names how many messages were
+omitted and points back to `run_manifest.json` and `Avisos`, both of which always keep the
+complete, uncapped list regardless of what the console shows. The log file additionally
 records several warnings that never reach the manifest or the `Avisos` section, because they are
 operational detail rather than something the chart's own values are missing — for example a
 renamed plant detected between two decks' registries (`data.consolidate._warn_on_renamed_plants`),

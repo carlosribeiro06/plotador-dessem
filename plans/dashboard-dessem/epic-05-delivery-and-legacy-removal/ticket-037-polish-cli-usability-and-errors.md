@@ -399,6 +399,73 @@ operator-facing text cannot break a message assertion. If one breaks, report it.
 - [ ] `git status --short` shows only `src/dessem_dashboard/cli.py`, `tests/test_cli.py` and
       `README.md`.
 
+## Amendment of 2026-09-11 — requirement 11, after the guardian rejected this ticket
+
+**The stdout contract this ticket exists to deliver does not hold under the shipped default
+configuration.** Acceptance criterion 1 and requirement 4 promise that a successful run prints
+exactly the output path to stdout, so that `saida=$(dessem-dashboard ...)` works — and the README
+paragraph this ticket added states that promise to the operator. Measured from a real subprocess
+with the streams separated, under the shipped `settings.json`:
+
+```
+$ dessem-dashboard --casos caso_a caso_b --settings settings.json --saida out/d.html \
+    >only_stdout.txt 2>only_stderr.txt ; echo $?
+0
+stdout: 47-53 lines (the whole Rich log, with the path merely last)
+stderr: 0 lines
+```
+
+### The mechanism, pinned
+
+- `logging_setup._build_console_handler` constructs `RichHandler(rich_tracebacks=True,
+  show_path=False)` with **no `console=` argument**, so it uses a default `rich.console.Console()`.
+  Measured: `Console().file` is `<stdout>`, `Console(stderr=True).file` is `<stderr>`, and the
+  fallback `logging.StreamHandler()` is already `<stderr>`.
+- So the defect exists **only when `rich` is importable and `logging.use_rich` is true** — which is
+  `settings.json`'s shipped value and the configuration of every real run.
+- **The orchestrator's first explanation of why no test caught it was wrong, and the guardian
+  disproved it by experiment.** The orchestrator said pytest's logging capture intercepts the
+  handler. It does not: `capsys` captures the pollution perfectly well under `use_rich: True`. The
+  real reason is narrower and worse — `tests/test_cli.py`'s `_settings_dict` hardcodes
+  `"use_rich": False`, so **the one module that drives `cli.main` end to end is the one module that
+  detunes the logging configuration**, and the buggy path is never entered. Every other test module
+  sets `True`.
+- A finer unowned correspondence sits underneath: `tests/test_logging_setup.py` asserts that
+  `use_rich=True` selects a `RichHandler` — the handler's **type** — and nothing anywhere asserts
+  which **stream** it writes to.
+
+This is the plan's signature defect class once more: the stdout contract belongs to this ticket, the
+handler's stream was chosen in ticket-004, each is correct alone, and nothing asserted the pairing.
+
+### Requirement 11 — what to change
+
+1. In `src/dessem_dashboard/logging_setup.py`, pass an explicit stderr console to the handler:
+   `RichHandler(console=Console(stderr=True), rich_tracebacks=True, show_path=False)`. This file is
+   **outside this ticket's original Key Files list**, which is why it needs this amendment rather
+   than a silent patch. Change nothing else in that module: the rotating file handler, the level
+   handling and the fallback all stay exactly as they are.
+2. Add a regression test that would have caught this on day one, under the **shipped** default
+   rather than the suite's convenience value: drive `cli.main` with a settings dict whose
+   `logging.use_rich` is `True` and assert `capsys.readouterr().out.strip()` equals the output path
+   exactly. Put it wherever it reads best — `tests/test_cli.py` alongside the existing stdout test,
+   or `tests/test_logging_setup.py` next to the handler-type assertions — and say which and why.
+3. **Prove it discriminates**: revert the `Console(stderr=True)` argument, confirm the new test
+   fails, restore. A test that passes both with and without the fix is worth nothing here, and this
+   ticket has already produced one vacuous assertion that only running the mutation exposed.
+4. Leave `tests/test_cli.py`'s existing `use_rich: False` as it is for the other tests. Flipping it
+   suite-wide would change captured output for sixteen tests to no purpose; the new test carries the
+   shipped configuration on its own.
+5. `rules/python.md` is the authority for the split being fixed here: a short CLI printing its final
+   result to stdout is fine, and audit, progress and diagnostic output goes through logging. Sending
+   the log to stderr is what makes both halves true at once.
+
+### What stays
+
+Nine of ten requirements, three of four acceptance criteria, the diff discipline, the class count,
+the five rejected features and all five mutations were verified and passed. The guardian was
+explicit that this is not sloppy work. Re-verify only requirement 4, acceptance criterion 1, and the
+two Definition-of-Done items that depend on them.
+
 ## Effort Estimate
 
 **Points**: 2 · **Confidence**: High · **Agent time**: about 30 minutes. Unchanged from the

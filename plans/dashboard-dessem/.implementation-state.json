@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T18:57:29Z",
+  "last_updated": "2026-09-11T20:56:14Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -1072,7 +1072,7 @@
     },
     "ticket-037-polish-cli-usability-and-errors.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 2,
       "scores": {
@@ -1083,8 +1083,28 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 0.8
-        }
-      }
+        },
+        "quality": 1.0
+      },
+      "workflow_step": "guardian_approved_after_fix",
+      "notes": [
+        "GUARDIAN REJECTED - the second rejection of the plan, on a defect the ORCHESTRATOR found by running the shipped CLI as a real subprocess rather than reading a report. Acceptance criterion 1 and requirement 4 promise stdout carries exactly the output path; measured with the streams separated under the shipped settings.json, stdout carried 47 to 53 lines of Rich log with the path merely last, and stderr carried nothing. The README paragraph this ticket added states that false promise to the operator.",
+        "THE GUARDIAN CORRECTED THE ORCHESTRATOR'S MECHANISM, BY EXPERIMENT, AND ITS VERSION IS WORSE. The orchestrator said pytest's logging capture intercepts the handler, so the defect was untestable. False: the guardian wrote a throwaway test and showed capsys captures the pollution fine under use_rich=True. The real reason is that tests/test_cli.py's _settings_dict hardcodes use_rich: False - so THE ONE MODULE THAT DRIVES cli.main END TO END IS THE ONE MODULE THAT DETUNES THE LOGGING CONFIGURATION, and the buggy path is never entered. Verified by the orchestrator afterwards: test_cli.py is the ONLY module of eighteen that sets it False. That correction matters practically - it means a regression test is trivial to write, which the orchestrator's framing had understated.",
+        "A FINER UNOWNED CORRESPONDENCE UNDERNEATH, worth carrying into any future plan: tests/test_logging_setup.py asserts that use_rich=True selects a RichHandler - the handler's TYPE - and nothing anywhere asserts which STREAM it writes to. Measured: Console() is stdout, Console(stderr=True) is stderr, and the fallback StreamHandler() is already stderr, so the defect exists only on the rich path, which is the shipped default.",
+        "Amended as requirement 11: pass console=Console(stderr=True) to RichHandler in logging_setup.py, which is outside this ticket's original file list and therefore needs the amendment; add a regression test under the SHIPPED use_rich: True rather than the suite's convenience value; and prove it discriminates by reverting the argument and watching it fail. Nine of ten requirements and three of four acceptance criteria already passed and are not being re-litigated.",
+        "FIXED AND RE-VERIFIED: 5/5 acceptance criteria, 7/7 Definition-of-Done items, quality 1.00, 637 tests confirmed by the guardian in two independent runs. The contract now holds black-box and was measured in BOTH states - before the fix stdout carried 47 lines of Rich log with stderr empty; after it, stdout carries exactly one line, exactly the output path, with the log on stderr and exit 0 on a degraded run. The orchestrator measured the fixed state independently as well.",
+        "THE SPECIALIST CHOSE BOTH TEST PLACEMENTS when the orchestrator left the choice open, and the reasoning is the transferable part: the CLI test proves the OPERATOR CONTRACT, while the logging_setup test pins the correspondence AT THE POINT OF HANDLER CONSTRUCTION - so whoever edits _build_console_handler next gets a failing unit test right there instead of an end-to-end failure three modules away. The guardian confirmed the second test is not redundant: under mutation both fail, for different and complementary reasons. For a defect class defined by an unowned correspondence, the test at the point of construction is the one that prevents recurrence; the end-to-end test only proves today's fix.",
+        "A VOLUNTARY DISCLOSURE WORTH RECORDING AS A STANDARD. The specialist's first coverage run reported '1 failed, 636 passed'. It could have simply re-run and reported the clean number. Instead it diagnosed the cause - a background full-suite run had caught logging_setup.py mid-sed while a mutation was being applied, and test_console_script_help_exits_0_and_lists_casos is the one test that shells out to a fresh subprocess and re-imports from disk, so it read the broken file - re-ran clean at 637, and flagged the episode so the number would not be taken on faith. The guardian confirmed 637 independently. Reporting a dirty intermediate number you are not obliged to mention is the behaviour this plan should want."
+      ],
+      "agent": "python-task-automation-developer",
+      "quality_breakdown": {
+        "conformance": 1.0,
+        "scope_adherence": 1.0,
+        "lint_cleanliness": 1.0,
+        "type_safety": 1.0,
+        "test_delta": 1.0
+      },
+      "quality_scored": true
     },
     "ticket-038-remove-legacy-scripts.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
@@ -1434,5 +1454,61 @@
       ],
       "resolved": "2026-09-11"
     }
-  ]
+  ],
+  "plan_scoring_summary": {
+    "computed": "2026-09-11, with tickets 037 and 038 still pending",
+    "tickets_completed": "36 of 38",
+    "points_completed": "96 of 99",
+    "points_note": "The plan total is 99 points, not the 98 the orchestrator had been repeating. Ticket-036 was re-sized from 2 to 3 during the epic-05 refinement and the running total was not re-derived. Recomputed from the state file rather than carried forward - the same unmeasured-claim shape this plan has found four times, caught here in the orchestrator's own progress reporting.",
+    "quality": {
+      "mean": 0.9878,
+      "min": 0.88,
+      "scored": 36
+    },
+    "readiness": {
+      "mean": 0.9684,
+      "min": 0.92,
+      "scored": 38
+    },
+    "by_epic": {
+      "epic-01-project-foundation": {
+        "done": "8/8",
+        "points": 17,
+        "readiness": 0.948,
+        "quality": 0.988
+      },
+      "epic-02-data-layer": {
+        "done": "10/10",
+        "points": 28,
+        "readiness": 0.956,
+        "quality": 0.971
+      },
+      "epic-03-dashboard-core": {
+        "done": "8/8",
+        "points": 24,
+        "readiness": 0.988,
+        "quality": 1.0
+      },
+      "epic-04-plant-and-scalar-charts": {
+        "done": "6/6",
+        "points": 15,
+        "readiness": 0.99,
+        "quality": 1.0
+      },
+      "epic-05-delivery-and-legacy-removal": {
+        "done": "4/6",
+        "points": 12,
+        "readiness": 0.97,
+        "quality": 0.988
+      }
+    },
+    "below_1_00": {
+      "ticket-002-create-pyproject-and-package-skeleton.md": 0.9,
+      "ticket-009-define-parquet-schema-contracts.md": 0.88,
+      "ticket-011-declare-enabled-chart-specs.md": 0.95,
+      "ticket-012-add-synthetic-sintese-fixtures.md": 0.88,
+      "ticket-034-add-example-data-integration-test.md": 0.95
+    },
+    "reading": "Five of thirty-six tickets scored below 1.00, and four of the five are in epics 1 and 2 - quality rose to a uniform 1.00 across epics 3 and 4 and stayed there. The fifth is ticket-034, scored 0.95 by the orchestrator rather than the guardian because the guardian REJECTED it and its protocol skips scoring on rejection; 0.8 conformance was recorded deliberately so the plan's only rejection stays visible in the plan's own record. DEFECT LEDGER, which is the more useful output than the scores: twenty-four spec defects, four orchestrator errors, one implementation gap. That ratio says the tickets and the orchestrator were the weak links, not the implementations - an argument for spending the next plan's effort on specification review rather than on more per-ticket verification. The dominant defect shape, at both ends, was THE UNMEASURED CLAIM: a magnitude attributed to unreadable data, a stale member count, a suite duration carried forward, a file structure described backwards, and a file count obtained by grep where only running the change answers. Every one cost minutes to fix and every one was catchable by running something instead of reading it."
+  }
 }
