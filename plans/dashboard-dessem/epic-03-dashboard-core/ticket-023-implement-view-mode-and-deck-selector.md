@@ -284,8 +284,28 @@ and the deck-retention behaviour in a browser.
       pass.
 - [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
 - [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent.
-- [ ] `tests/test_builder.py` and `tests/test_renderer_contract.py` still pass unchanged, proving the
-      placeholder set, the section count and the `KEYS` contract were not disturbed.
+- [ ] `tests/test_renderer_contract.py` still passes **unchanged**, proving the `KEYS` contract was
+      not disturbed, and `tests/test_builder.py` still passes with **exactly one test updated**, the
+      mode-comparison test named below, proving the placeholder set and the section count were not
+      disturbed (amended 2026-09-11 — see the note).
+
+> **Amended 2026-09-11 during execution.** This item originally required `tests/test_builder.py` to
+> pass **unchanged**, which requirements 2 and 3 of this same ticket make impossible. Those
+> requirements add `aria-pressed` to the mode-toggle buttons and `disabled` to the deck selector, so
+> the `"deck"` and `"encadeado"` documents necessarily differ in four attributes rather than the one
+> that ticket-021's `test_build_html_initial_mode_deck_and_encadeado_differ_only_in_that_attribute`
+> normalised away. A requirement and a Definition-of-Done item cannot both hold; this is defect shape
+> 6 of `epic-02-learnings.md` section 6, the thirteenth instance in this plan.
+>
+> **Resolution, chosen by the implementing agent and accepted by the orchestrator:** extend that one
+> test's normalisation to the four now-documented differences and rename it to
+> `test_build_html_initial_mode_deck_and_encadeado_differ_only_in_documented_attributes`. The test
+> stays meaningful and in fact asserts the stronger, more useful property — that no **undocumented**
+> difference exists between the two documents — and it reuses the normalisation pattern this ticket's
+> own Testing Requirements prescribe for the new file. The rejected alternatives were leaving it
+> failing, which is an unconditional regression, and weakening requirements 2 and 3, which
+> contradicts the acceptance criteria. Deleting the test was also rejected: it would drop the only
+> guard that `--modo-inicial` changes nothing else in the document.
 - [ ] The deck selector is disabled and never hidden in Encadeado mode, and the deck selection
       survives a mode round trip.
 - [ ] No hash-routing construct exists anywhere in `dashboard.js`.

@@ -501,12 +501,20 @@ def test_build_html_entity_label_with_ampersand_and_less_than_escapes_in_option_
     assert "Usina A & B < C" not in document
 
 
-# --- requirement 6: initial_mode is the only substantive difference between the two modes ------
+# --- requirement 6: initial_mode drives only the documented, normalisable differences ----------
 
 
-def test_build_html_initial_mode_deck_and_encadeado_differ_only_in_that_attribute(
+def test_build_html_initial_mode_deck_and_encadeado_differ_only_in_documented_attributes(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
+    """The two initial_mode documents differ only where ticket-023 requirements 2 and 3 say so.
+
+    Ticket-021 introduced this test when `initial_mode` drove only `data-initial-mode`; ticket-023
+    requirements 2 and 3 add `aria-pressed` on the two `#mode-toggle` buttons and `disabled` on
+    `#deck-selector`, both keyed off the same argument, so the single-attribute normalisation no
+    longer holds. The four-way normalisation below is the one ticket-023's own Testing
+    Requirements section prescribes for this exact comparison.
+    """
     settings = _build_settings(tmp_path)
     data = _build_data(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], settings=settings, reference="caso_a"
@@ -517,10 +525,24 @@ def test_build_html_initial_mode_deck_and_encadeado_differ_only_in_that_attribut
 
     assert 'data-initial-mode="deck"' in document_deck
     assert 'data-initial-mode="encadeado"' in document_chained
+    assert '<select id="deck-selector">' in document_deck
+    assert '<select id="deck-selector" disabled>' in document_chained
 
-    normalised_deck = document_deck.replace('data-initial-mode="deck"', 'data-initial-mode=""')
-    normalised_chained = document_chained.replace(
-        'data-initial-mode="encadeado"', 'data-initial-mode=""'
+    normalised_deck = (
+        document_deck.replace('data-initial-mode="deck"', 'data-initial-mode=""')
+        .replace('data-mode="deck" aria-pressed="true"', 'data-mode="deck" aria-pressed=""')
+        .replace(
+            'data-mode="encadeado" aria-pressed="false"', 'data-mode="encadeado" aria-pressed=""'
+        )
+        .replace('<select id="deck-selector">', '<select id="deck-selector" >')
+    )
+    normalised_chained = (
+        document_chained.replace('data-initial-mode="encadeado"', 'data-initial-mode=""')
+        .replace('data-mode="deck" aria-pressed="false"', 'data-mode="deck" aria-pressed=""')
+        .replace(
+            'data-mode="encadeado" aria-pressed="true"', 'data-mode="encadeado" aria-pressed=""'
+        )
+        .replace('<select id="deck-selector" disabled>', '<select id="deck-selector" >')
     )
     assert normalised_deck == normalised_chained
 

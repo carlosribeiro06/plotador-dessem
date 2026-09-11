@@ -82,6 +82,17 @@ VALUE_LABELS: Final[Mapping[str, str]] = {
 }
 
 
+def _validate_initial_mode(initial_mode: str) -> None:
+    """Raise ValueError when initial_mode is neither "deck" nor "encadeado" (requirement 1).
+
+    `--modo-inicial` already restricts the CLI to `MODE_LABELS`' two keys, so a call reaching
+    here with anything else is a programming error, not an operator error; this deliberately
+    raises plain ValueError rather than ConfigError.
+    """
+    if initial_mode not in MODE_LABELS:
+        raise ValueError(f"initial_mode must be one of {sorted(MODE_LABELS)}, got {initial_mode!r}")
+
+
 def _read_asset(name: str) -> str:
     """Read one text asset from the packaged assets directory, as UTF-8.
 
@@ -122,24 +133,36 @@ def _level_nav(specs: Sequence[ChartSpec]) -> str:
 
     Groups appear in the order they first occur in specs (requirement 8), which is
     `enabled_specs`' own registration order, not an alphabetical or otherwise re-derived order.
+    The button of `specs[0]`'s group -- the initially active level, matching the chart sections
+    `_chart_sections` leaves unhidden -- carries `aria-pressed="true"`; every other group button
+    carries `aria-pressed="false"` (requirement 4).
     """
+    active_group = specs[0].group.value
     seen_groups: list[str] = []
     for spec in specs:
         group = spec.group.value
         if group not in seen_groups:
             seen_groups.append(group)
+    pressed_by_group = {group: str(group == active_group).lower() for group in seen_groups}
     buttons = (
-        f'<button type="button" data-group="{html.escape(group)}">'
+        f'<button type="button" data-group="{html.escape(group)}" '
+        f'aria-pressed="{pressed_by_group[group]}">'
         f"{html.escape(GROUP_LABELS[group])}</button>"
         for group in seen_groups
     )
     return "".join(buttons)
 
 
-def _mode_toggle() -> str:
-    """Build one button per MODE_LABELS entry, in declared order."""
+def _mode_toggle(initial_mode: str) -> str:
+    """Build one button per MODE_LABELS entry, in declared order.
+
+    The button whose `data-mode` equals `initial_mode` carries `aria-pressed="true"`; the other
+    carries `aria-pressed="false"` (requirement 2), so the shell already shows the selected mode
+    before any JavaScript runs.
+    """
     return "".join(
-        f'<button type="button" data-mode="{html.escape(mode)}">{html.escape(label)}</button>'
+        f'<button type="button" data-mode="{html.escape(mode)}" '
+        f'aria-pressed="{str(mode == initial_mode).lower()}">{html.escape(label)}</button>'
         for mode, label in MODE_LABELS.items()
     )
 
@@ -152,17 +175,20 @@ def _value_toggle() -> str:
     )
 
 
-def _deck_selector(deck_dates: Sequence[str]) -> str:
+def _deck_selector(deck_dates: Sequence[str], *, disabled: bool) -> str:
     """Build the deck `<select>`, one `<option>` per already-`%d/%m/%Y`-formatted deck key.
 
     Does not re-format these strings with `settings.dashboard.date_format`: that pattern carries
-    `%H:%M` and would render the deck of 3 March as `03/03/2024 00:00`.
+    `%H:%M` and would render the deck of 3 March as `03/03/2024 00:00`. Carries the bare
+    `disabled` attribute when `disabled` is True (requirement 3): the control stays present and
+    visible in Encadeado mode, merely inert, rather than being hidden.
     """
     options = "".join(
         f'<option value="{html.escape(deck_date)}">{html.escape(deck_date)}</option>'
         for deck_date in deck_dates
     )
-    return f'<select id="deck-selector">{options}</select>'
+    disabled_attribute = " disabled" if disabled else ""
+    return f'<select id="deck-selector"{disabled_attribute}>{options}</select>'
 
 
 def _warnings_section(warnings: Sequence[str]) -> str:
@@ -237,6 +263,7 @@ def build_html(data: DashboardData, *, settings: Settings, initial_mode: str = "
     (in particular the inlined `plotly.min.js` and the JSON payload) is ever re-scanned for a
     `$` placeholder. Touches no disk beyond those reads.
     """
+    _validate_initial_mode(initial_mode)
     start = time.perf_counter()
 
     specs = enabled_specs(disabled=settings.charts.disabled)
@@ -256,8 +283,8 @@ def build_html(data: DashboardData, *, settings: Settings, initial_mode: str = "
         initial_mode=html.escape(initial_mode),
         logo_data_uri=_logo_data_uri(settings.paths.logo_file),
         level_nav=_level_nav(specs),
-        mode_toggle=_mode_toggle(),
-        deck_selector=_deck_selector(deck_dates),
+        mode_toggle=_mode_toggle(initial_mode),
+        deck_selector=_deck_selector(deck_dates, disabled=initial_mode == "encadeado"),
         value_toggle=_value_toggle(),
         reference=html.escape(data.reference),
         warnings_section=_warnings_section(data.warnings()),

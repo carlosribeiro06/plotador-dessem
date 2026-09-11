@@ -131,6 +131,66 @@
     }
   }
 
+  // Reusable across every button-group toggle this file and its later tickets add (the mode
+  // toggle here, the level navigation here, and the value toggle ticket-024 adds): sets
+  // aria-pressed on every button of containerId carrying a data-<datasetKey> attribute, true
+  // where that attribute equals value and false everywhere else.
+  function syncPressed(containerId, datasetKey, value) {
+    const container = document.getElementById(containerId);
+    const buttons = container.querySelectorAll("button[data-" + datasetKey + "]");
+    for (const button of buttons) {
+      const pressed = button.dataset[datasetKey] === value;
+      button.setAttribute("aria-pressed", String(pressed));
+    }
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    syncPressed("mode-toggle", "mode", mode);
+    // The property, not removeAttribute/setAttribute: it toggles consistently and never clears
+    // the <select> value, so the retained deck selection survives the mode round trip.
+    document.getElementById("deck-selector").disabled = mode === "encadeado";
+    renderActiveGroup();
+  }
+
+  function setDeck(deck) {
+    // No validation: the only source is the <select> whose options builder.py generated from
+    // the payload's deck dates, so every possible value is already known-good.
+    state.deck = deck;
+    renderActiveGroup();
+  }
+
+  function setGroup(group) {
+    const sections = document.querySelectorAll("#charts .chart");
+    for (const section of sections) {
+      // The property, not setAttribute/removeAttribute: it keeps the hidden attribute exactly
+      // in sync and lets the .chart[hidden] CSS rule do the actual hiding.
+      section.hidden = section.dataset.group !== group;
+    }
+    syncPressed("level-nav", "group", group);
+    renderActiveGroup();
+  }
+
+  document.getElementById("level-nav").addEventListener("click", function (event) {
+    const group = event.target.dataset.group;
+    if (group === undefined) {
+      return;
+    }
+    setGroup(group);
+  });
+
+  document.getElementById("mode-toggle").addEventListener("click", function (event) {
+    const mode = event.target.dataset.mode;
+    if (mode === undefined) {
+      return;
+    }
+    setMode(mode);
+  });
+
+  document.getElementById("deck-selector").addEventListener("change", function (event) {
+    setDeck(event.target.value);
+  });
+
   window.DessemDashboard = {
     get payload() {
       return payload;
@@ -143,6 +203,9 @@
     renderChart: renderChart,
     renderActiveGroup: renderActiveGroup,
     init: init,
+    setMode: setMode,
+    setDeck: setDeck,
+    setGroup: setGroup,
   };
 
   document.addEventListener("DOMContentLoaded", init);
