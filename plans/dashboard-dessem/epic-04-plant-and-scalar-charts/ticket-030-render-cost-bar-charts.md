@@ -104,15 +104,40 @@ The three original key decisions and the three open questions resolve as follows
   browser from the absolute values, through the **existing** `valuesForMode`, which already handles
   `null` on either side and rounds by `formats.decimals`. Requirement 8 records the cross-ticket
   collision this creates and its sanctioned resolution.
-- **The scale divergence is accepted, documented and not worked around.** In the real data `FUTURO`
-  is about 2.3e8 R$ while `PRESENTE` is about 5.9e4 R$, so on one linear axis the present-cost bar is
-  about 0.03 percent of the future-cost bar and is invisible. The three available fixes are all worse:
-  a log axis cannot render the signed Diferença view and `rangemode` is a token
+- **The scale divergence is accepted, documented and not worked around.** `PRESENTE` and `FUTURO`
+  are expected to differ by orders of magnitude, so on one linear axis the present-cost bar may be a
+  fraction of a percent of the future-cost bar and effectively invisible. The three available fixes
+  are all worse: a log axis cannot render the signed Diferença view and `rangemode` is a token
   `tests/test_charts_sin.py` forbids outright; a second Y axis is forbidden by the same file's
-  single-`yaxis`-function assertion; and a per-parcel chart needs three registry entries. The exact
-  values stay readable through `hovermode: "x unified"`, which the layout already sets, and through
-  Plotly's box zoom. ticket-031 records the caveat as a manual checklist step so the developer sees
-  it on real data and can decide then whether it is worth a further ticket.
+  single-`yaxis`-function assertion; and a per-parcel chart needs three registry entries, which this
+  ticket's Out of Scope forbids. The exact values stay readable through `hovermode: "x unified"`,
+  which the layout already sets, and through Plotly's box zoom. ticket-031 records the caveat as a
+  manual checklist step so the developer sees it on real data and can decide then whether it is
+  worth a further ticket.
+
+  > **Corrected 2026-09-11 — spec defect 17, and a third new shape for the catalogue: a
+  > quantitative claim attributed to a source its author could not reach.** This bullet originally
+  > read "In the real data `FUTURO` is about 2.3e8 R$ while `PRESENTE` is about 5.9e4 R$, so ... is
+  > about 0.03 percent". Those figures appear nowhere in the repository outside this sentence:
+  > `planning-context.md` records the `CUSTOS` schema and the legacy total but no magnitudes, and
+  > the real data lives under `exemplo/`, which every agent on this plan is forbidden to read. The
+  > refinement therefore could not have measured them. The **direction** of the claim is sound and
+  > the reasoning it supports still holds, so the design decision stands unchanged; only the false
+  > precision is removed. Do not restore a specific figure here without measuring it, and do not
+  > quote these numbers to the developer as if they were observed.
+
+- **A legacy-parity tension this ticket does not resolve, recorded for ticket-035.** The tool this
+  project replaces, `Plotadores/Custos.py`, does **not** put the three cost quantities on one axis:
+  it emits three separate figures, with the Y-axis titles `Custo Presente (R$)`,
+  `Custo Futuro (R$)` and `Custo Total de Operação (R$)`. This ticket deliberately ships one
+  grouped bar chart instead, which is what the single registry entry
+  `_scalar("CUSTOS", "Custo Presente, Futuro e Total")` and `planning-context.md`'s "bars per deck"
+  describe, and a three-chart split is explicitly out of this ticket's scope because it needs three
+  new `ChartSpec` entries in the epic-02 `charts/specs.py`. The consequence is that the new
+  dashboard shows one chart where the legacy showed three, with one series possibly invisible where
+  the legacy gave it its own axis. **ticket-035 is the legacy parity check and is the right place
+  for this to surface, against real data and in front of the developer.** It is recorded here so
+  that the parity check is not read as passing merely because the totals agree.
 
 ### Relation to Epic
 

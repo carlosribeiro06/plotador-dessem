@@ -178,10 +178,16 @@ and why the test that proves it must drop a group from `stage_groups`.
    hover; confirm the same for the time chart's `MILP`, `PL`, `Leitura` and `TOTAL` bars, in minutes;
    switch to Diferença and confirm the reference scenario's bars fall to zero while the Y axis title
    gains ` (diferença)`; and switch the view mode and the deck selector and confirm the bars do not
-   change, per decision 5. Record explicitly, as a known and accepted caveat, that on real data
-   `FUTURO` is about 2.3e8 R$ while `PRESENTE` is about 5.9e4 R$, so the present-cost bar is
-   invisible at the default zoom and is read through the unified hover or a box zoom on the Y axis;
-   state that a log axis was rejected because it cannot render the signed Diferença view.
+   change, per decision 5. Record explicitly, as a known and accepted caveat, that
+   `PRESENTE` and `FUTURO` are expected to differ by orders of magnitude, so the present-cost bar
+   may be invisible at the default zoom and is then read through the unified hover or a box zoom on
+   the Y axis; state that a log axis was rejected because it cannot render the signed Diferença
+   view. **Write no specific figures into the checklist** — spec defect 17 put unmeasured values
+   ("about 2.3e8 R$" and "about 5.9e4 R$") in this requirement, and a checklist that tells the
+   operator what to expect from real data it never measured is the same defect as epic-03 finding
+   H1, where the checklist asserted that level navigation did not work. Have the step ask the
+   operator to **read and record** the two magnitudes from the chart, which also turns this caveat
+   into the measurement that settles whether a further ticket is warranted.
 10. Change no JavaScript, no CSS, no HTML template, no `payload.py`, no `builder.py`, no `theme.py`
     and no epic-02 module. In particular do not divide by 60 in `consolidate.py`, which ticket-018
     deliberately leaves in seconds, and do not divide in the asset, which E3-1 keeps free of data
