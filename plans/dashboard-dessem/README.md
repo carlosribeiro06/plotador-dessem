@@ -1,7 +1,7 @@
 # Plan: Dashboard HTML para Comparação de Resultados do DESSEM
 
 Progressive implementation plan for the DESSEM comparison dashboard: 5 epics, 38 tickets, Epics 1
-and 2 fully detailed and ready for dispatch, Epics 3 to 5 as outlines to be refined with the
+and 2 fully detailed and Epics 3 to 5 refined against the built artefact, each with the
 learnings of the earlier epics.
 
 ## Navigation
@@ -15,7 +15,7 @@ learnings of the earlier epics.
 | [`epic-02-data-layer/`](epic-02-data-layer/) | Discovery, readers, registries, timeline, chart registry, data store, 10 detailed tickets |
 | [`epic-03-dashboard-core/`](epic-03-dashboard-core/) | Theme, payload, HTML shell, JS renderer, SIN and SBM charts, 8 refined tickets |
 | [`epic-04-plant-and-scalar-charts/`](epic-04-plant-and-scalar-charts/) | Plant charts with filters, cost and time bars, size enforcement, 6 refined tickets |
-| [`epic-05-delivery-and-legacy-removal/`](epic-05-delivery-and-legacy-removal/) | Pipeline wiring, validation, documentation, legacy removal, 6 outline tickets |
+| [`epic-05-delivery-and-legacy-removal/`](epic-05-delivery-and-legacy-removal/) | Pipeline wiring, validation, parity check, documentation, legacy removal, 6 refined tickets |
 | `.implementation-state.json` | Machine-readable execution state, readiness scores and open questions |
 | [`HANDOFF-PROMPT.md`](HANDOFF-PROMPT.md) | Prompt to paste into a new chat to start `/implement-plan` with every decision carried over |
 
@@ -47,11 +47,13 @@ See "Phases & Estimates" below.
 | epic-02 | Data layer | 009-018 | 28 | detailed | completed |
 | epic-03 | Dashboard core | 019-026 | 24 | refined | completed |
 | epic-04 | Plant-level and scalar charts | 027-032 | 15 | refined | completed |
-| epic-05 | Delivery, validation and legacy removal | 033-038 | 14 | outline | outline |
+| epic-05 | Delivery, validation and legacy removal | 033-038 | 15 | refined | executing |
 
-Total: 38 tickets, 98 points. Detailed tickets are sized at 30 minutes of agent time or less.
-The count rose from the 94 of the original outline plan as Epics 3 and 4 were refined: epic-03 from
-21 to 24 points and epic-04 from 14 to 15. Refinement re-sizes; it does not add scope.
+Total: 38 tickets, 99 points. Detailed tickets are sized at 30 minutes of agent time or less.
+The count rose from the 94 of the original outline plan as Epics 3 to 5 were refined: epic-03 from
+21 to 24 points, epic-04 from 14 to 15 and epic-05 from 14 to 15. Refinement re-sizes; it does not
+add scope — epic-05's extra point is ticket-036, where the README skeleton turned out to be false in
+five places rather than merely thin.
 
 ## Progress
 
@@ -89,12 +91,12 @@ The count rose from the 94 of the original outline plan as Epics 3 and 4 were re
 | ticket-030 | Render the cost bar charts | epic-04 | completed | Refined | 0.96 | 1.00 | EXCELLENT |
 | ticket-031 | Render the computational time bar charts | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-032 | Enforce the output size strategy | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-033 | Wire the end-to-end pipeline | epic-05 | pending | Outline | -- | -- | -- |
-| ticket-034 | Add the example-data integration test | epic-05 | pending | Outline | -- | -- | -- |
-| ticket-035 | Run the legacy parity check | epic-05 | pending | Outline | -- | -- | -- |
-| ticket-036 | Write the user documentation | epic-05 | pending | Outline | -- | -- | -- |
-| ticket-037 | Polish the CLI usability and error messages | epic-05 | pending | Outline | -- | -- | -- |
-| ticket-038 | Remove the legacy scripts | epic-05 | pending | Outline | -- | -- | -- |
+| ticket-033 | Wire the end-to-end pipeline | epic-05 | pending | Refined | 1.00 | -- | -- |
+| ticket-034 | Add the example-data integration test | epic-05 | pending | Refined | 1.00 | -- | -- |
+| ticket-035 | Run the legacy parity check | epic-05 | pending | Refined | 0.97 | -- | -- |
+| ticket-036 | Write the user documentation | epic-05 | pending | Refined | 0.97 | -- | -- |
+| ticket-037 | Polish the CLI usability and error messages | epic-05 | pending | Refined | 0.95 | -- | -- |
+| ticket-038 | Remove the legacy scripts | epic-05 | pending | Refined | 0.93 | -- | -- |
 
 Readiness is the composite of the five-dimension rubric, computed during planning. Outline tickets
 are scored after refinement. `Quality` and `Badge` are filled by `/implement-plan` after each ticket

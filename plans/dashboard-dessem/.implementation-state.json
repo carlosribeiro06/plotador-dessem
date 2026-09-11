@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T14:06:51Z",
+  "last_updated": "2026-09-11T14:17:41Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -923,38 +923,99 @@
     "ticket-033-wire-end-to-end-pipeline.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 3,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-034-add-example-data-integration-test.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 3,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-035-run-legacy-parity-check.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 3,
+      "scores": {
+        "readiness": 0.97,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 0.9,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-036-write-user-documentation.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 3,
+      "scores": {
+        "readiness": 0.97,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 0.9,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      },
+      "points_outline": 2
     },
     "ticket-037-polish-cli-usability-and-errors.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 2,
+      "scores": {
+        "readiness": 0.95,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 0.9,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
     },
     "ticket-038-remove-legacy-scripts.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 1
+      "detail_level": "refined",
+      "points": 1,
+      "scores": {
+        "readiness": 0.93,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 0.9,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.6
+        }
+      }
     }
   },
   "epics": {
@@ -1104,14 +1165,73 @@
       }
     },
     "epic-05-delivery-and-legacy-removal": {
-      "phase": "outline",
+      "phase": "executing",
       "learning_extracted": false,
-      "estimate": "~2-3.5 h (Low, outline)",
+      "estimate": "~3-4 h (Medium, refined; 15 points)",
       "refinement_inputs": [
         "ORDERING RISK CHECKED AND ABSENT, 2026-09-11. The epic-05 dependency order is strictly sequential 033 -> 034 -> 035 -> 036 -> 037 -> 038, so ticket-038's deletion of Plotadores/ happens AFTER ticket-035's legacy parity check. The parity check therefore still has its reference implementation in the working tree when it runs. Do not reorder these two under any circumstances.",
         "TICKET-035 INHERITS THE COST-CHART PARITY TENSION recorded in ticket-030's Context. Plotadores/Custos.py emits THREE separate cost figures with the Y-axis titles 'Custo Presente (R$)', 'Custo Futuro (R$)' and 'Custo Total de Operacao (R$)'. The new dashboard ships ONE grouped bar chart, deliberately, and one series may be invisible on a shared linear axis where the legacy gave it its own. The parity check must NOT be read as passing merely because the totals agree - the presentation differs, and the developer has to see that on real data and rule. Refine ticket-035 to compare presentation as well as values.",
         "TICKET-038 OPEN QUESTION ANSWERED BY MEASUREMENT, 2026-09-11: no __pycache__ path is tracked any more (git ls-files finds none) and .gitignore line 2 covers __pycache__/, so ticket-001 already handled it. Ticket-038 has nothing to do there and should drop that question rather than re-investigate it.",
         "TICKET-038's OTHER OPEN QUESTION - delete Plotadores/ outright or move it to legacy/ for one release - now has an argument on the record for keeping it reachable. The cost-chart presentation decision above is unresolved and its only evidence is Plotadores/Custos.py. Deleting outright leaves that evidence only in git history, which is recoverable but not discoverable by someone reading the working tree. At minimum the README note ticket-038 also asks about should say where the legacy plotters went and that the cost-chart presentation question predates their removal."
+      ],
+      "refined": true,
+      "readiness_scored": true,
+      "readiness_mean": 0.97,
+      "dispatch_notes": [
+        "DISPATCH STRICTLY SEQUENTIALLY: 033 -> 034 -> 035 -> 036 -> 037 -> 038. No pair in this epic may run in parallel, and every edge is load-bearing on a shared file, not only on data. 033 and 037 both write src/dessem_dashboard/cli.py and tests/test_cli.py. 036, 037 and 038 all write README.md. 034 and 036 both touch docs/checklist-manual-dashboard.md.",
+        "HARD CONSTRAINT, NEVER REORDER: ticket-035 before ticket-038. 038 deletes Plotadores/, which is 035's reference implementation, and 038 requirement 2 additionally makes 035's parity report a precondition it verifies before deleting anything. Epic-04 learnings section 10 item 3 records the constraint in those words.",
+        "ticket-034 creates tests/exemplo_tree.py (exemplo_root, qualifying_scenarios, documented_pair), a shared non-test helper following the fixtures_sintese.py and dashboard_document.py precedent. ticket-035 imports it. Neither may duplicate the resolution nor import a private helper from the other's test module.",
+        "PRE-IDENTIFIED SEAM in ticket-035, recorded rather than acted on: it delivers a test module and a report document and is the only ticket in the epic that could be read as two objectives. Dispatched whole because splitting renumbers 036 to 039 across five documents - the same ruling that kept ticket-030 whole in epic 4. The seam is requirements 1-4 (test) against 5-7 (report); the report depends on the test only for section (c)'s verdict column.",
+        "LIVE DEFECT ASSIGNED, NOT MERELY NOTED: --modo-inicial is accepted by argparse, recorded in the manifest params, and changes NOTHING in the output, because cli.main never passes it to pipeline.run and write_dashboard defaults initial_mode to 'encadeado'. Same shape as the TEMPO min-versus-seconds defect: two correct halves, no ticket owning the correspondence. Closed by ticket-033 requirement 3 and acceptance criterion 3, which asserts on the WRITTEN document (data-initial-mode and the deck selector's disabled attribute), not on a return value.",
+        "LIVE DEFECT ASSIGNED: settings.discovery.sintese_dirname has zero call sites in src/ - discover_scenarios is called only by tests. ticket-033 requirement 1 gives it a consumer and acceptance criterion 4 proves it with a NEGATIVE case (the same tree under the default 'sintese' must raise DiscoveryError), so the assertion cannot pass on a hard-coded default.",
+        "LIVE GAP ASSIGNED: DashboardData.add_warning never logs (store.py:278-285). The degradation record reaches the HTML Avisos section and, after ticket-033, run_manifest.json - but never the console or the rotating log file. Split deliberately: 033 puts the list in the manifest and logs the count; 037 logs each message with a cap of 20 and one truncation line.",
+        "LIVE GAP ASSIGNED: checklist section 9 (steps 27-32, written by ticket-031) is the ONLY one of nine sections guarded by no test. Measured: grep -rn 'checklist-manual|_DOCS_CHECKLIST' tests/*.py names only test_renderer_contract.py and test_charts_filters.py, and test_charts_times.py has no checklist reference at all. It carries step 30's min-not-seconds check and step 29's read-and-record measurement. Closed by ticket-034 requirement 5, scoped to section 9's own slice and explicitly forbidden from asserting that nothing follows it.",
+        "EPIC-02 LEARNINGS SECTION 5 IS STALE and must not be used as a gate: its rule 'no test may read exemplo/ - verified by grep -rn \"exemplo\" tests/ returning nothing' has matched tests/test_renderer_contract.py:453 since ticket-024, which pins the checklist build command. The intent holds; the grep does not.",
+        "AMENDED 2026-09-11 after the epic-04 boundary landed mid-refinement. Corrections applied to the six tickets: FALLBACK_UNITS['CUSTOS'] from R$ to 10^3 R$ (boundary finding 1) in 034, 035 and 036; the new time.unit_divisor mismatch warning (boundary finding 3) in 036 and 037, taking the src logger.warning count from 9 to 10; the collected test count from 601 to 602; the suite duration to about 10 minutes; and ticket-036 requirement 7, which had asked for two checklist fixes the boundary review had already made - now a verification rather than an edit, which is why 036 kept 3 points instead of gaining a fourth.",
+        "REAL-DATA FIGURES ARE NOW AUTHORISED FROM ONE SOURCE (epic decision E5-4): plans/dashboard-dessem/reference/parquet-schemas.txt is a committed 933-line dump of the reference deck exemplo/2024-03-03/caso_oficial/sintese, which decision 15 verified byte-identical by blob hash to exemplo/caso_oficial/2024-03-03/sintese. Quoting it, with the file cited, is measurement; reading exemplo/ is still forbidden. This is what lets ticket-035 pin two ABSOLUTE real-data values - CUSTOS.TOTAL = 228479057.91 and TEMPO.TOTAL = 198.12 min - instead of settling for relative comparisons, and it is the proper closure of spec defect 17.",
+        "THE PARITY CHECK'S SECOND TENSION WAS UNRECORDED: Plotadores/Tempo.py emits FOUR separate figures (Tempo MILP line 33, Tempo PL line 51, Tempo Leitura de Dados e Impressao line 69, Tempo Total line 94) where the dashboard ships one grouped chart. Only the CUSTOS 3-to-1 case was on the record. Both now go to the developer as open decisions via ticket-035 requirement 6.",
+        "THE MOST CONSEQUENTIAL PARITY FINDING IS A UNIT, NOT A LAYOUT (epic decision E5-3): every legacy cost axis is labelled '(R$)' (Plotadores/Custos.py lines 34, 52, 77) while the values are 10^3 R$, as the epic-04 boundary review established from reference/parquet-schemas.txt. The legacy label was wrong by 1000x and the new dashboard corrects it. A parity check comparing only numbers would have missed the thing that mattered - which is the argument for ticket-035 comparing presentation and units as well as values."
+      ],
+      "open_decisions_for_developer": [
+        "BOTH PRESENTATION COLLAPSES, and the TEMPO half is new: the legacy tool emits three CUSTOS figures and four TEMPO figures where the dashboard ships one grouped bar chart each. Ticket-035 puts both on the desk with the evidence and two options (accept, or add three to four ChartSpec entries in a follow-up) and deliberately chooses neither.",
+        "THE COST SCALE IS NOW MEASURABLE RATHER THAN ASSERTED, which is the proper closure of the orchestrator's defect-17 mis-ruling: PRESENTE about 5.87e4 against FUTURO about 2.28e8, both in 10^3 R$, from the committed dump - about four orders of magnitude, so PRESENTE may be invisible on a shared linear axis. A log axis is ruled out because it cannot render the signed Diferenca view.",
+        "Carried from epic 4 and still unowned by any ticket: plant labels carry the name without the code, and output.decimals is global rather than per chart.",
+        "AUTHORISATION THE REFINEMENT NARROWED RATHER THAN BLOCKED ON: ticket-035's specialist may RUN the pipeline over exemplo/ but may not open, list or transcribe it, with the committed schema dump as the only quotable source of real figures. Widen this only if the parity report should quote live values."
+      ],
+      "refinement_inputs_consumed": "All four refinement_inputs honoured: the 035-before-038 ordering risk (now a banner in both tickets), the cost-parity tension (ticket-035 requirement 6, plus its unrecorded TEMPO twin), the answered __pycache__ question (dropped by measurement) and the delete-versus-legacy/ argument (resolved by making ticket-035's report a precondition of ticket-038).",
+      "measured_baselines": {
+        "collected_tests": 602,
+        "suite_seconds": [
+          589,
+          564,
+          618
+        ],
+        "total_coverage_percent": 99,
+        "enabled_specs": 23,
+        "declared_specs": 42,
+        "custos_unit": "10^3 R$",
+        "tempo_unit": "min",
+        "raise_sites_src": 66,
+        "logger_warning_sites_src": 10,
+        "log_step_messages": 15,
+        "degradation_warning_shapes": 8,
+        "errors_classes": 7,
+        "tracked_legacy_files": 13,
+        "tracked_pycache_paths": 0
+      },
+      "shipped_code_defects_found_by_refinement": [
+        "THE INSTRUCTION TO REFINE AGAINST THE ARTEFACT RATHER THAN THE PLAN PAID FOR ITSELF: eleven defects in shipped code, none of which any per-ticket guardian could have caught. That instruction came from epic-04-learnings section 5, written because the TEMPO label defect survived eight guardians and was found by exactly this method.",
+        "DEAD FLAG, orchestrator-verified: --modo-inicial is declared in cli.build_parser (cli.py:75) and recorded in the manifest params (cli.py:144), and pipeline.py contains ZERO references to it. write_dashboard defaults initial_mode to 'encadeado'. So a user passing --modo-inicial por-deck gets a chained dashboard AND a manifest asserting the mode they asked for. That is worse than a no-op: the audit record lies. Section 5's shape again - the parser half and the pipeline half each correct alone, no ticket owning the correspondence. Owned by ticket-033 requirement 3, with AC3 asserting on the WRITTEN DOCUMENT.",
+        "DEAD SETTINGS KEY, orchestrator-verified: settings.discovery.sintese_dirname is validated by config.py and is a parameter of discover_scenarios with a default of 'sintese', but no caller in src/ passes it. Configurable with no effect - the same class as the dead flag. Owned by ticket-033 requirement 1, with a negative case so the assertion can fail.",
+        "DEGRADATION RECORDS NEVER REACH THE LOG, orchestrator-verified: DashboardData.add_warning (store.py:278-281) only appends to a list. Every degradation - a missing deck, a missing file, a dropped submarket - reaches the HTML Avisos section and NOTHING ELSE. No console line, no rotating log file entry. CLAUDE.md requires audit-grade logging sufficient to reconstruct what an official run did, and a degradation is precisely what one would need. Owned by ticket-033 (manifest plus count) and ticket-037 (per-message, capped at 20).",
+        "CHECKLIST SECTION 9 IS GUARDED BY NO TEST. Only two test modules reference the checklist at all, and test_charts_times.py is not one of them - so step 30's min-not-seconds check and step 29's read-and-record measurement could be deleted by a simplifier without breaking anything. Both were written at the epic-04 boundary to close real defects. Owned by ticket-034 requirement 5.",
+        "README.md IS FALSE IN FIVE PLACES: four packages that exist are marked 'planned and do not exist yet'; errors.py is described as having only ConfigError when it has seven classes; a four-number epic-1 baseline is stale in all four numbers; the 'Current output' stub paragraph; and a future-tense summary. Owned by ticket-036.",
+        "settings.paths.log_dir is validated and read by no module. Documented honestly by ticket-036 rather than fixed, since the settings contract is out of the epic's scope.",
+        "THE LEGACY SCRIPTS ARE UNRUNNABLE HERE, measured: importing Leitura.leitor_arquivos raises FileNotFoundError on a hard-coded Windows OneDrive path, and all twelve other legacy modules star-import it. They also assume the date-first layout that decision 15 replaced. This INVALIDATES THE OUTLINE'S PREMISE that running the legacy scripts was a live option, and is why epic decision E5-1 makes the parity check an independent recomputation.",
+        "FOUR DEFECTS INSIDE THE LEGACY IMPLEMENTATION that parity must NOT reproduce: .values[0] silently discarding a repeated etapa row (the same defect class the epic-02 boundary fixed in consolidation, where it destroyed 67.8 percent of the PL time); y in concat order paired against an np.unique-sorted x; df_datas taken from the first scenario only; and the (R$) axis labels, which the epic-04 boundary proved wrong by a factor of 1000.",
+        "THE PRESENTATION COLLAPSE HAS A TWIN NOBODY HAD RECORDED, orchestrator-verified: Plotadores/Tempo.py emits FOUR write_html figures where the dashboard ships one grouped bar chart - the same 3-to-1 question as CUSTOS, now 4-to-1 for TEMPO. This doubles the scope of the presentation ruling the developer owes. NOTE THE CORROBORATION: all four legacy figures are titled 'Tempo em Minutos', so the TEMPO axis defect ticket-031 closed was a REGRESSION AGAINST THE LEGACY TOOL, not a new ambiguity - the two now agree again.",
+        "EPIC-02 LEARNINGS SECTION 5 IS STALE: its stated gate, grep -rn 'exemplo' tests/, has matched test_renderer_contract.py since ticket-024. Flagged in ticket-034 as 'not a gate'.",
+        "Cosmetic, unassigned: the epic-04 boundary commit left a dangling 'from' in test_renderer_contract.py's _settings_dict docstring - 'One deliberate divergence, from `time.stage_groups`: it is deliberately reduced...'. The orchestrator's own reflow script produced it."
       ]
     }
   },
