@@ -80,7 +80,7 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-023 | Implement the view mode and deck selector | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-024 | Implement the absolute and difference toggle | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-025 | Render the SIN level charts | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-026 | Render the submarket and interchange charts | epic-03 | pending | Refined | 1.00 | -- | -- |
+| ticket-026 | Render the submarket and interchange charts | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-027 | Render the hydro plant charts | epic-04 | pending | Outline | -- | -- | -- |
 | ticket-028 | Implement the name and code filters | epic-04 | pending | Outline | -- | -- | -- |
 | ticket-029 | Render the thermal plant charts | epic-04 | pending | Outline | -- | -- | -- |

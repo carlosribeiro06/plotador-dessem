@@ -232,6 +232,15 @@
     renderActiveGroup();
   }
 
+  // Re-renders only chartKey, never the whole group: no other chart is affected by one
+  // selector's change, and a group re-render would redraw up to six figures for it. No
+  // entityId validation: the only source is the <option> list builder.py generated from the
+  // same payload buildTraces reads, so a value absent from chart[KEYS.SERIES] cannot arrive.
+  function setEntity(chartKey, entityId) {
+    state.entities[chartKey] = entityId;
+    renderChart(chartKey);
+  }
+
   document.getElementById("level-nav").addEventListener("click", function (event) {
     const group = event.target.dataset.group;
     if (group === undefined) {
@@ -260,6 +269,20 @@
     setValueMode(valueMode);
   });
 
+  // One delegated listener on the charts container, not one per <select>: Epic 4 adds
+  // 165-option plant selectors, and per-element listeners would scale with the catalogue
+  // instead of staying at one. The container is looked up by the same CSS-selector idiom
+  // renderActiveGroup and setGroup already use, rather than by a bare getElementById call on
+  // its id: that bare id string is spelled the same as KEYS.CHARTS's payload-key value, and
+  // the KEYS contract requires every such literal to occur exactly once in this file.
+  document.querySelector("#charts").addEventListener("change", function (event) {
+    if (!event.target.matches(".entity-selector")) {
+      return;
+    }
+    const section = event.target.closest("section.chart");
+    setEntity(section.dataset.chart, event.target.value);
+  });
+
   window.DessemDashboard = {
     get payload() {
       return payload;
@@ -277,6 +300,7 @@
     setDeck: setDeck,
     setGroup: setGroup,
     setValueMode: setValueMode,
+    setEntity: setEntity,
   };
 
   document.addEventListener("DOMContentLoaded", init);
