@@ -88,7 +88,7 @@ The count rose from the 94 of the original outline plan as Epics 3 and 4 were re
 | ticket-029 | Verify the thermal plant chart end to end | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-030 | Render the cost bar charts | epic-04 | completed | Refined | 0.96 | 1.00 | EXCELLENT |
 | ticket-031 | Render the computational time bar charts | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-032 | Enforce the output size strategy | epic-04 | pending | Refined | 1.00 | -- | -- |
+| ticket-032 | Enforce the output size strategy | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-033 | Wire the end-to-end pipeline | epic-05 | pending | Outline | -- | -- | -- |
 | ticket-034 | Add the example-data integration test | epic-05 | pending | Outline | -- | -- | -- |
 | ticket-035 | Run the legacy parity check | epic-05 | pending | Outline | -- | -- | -- |

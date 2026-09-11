@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T12:22:13Z",
+  "last_updated": "2026-09-11T13:19:23Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -889,7 +889,7 @@
     },
     "ticket-032-enforce-output-size-strategy.md": {
       "epic": "epic-04-plant-and-scalar-charts",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 2,
       "scores": {
@@ -900,8 +900,25 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
-        }
-      }
+        },
+        "quality": 1.0
+      },
+      "agent": "python-task-automation-developer",
+      "workflow_step": "guardian_approved",
+      "quality_breakdown": {
+        "conformance": 1.0,
+        "scope_adherence": 1.0,
+        "lint_cleanliness": 1.0,
+        "type_safety": 1.0,
+        "test_delta": 1.0
+      },
+      "quality_scored": true,
+      "notes": [
+        "The controlled-share assertion is the substance of this ticket and it was done right. An 'under 50 MB' check on fixture data CANNOT FAIL and would have been the fourth instance of the vacuous shape this plan has recorded. Instead the test pins bytes_html - bytes_plotly, measured at 238,059, inside [150_000, 400_000], with PERMANENT assertions that the doubled and halved values fall outside it. The guardian confirmed the bound is load-bearing by widening the maximum to 999_999_999 and watching the doubling assertion fail.",
+        "Judgment call assessed rather than accepted: the specialist treated the ticket's four non-vacuity mutations as development-time discipline (mutate, confirm failure, restore) rather than committed tests, because two of them require mutating production comparison logic and cannot ship broken without a mutation-testing framework. The guardian agreed and gave the reason that matters: AC5 as shipped does not merely compare byte counts, it structurally asserts the extra entity's <option> and series key are present in one document and absent in the other - a stronger regression guard than a byte delta. The permanent coverage genuinely substitutes.",
+        "AC5 is the first test that proves ticket-027's omission rule PAYS IN BYTES rather than merely behaves correctly: an all-None GHID_UHE entity is omitted and the document shrinks by 2,952 bytes. Filling the 'omitted' store with real values makes it fail at '0 >= 1500', proving the saving is the omission rule and not an artifact of building two stores.",
+        "STALE TIMING CLAIM, and one the orchestrator propagated. The guardian measured the full suite at 564.58 s (9.4 minutes) against this ticket's 'about 220 s' estimate and against the 'about 5 to 5.5 minutes' the orchestrator had been writing into every dispatch. Neither figure was measured; the suite grew from 475 to 601 tests across epics 3 and 4. Same shape as defects 15 and 18-21 - a claim made without measuring - applied to duration. Epic 5 dispatches must quote ~9.5 minutes, or better, tell the specialist to measure rather than quoting a number at all."
+      ]
     },
     "ticket-033-wire-end-to-end-pipeline.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
@@ -1039,7 +1056,16 @@
         "Cost scale: PRESENTE and FUTURO are expected to differ by orders of magnitude, so a shared linear bar axis may render PRESENTE invisible. Ticket-030 ships the grouped bars as specified; a log axis or a split chart is out of scope and needs a developer ruling. NOTE the correction of 2026-09-11: this entry previously quoted 'FUTURO about 2.3e8, PRESENTE about 5.9e4' as observed values. They were not observed - spec defect 17 - and the orchestrator propagated them twice before checking. The magnitudes will be measured by ticket-031's checklist step on real data.",
         "Plant labels carry the name without the code. Adding the code is a one-line label change if the developer wants it.",
         "output.decimals is global, not per chart. Deferred; no ticket owns it."
-      ]
+      ],
+      "quality_gate_ran": true,
+      "quality_gate": {
+        "tickets": 6,
+        "points": 15,
+        "quality_min": 1.0,
+        "quality_avg": 1.0,
+        "readiness_avg": 0.99,
+        "below_gate": 0
+      }
     },
     "epic-05-delivery-and-legacy-removal": {
       "phase": "outline",

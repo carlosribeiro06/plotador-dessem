@@ -14,6 +14,7 @@ block -- with exactly one `string.Template.substitute` call. A second substituti
 from __future__ import annotations
 
 import base64
+import functools
 import html
 import importlib.resources
 import logging
@@ -41,6 +42,8 @@ _CSS_ASSET: Final = "dashboard.css"
 _JS_ASSET: Final = "dashboard.js"
 
 _LOGO_SETTINGS_KEY: Final = "paths.logo_file"
+_SIZE_WARNING_SETTINGS_KEY: Final = "output.size_warning_mb"
+_BYTES_PER_MIB: Final = 1024 * 1024
 
 _LOGO_MIME_TYPES: Final[Mapping[str, str]] = {
     ".png": "image/png",
@@ -370,7 +373,11 @@ def write_dashboard(
     """Build the dashboard document and write it to output_file as UTF-8.
 
     Creates output_file's parent directory if it does not already exist, and returns
-    output_file unchanged so a caller can chain the call.
+    output_file unchanged so a caller can chain the call. Logs one INFO line naming the written
+    path, the byte count and the size in mebibytes, and additionally emits one Portuguese
+    `logger.warning` when that size exceeds `settings.output.size_warning_mb` (epic decision
+    E4-3): the write always completes and output_file is always returned, exceeding the
+    threshold changes nothing else.
     """
     start = time.perf_counter()
     document = build_html(data, settings=settings, initial_mode=initial_mode)
@@ -378,11 +385,61 @@ def write_dashboard(
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(document, encoding="utf-8")
 
+    document_bytes = len(document.encode("utf-8"))
+    size_mib = document_bytes / _BYTES_PER_MIB
+
     log_step(
         logger,
         "Dashboard HTML escrito em disco",
         caminho=str(output_file),
-        bytes=len(document.encode("utf-8")),
+        bytes=document_bytes,
+        tamanho_mib=f"{size_mib:.1f}",
         elapsed_s=time.perf_counter() - start,
     )
+
+    threshold_mb = settings.output.size_warning_mb
+    if size_mib > threshold_mb:
+        logger.warning(
+            "Documento HTML do dashboard ocupa %.1f MB, acima do limite de %.1f MB definido em "
+            "'%s': considere comparar menos decks ou menos cenários para reduzir o tamanho "
+            "do arquivo",
+            size_mib,
+            threshold_mb,
+            _SIZE_WARNING_SETTINGS_KEY,
+        )
+
     return output_file
+
+
+@functools.cache
+def plotly_bundle_bytes() -> int:
+    """Return the UTF-8 byte length of the inlined Plotly bundle, memoised per process.
+
+    The 4.3 MB `plotly.offline.get_plotlyjs()` read happens at most once per process: the value
+    is a property of the installed `plotly` package version, never hard-coded, so a future
+    upgrade changes it here without a source edit. Consumed by `output_volumes` below and, from
+    ticket-033, by `pipeline.run` when it builds the `data_volumes` mapping
+    `manifest.write_run_manifest` records.
+    """
+    return len(plotly.offline.get_plotlyjs().encode("utf-8"))
+
+
+def output_volumes(data: DashboardData, *, settings: Settings, output_file: Path) -> dict[str, int]:
+    """Return the six integer volumes an audited run records for one written dashboard.
+
+    Keys, in order: `cenarios`, `decks`, `graficos`, `valores`, `bytes_html` and `bytes_plotly`.
+    `graficos` recomputes `enabled_specs` exactly as `build_html` does, so the two counts cannot
+    diverge; `bytes_html` stats output_file, which must already have been written by
+    `write_dashboard`. Reads no parquet and builds no document. Every value is an `int`, so the
+    mapping is directly usable as `manifest.write_run_manifest`'s `data_volumes` argument and as
+    ticket-033's `pipeline.RunResult.data_volumes`.
+    """
+    specs = enabled_specs(disabled=settings.charts.disabled)
+    return {
+        "cenarios": len(data.scenarios),
+        "decks": len(data.deck_dates),
+        "graficos": len(specs),
+        "valores": data.value_count(),
+        "bytes_html": output_file.stat().st_size,
+        "bytes_plotly": plotly_bundle_bytes(),
+    }
