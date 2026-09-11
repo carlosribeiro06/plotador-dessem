@@ -252,6 +252,18 @@ raise here means the catalogue and the schema table disagree and the run must st
 
 - `src/dessem_dashboard/dashboard/payload.py` (create)
 - `tests/test_payload.py` (create)
+- `src/dessem_dashboard/models/store.py` (modify, **additions only** — the three read-only accessors
+  of requirement 3a; prove it with `git diff --numstat` showing zero deletions)
+- `tests/test_store.py` (modify — unit tests for those three accessors)
+
+> **Resynced 2026-09-11.** Requirement 3a was added to this ticket after its first draft, to carry
+> finding M6 of the epic-02 boundary review, and the amendment did not sweep these downstream
+> sections: this list, the Testing Requirements and the Definition of Done all still described a
+> two-file ticket. That is defect shape 6 of `epic-02-learnings.md` section 6 — a summary left stale
+> by an amendment to the requirement it summarises — committed by the orchestrator one commit after
+> recording the rule, and caught by readiness scoring, which put this ticket's boundary dimension at
+> 0.60. Left unfixed it would have handed a guardian two undeclared modified files and a false scope
+> violation.
 
 ### Patterns to Follow
 
@@ -300,9 +312,24 @@ raise here means the catalogue and the schema table disagree and the run must st
 
 ### Unit Tests
 
+`tests/test_store.py` (added to the existing file, for requirement 3a):
+
+- `chart_keys()` returns exactly the chart keys that hold at least one stored series, sorted, and an
+  empty tuple on a store with none;
+- `scalar_chart_keys()` returns only charts holding scalars, so `CUSTOS`/`TEMPO` appear and a series
+  chart does not;
+- `stored_deck_dates(chart_key, entity_id, scenario)` returns the deck dates actually stored for that
+  triple with `None` sorting **last** as the chained axis, and an empty tuple for an absent triple —
+  assert it against a store where one deck was deliberately skipped, so the result differs from
+  `data.deck_dates` and the test cannot pass by accident;
+- each accessor is read-only: calling it twice returns equal results and does not mutate
+  `value_count()`.
+
 `tests/test_payload.py`:
 
 - the five acceptance criteria;
+- a chart present in the store but absent from the catalogue produces the Portuguese omission warning
+  of requirement 3a, asserted as a filtered count over the matching messages;
 - every array length equals the length of the `starts` list of the axis it is filed under, checked
   for all 23 charts, all entities, both scenarios and all three axis keys;
 - a fixture variant where `caso_b` lacks the second deck: the affected chart entries carry no
@@ -329,7 +356,11 @@ None. The payload built from a real scenario tree is exercised end to end by tic
 
 ## Definition of Done
 
-- [ ] Both files exist and all five acceptance criteria pass.
+- [ ] All four files exist or are modified as listed under "Key Files to Create/Modify", and all five
+      acceptance criteria pass.
+- [ ] `git diff --numstat -- src/dessem_dashboard/models/store.py` shows additions and **zero
+      deletions**: `EntityRef`, `TimeAxis` and every existing `DashboardData` method are a committed
+      contract that ticket-018 already populates and tickets 021 to 026 consume.
 - [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
 - [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent.
 - [ ] `payload.py` does not import `dashboard.theme`, verified with

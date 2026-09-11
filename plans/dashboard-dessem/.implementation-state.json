@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T02:05:00Z",
+  "last_updated": "2026-09-11T02:40:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -498,49 +498,131 @@
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 3
+      "points": 3,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-020-export-compact-json-payload.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 4
+      "points": 4,
+      "scores": {
+        "readiness": 0.92,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 0.6,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      },
+      "readiness_note": "Boundary 0.60 was caused by requirement 3a (epic-02 finding M6) not being swept into Key Files, Testing Requirements and the DoD file count. Those three sections were resynced 2026-09-11 after scoring; the 0.92 recorded here is the independently scored value as-written, not re-scored."
     },
     "ticket-021-assemble-single-file-html-shell.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 4
+      "points": 4,
+      "scores": {
+        "readiness": 0.98,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      },
+      "readiness_note": "Atomicity 0.80 is a disclosed, accepted trade-off: 5 files sharing one acceptance surface. The ticket names its own split boundary. Not a blocker."
     },
     "ticket-022-implement-js-chart-renderer-core.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 3
+      "points": 3,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-023-implement-view-mode-and-deck-selector.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 3
+      "points": 3,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-024-implement-absolute-difference-toggle.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 3
+      "points": 3,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-025-render-sin-level-charts.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 2
+      "points": 2,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-026-render-submarket-and-interchange-charts.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
       "detail_level": "refined",
-      "points": 2
+      "points": 2,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-027-render-hydro-plant-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
@@ -654,7 +736,13 @@
       "phase": "executing",
       "learning_extracted": false,
       "estimate": "~5-6.5 h (High, refined; 24 points)",
-      "refined": true
+      "refined": true,
+      "readiness_scored": true,
+      "readiness_mean": 0.9875,
+      "dispatch_notes": [
+        "023 and 024 must NOT run in parallel: both write builder.py and dashboard.js.",
+        "019 and 020 may run in parallel; 021 depends on both."
+      ]
     },
     "epic-04-plant-and-scalar-charts": {
       "phase": "outline",
