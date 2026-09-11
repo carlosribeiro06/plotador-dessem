@@ -16,6 +16,10 @@ from dessem_dashboard.cli import build_parser, main
 from dessem_dashboard.config import load_settings
 from dessem_dashboard.errors import DashboardError
 
+_REPO_LOGO = (
+    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
+)
+
 
 @pytest.fixture(autouse=True)
 def _isolated_root_logger() -> Iterator[None]:
@@ -33,15 +37,17 @@ def _isolated_root_logger() -> Iterator[None]:
 def _settings_dict() -> dict[str, Any]:
     """Return a settings.json payload identical in shape to the repository's own file.
 
-    All paths are relative, so writing this next to a temporary directory resolves
-    `output_dir`, `log_dir` and `logo_file` inside that same temporary directory.
+    `output_dir` and `log_dir` are relative, so writing this next to a temporary directory
+    resolves them inside that same temporary directory. `paths.logo_file` points at the
+    repository's own logo instead of a relative path, because `pipeline.run` now reads it while
+    rendering the document and no temporary directory ships a logo file of its own.
     """
     return {
         "project": "dessem-dashboard",
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
+            "logo_file": str(_REPO_LOGO),
         },
         "logging": {
             "level": "INFO",
@@ -119,9 +125,10 @@ def test_build_parser_help_contains_all_flags_and_cenario_word() -> None:
 
 
 def test_main_successful_run_writes_manifest_and_log_with_first_basename_as_reference(
-    tmp_path: Path,
+    tmp_path: Path, scenario_tree: dict[str, Path]
 ) -> None:
-    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
+    settings_path = _write_settings(tmp_path)
+    caso_a, caso_b = scenario_tree["caso_a"], scenario_tree["caso_b"]
 
     exit_code = main(["--casos", str(caso_a), str(caso_b), "--settings", str(settings_path)])
 
@@ -135,8 +142,11 @@ def test_main_successful_run_writes_manifest_and_log_with_first_basename_as_refe
     assert manifest["params"]["referencia"] == "caso_a"
 
 
-def test_main_explicit_referencia_is_honoured_in_manifest_params(tmp_path: Path) -> None:
-    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
+def test_main_explicit_referencia_is_honoured_in_manifest_params(
+    tmp_path: Path, scenario_tree: dict[str, Path]
+) -> None:
+    settings_path = _write_settings(tmp_path)
+    caso_a, caso_b = scenario_tree["caso_a"], scenario_tree["caso_b"]
 
     exit_code = main(
         [
@@ -192,8 +202,11 @@ def test_main_duplicate_casos_basenames_exits_2_naming_duplicate(
     assert "caso_a" in capsys.readouterr().err
 
 
-def test_main_nivel_log_debug_sets_root_logger_level(tmp_path: Path) -> None:
-    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
+def test_main_nivel_log_debug_sets_root_logger_level(
+    tmp_path: Path, scenario_tree: dict[str, Path]
+) -> None:
+    settings_path = _write_settings(tmp_path)
+    caso_a, caso_b = scenario_tree["caso_a"], scenario_tree["caso_b"]
 
     exit_code = main(
         [
@@ -212,9 +225,10 @@ def test_main_nivel_log_debug_sets_root_logger_level(tmp_path: Path) -> None:
 
 
 def test_main_default_saida_equals_settings_output_dir_and_default_filename(
-    tmp_path: Path,
+    tmp_path: Path, scenario_tree: dict[str, Path]
 ) -> None:
-    settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
+    settings_path = _write_settings(tmp_path)
+    caso_a, caso_b = scenario_tree["caso_a"], scenario_tree["caso_b"]
 
     exit_code = main(["--casos", str(caso_a), str(caso_b), "--settings", str(settings_path)])
 
@@ -261,9 +275,11 @@ def test_main_dashboard_error_from_pipeline_is_logged_and_returns_1(
     assert "Traceback" in log_text
 
 
-def test_pipeline_run_returns_data_volumes_matching_number_of_casos(tmp_path: Path) -> None:
+def test_pipeline_run_returns_data_volumes_matching_number_of_casos(
+    tmp_path: Path, scenario_tree: dict[str, Path]
+) -> None:
     settings = load_settings(_write_settings(tmp_path))
-    scenario_dirs = [tmp_path / "caso_a", tmp_path / "caso_b", tmp_path / "caso_c"]
+    scenario_dirs = [scenario_tree["caso_a"], scenario_tree["caso_b"]]
 
     result = pipeline.run(
         scenario_dirs=scenario_dirs,
@@ -272,7 +288,17 @@ def test_pipeline_run_returns_data_volumes_matching_number_of_casos(tmp_path: Pa
         settings=settings,
     )
 
-    assert result.data_volumes == {"cenarios": 3}
+    assert list(result.data_volumes.keys()) == [
+        "cenarios",
+        "decks",
+        "graficos",
+        "valores",
+        "bytes_html",
+        "bytes_plotly",
+    ]
+    assert result.data_volumes["cenarios"] == 2
+    assert result.data_volumes["decks"] == 2
+    assert result.data_volumes["bytes_html"] == (tmp_path / "saida.html").stat().st_size
     assert result.warnings == []
 
 

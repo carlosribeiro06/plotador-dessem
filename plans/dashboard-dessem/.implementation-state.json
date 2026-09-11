@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T14:17:41Z",
+  "last_updated": "2026-09-11T15:28:57Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -922,7 +922,7 @@
     },
     "ticket-033-wire-end-to-end-pipeline.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 3,
       "scores": {
@@ -933,8 +933,27 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
-        }
-      }
+        },
+        "quality": 1.0
+      },
+      "agent": "python-task-automation-developer",
+      "workflow_step": "guardian_approved",
+      "quality_breakdown": {
+        "conformance": 1.0,
+        "scope_adherence": 1.0,
+        "lint_cleanliness": 1.0,
+        "type_safety": 1.0,
+        "test_delta": 1.0
+      },
+      "quality_scored": true,
+      "notes": [
+        "Closes three dead-correspondence defects the epic-05 refinement found by reading shipped code, all three verified by the orchestrator before dispatch. (a) --modo-inicial was declared at cli.py:75 and recorded in the manifest params at cli.py:144 while pipeline.py had zero references to it, so the audit manifest asserted a mode the document did not have - worse than a no-op. (b) settings.discovery.sintese_dirname was validated by config.py and passed by no caller in src/. (c) add_warning only appended to a list, so every degradation reached the HTML Avisos section and nothing else.",
+        "AC3 ASSERTS ON THE WRITTEN DOCUMENT, NOT ON THE PARSED ARGUMENTS, and that is the lesson of the defect itself: the parse always worked. The test reads the two written files and compares data-initial-mode plus the deck selector's disabled state, and asserts the two documents differ. The guardian cross-checked against builder.py's own _deck_selector to confirm the attribute it greps for is the one the builder emits.",
+        "SPEC DEFECT 22, a new shape: AN ACCEPTANCE CRITERION WITH NO ASSIGNED TEST in the ticket's own Testing Requirements. AC2 - the full cli.main to written-manifest round trip - was assigned to neither test module, so the specialist verified it with a throwaway script and ESCALATED THE SCOPE QUESTION rather than silently widening one of the five tests it was authorised to amend. Amended mid-flight to assign it a permanent test. The gap mattered because that round trip is the very correspondence the ticket repairs, and both halves were already tested: test_cli.py asserted result.data_volumes on the RunResult object, test_manifest.py asserted write_run_manifest writes back the dict it is handed. Only the join was unguarded, so a future change dropping warnings from the manifest would have re-introduced the silent-degradation defect with the suite green.",
+        "THE AC2 TEST COMPARES AGAINST INDEPENDENTLY REBUILT VALUES, NOT LITERALS - data_volumes against a fresh output_volumes(...) call and warnings against a fresh list(data.warnings()) - which is what makes it a correspondence test rather than a second copy of a value. It also carries an explicit non-vacuity guard, manifest['warnings'] != [], without which it would pass by comparing two empty lists in exactly the world the ticket exists to prevent. The specialist added that guard unprompted.",
+        "A HAZARD THE SPECIALIST FOUND AND HANDLED WITHOUT BEING ASKED: the AC2 test calls cli.main, which calls setup_logging, which installs root-logger handlers - so without isolation that state would leak into later tests IN THE SAME SESSION, the class of defect that passes in isolation and fails in a full run, or the reverse. It added a file-scoped _isolated_root_logger autouse fixture copying the pattern two other modules already use, and the guardian verified the isolation BY RUNNING THE MODULES IN BOTH ORDERS: 28 passed each way, identical coverage.",
+        "Measured cost of wiring the real chain: tests/test_cli.py went from 2.08 s to 13.06 s wall-clock, because four exit-code tests now build a real 4.5 MB document each. The specialist reported that figure without being asked for it."
+      ]
     },
     "ticket-034-add-example-data-integration-test.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
@@ -1190,7 +1209,9 @@
         "AMENDED 2026-09-11 after the epic-04 boundary landed mid-refinement. Corrections applied to the six tickets: FALLBACK_UNITS['CUSTOS'] from R$ to 10^3 R$ (boundary finding 1) in 034, 035 and 036; the new time.unit_divisor mismatch warning (boundary finding 3) in 036 and 037, taking the src logger.warning count from 9 to 10; the collected test count from 601 to 602; the suite duration to about 10 minutes; and ticket-036 requirement 7, which had asked for two checklist fixes the boundary review had already made - now a verification rather than an edit, which is why 036 kept 3 points instead of gaining a fourth.",
         "REAL-DATA FIGURES ARE NOW AUTHORISED FROM ONE SOURCE (epic decision E5-4): plans/dashboard-dessem/reference/parquet-schemas.txt is a committed 933-line dump of the reference deck exemplo/2024-03-03/caso_oficial/sintese, which decision 15 verified byte-identical by blob hash to exemplo/caso_oficial/2024-03-03/sintese. Quoting it, with the file cited, is measurement; reading exemplo/ is still forbidden. This is what lets ticket-035 pin two ABSOLUTE real-data values - CUSTOS.TOTAL = 228479057.91 and TEMPO.TOTAL = 198.12 min - instead of settling for relative comparisons, and it is the proper closure of spec defect 17.",
         "THE PARITY CHECK'S SECOND TENSION WAS UNRECORDED: Plotadores/Tempo.py emits FOUR separate figures (Tempo MILP line 33, Tempo PL line 51, Tempo Leitura de Dados e Impressao line 69, Tempo Total line 94) where the dashboard ships one grouped chart. Only the CUSTOS 3-to-1 case was on the record. Both now go to the developer as open decisions via ticket-035 requirement 6.",
-        "THE MOST CONSEQUENTIAL PARITY FINDING IS A UNIT, NOT A LAYOUT (epic decision E5-3): every legacy cost axis is labelled '(R$)' (Plotadores/Custos.py lines 34, 52, 77) while the values are 10^3 R$, as the epic-04 boundary review established from reference/parquet-schemas.txt. The legacy label was wrong by 1000x and the new dashboard corrects it. A parity check comparing only numbers would have missed the thing that mattered - which is the argument for ticket-035 comparing presentation and units as well as values."
+        "THE MOST CONSEQUENTIAL PARITY FINDING IS A UNIT, NOT A LAYOUT (epic decision E5-3): every legacy cost axis is labelled '(R$)' (Plotadores/Custos.py lines 34, 52, 77) while the values are 10^3 R$, as the epic-04 boundary review established from reference/parquet-schemas.txt. The legacy label was wrong by 1000x and the new dashboard corrects it. A parity check comparing only numbers would have missed the thing that mattered - which is the argument for ticket-035 comparing presentation and units as well as values.",
+        "SPEC DEFECT 22, a new shape: an acceptance criterion with NO ASSIGNED TEST in the ticket's own Testing Requirements. Ticket-033's AC2 - the full cli.main to written-manifest round trip - was assigned to neither test module, so its only verification was a throwaway script. The specialist escalated the scope question instead of silently widening one of the five tests it was authorised to amend, which was right. The gap mattered because the round trip is the very correspondence the ticket repairs: test_cli.py already asserted result.data_volumes on the RunResult object and test_manifest.py already asserted write_run_manifest writes back the dict it is handed, so both halves were tested and only the join was not. Readiness scoring gave the ticket 1.00 and could not catch it - scoring checks that criteria are VERIFIABLE, not that each was ASSIGNED AN OWNER.",
+        "THE GATE FOR DEFECT 22, CORRECTED BY APPLYING IT. The orchestrator's first phrasing - enumerate acceptance criteria against the Testing Requirements list and confirm every criterion is referenced by number - was applied to tickets 034 to 038 immediately and produced TWO FALSE POSITIVES. Ticket-036 verifies through a Documentation Verification section of four content properties, because it writes no code; ticket-038 through a Regression section requiring the whole suite to pass with an identical collected count. Both are strong verification that names no criterion number. The usable gate asks whether every acceptance criterion has SOME NAMED VERIFICATION SOMEWHERE, not whether it is numbered in a list. Applied in that form, tickets 034 to 038 are clean: 034's AC5 is the section-9 checklist guard covered by its requirement 5, and 035's AC5 is a document-content criterion verified by reading the parity report. Recording the correction because shipping the crude version would have handed the next refinement a false-positive generator."
       ],
       "open_decisions_for_developer": [
         "BOTH PRESENTATION COLLAPSES, and the TEMPO half is new: the legacy tool emits three CUSTOS figures and four TEMPO figures where the dashboard ships one grouped bar chart each. Ticket-035 puts both on the desk with the evidence and two options (accept, or add three to four ChartSpec entries in a follow-up) and deliberately chooses neither.",

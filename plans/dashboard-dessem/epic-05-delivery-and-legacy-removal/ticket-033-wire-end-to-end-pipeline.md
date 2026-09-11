@@ -430,6 +430,38 @@ offending path or settings key.
 `tests/test_pipeline.py`:
 
 - acceptance criteria 1, 3 and 4;
+- **acceptance criterion 2 — added 2026-09-11, spec defect 22.** The Testing Requirements
+  originally enumerated `test_pipeline.py`'s and `test_cli.py`'s cases exhaustively and assigned
+  AC2 to neither, so the full `cli.main` to written-manifest round trip had no owner. The
+  specialist verified it by measurement with a throwaway script and escalated the scope question
+  rather than silently widening one of the five requirement-6 tests, which was the right call: an
+  acceptance criterion whose only verification is a discarded script is not gated. The gap matters
+  here more than it would elsewhere, because the round trip is precisely the correspondence this
+  ticket exists to repair — `tests/test_cli.py` already asserts `result.data_volumes` on the
+  `RunResult` object and `tests/test_manifest.py` already asserts that `write_run_manifest` writes
+  back the dict it is handed, so both halves were tested and only the join was not. A future change
+  that stopped threading `warnings` into the manifest would re-introduce the silent-degradation
+  defect with the suite green. Drive `cli.main` end to end over a tree where `caso_b` lacks its
+  second deck and assert on the **written manifest file**: the six-key `data_volumes`, a `warnings`
+  list compared against an independently rebuilt `data.warnings()` rather than a hard-coded string,
+  and exit code 0 per E5-5 and master-plan decision 18. Prove it discriminates by dropping
+  `warnings=list(data.warnings())` and confirming this test fails alongside the object-level one —
+  one guards the object, one guards the file.
+
+  > **Spec defect 22 is a new shape for the catalogue: an acceptance criterion with no assigned
+  > test in the ticket's own Testing Requirements.** Readiness scoring gave this ticket 1.00 and
+  > could not catch it, because scoring checks that criteria are *verifiable*, not that each one
+  > was actually *assigned an owner*. Worth a cheap gate in future refinements — but phrase it
+  > carefully. The orchestrator applied a first draft of the gate to tickets 034 to 038 immediately
+  > after recording it, asking whether each acceptance criterion is **referenced by number** in
+  > Testing Requirements, and got **two false positives**: ticket-036 verifies through a
+  > `Documentation Verification` section of four content properties (it writes no code), and
+  > ticket-038 through a `Regression` section requiring the whole suite to pass with an identical
+  > collected count. Both are strong verification that names no criterion number. The correct
+  > question is therefore **"does every acceptance criterion have some named verification
+  > somewhere"**, not "is every criterion numbered in a list" — and the answer for tickets 034 to
+  > 038 is yes. Defect 22 is real in ticket-033 alone, where AC2's only verification was a script
+  > the specialist ran and discarded.
 - `RunResult.warnings` equals `list(data.warnings())` for a tree where `caso_b` is missing the
   second deck, built by deleting nothing and simply not creating that deck — assert at least one
   message contains `caso_b` and `04/03/2024`, the wording epic-02 learnings section 2 records;

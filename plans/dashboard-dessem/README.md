@@ -91,7 +91,7 @@ five places rather than merely thin.
 | ticket-030 | Render the cost bar charts | epic-04 | completed | Refined | 0.96 | 1.00 | EXCELLENT |
 | ticket-031 | Render the computational time bar charts | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-032 | Enforce the output size strategy | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-033 | Wire the end-to-end pipeline | epic-05 | pending | Refined | 1.00 | -- | -- |
+| ticket-033 | Wire the end-to-end pipeline | epic-05 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-034 | Add the example-data integration test | epic-05 | pending | Refined | 1.00 | -- | -- |
 | ticket-035 | Run the legacy parity check | epic-05 | pending | Refined | 0.97 | -- | -- |
 | ticket-036 | Write the user documentation | epic-05 | pending | Refined | 0.97 | -- | -- |

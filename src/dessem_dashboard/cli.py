@@ -152,6 +152,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_file=output_file,
             reference=reference,
             settings=settings,
+            initial_mode=args.modo_inicial,
         )
     except DashboardError:
         logger.exception("Falha ao executar o pipeline do dashboard")
