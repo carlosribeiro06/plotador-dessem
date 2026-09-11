@@ -190,7 +190,7 @@ Progressive planning is active: **Epics 1 and 2 carry fully detailed tickets; Ep
 | ---- | ---- | ------- | ------ | ------- |
 | epic-01 | Project foundation and repo hygiene | 001-008 | detailed | Installable, typed, logged, configured and tested scaffold; git hygiene done. |
 | epic-02 | Data layer | 009-018 | detailed | Discovery, typed readers, registries, timeline and chaining, chart registry, `DashboardData`. |
-| epic-03 | Dashboard core | 019-026 | outline | Theme, JSON payload, single-file HTML shell, JS renderer, view modes, abs/diff toggle, SIN and SBM and interchange charts. |
+| epic-03 | Dashboard core | 019-026 | refined | Theme, JSON payload, single-file HTML shell, JS renderer, view modes, abs/diff toggle, SIN and SBM and interchange charts. |
 | epic-04 | Plant-level and scalar charts | 027-032 | outline | UHE and UTE charts with name and code filters, `CUSTOS` and `TEMPO` bars, size enforcement. |
 | epic-05 | Delivery, validation and legacy removal | 033-038 | outline | Pipeline wiring, end-to-end run, legacy parity check, documentation, legacy deletion. |
 

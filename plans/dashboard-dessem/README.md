@@ -13,7 +13,7 @@ learnings of the earlier epics.
 | [`reference/parquet-schemas.txt`](reference/parquet-schemas.txt) | Raw dtype, unique-value and sample-row dump of all 60 synthesis files. Only needed when Appendix A of the master plan is not enough. |
 | [`epic-01-project-foundation/`](epic-01-project-foundation/) | Scaffold and repository hygiene, 8 detailed tickets |
 | [`epic-02-data-layer/`](epic-02-data-layer/) | Discovery, readers, registries, timeline, chart registry, data store, 10 detailed tickets |
-| [`epic-03-dashboard-core/`](epic-03-dashboard-core/) | Theme, payload, HTML shell, JS renderer, SIN and SBM charts, 8 outline tickets |
+| [`epic-03-dashboard-core/`](epic-03-dashboard-core/) | Theme, payload, HTML shell, JS renderer, SIN and SBM charts, 8 refined tickets |
 | [`epic-04-plant-and-scalar-charts/`](epic-04-plant-and-scalar-charts/) | Plant charts with filters, cost and time bars, size enforcement, 6 outline tickets |
 | [`epic-05-delivery-and-legacy-removal/`](epic-05-delivery-and-legacy-removal/) | Pipeline wiring, validation, documentation, legacy removal, 6 outline tickets |
 | `.implementation-state.json` | Machine-readable execution state, readiness scores and open questions |
@@ -45,7 +45,7 @@ See "Phases & Estimates" below.
 | ---- | ---- | ------- | ------ | ------ | ----- |
 | epic-01 | Project foundation and repo hygiene | 001-008 | 17 | detailed | executing |
 | epic-02 | Data layer | 009-018 | 28 | detailed | executing |
-| epic-03 | Dashboard core | 019-026 | 21 | outline | outline |
+| epic-03 | Dashboard core | 019-026 | 24 | refined | executing |
 | epic-04 | Plant-level and scalar charts | 027-032 | 14 | outline | outline |
 | epic-05 | Delivery, validation and legacy removal | 033-038 | 14 | outline | outline |
 
@@ -73,14 +73,14 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-016 | Implement the deck timeline and chaining | epic-02 | completed | Detailed | 0.94 | 1.00 | EXCELLENT |
 | ticket-017 | Define the dashboard data store | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-018 | Implement series consolidation | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
-| ticket-019 | Build the brand theme module | epic-03 | pending | Outline | -- | -- | -- |
-| ticket-020 | Export the compact JSON payload | epic-03 | pending | Outline | -- | -- | -- |
-| ticket-021 | Assemble the single-file HTML shell | epic-03 | pending | Outline | -- | -- | -- |
-| ticket-022 | Implement the JavaScript chart renderer core | epic-03 | pending | Outline | -- | -- | -- |
-| ticket-023 | Implement the view mode and deck selector | epic-03 | pending | Outline | -- | -- | -- |
-| ticket-024 | Implement the absolute and difference toggle | epic-03 | pending | Outline | -- | -- | -- |
-| ticket-025 | Render the SIN level charts | epic-03 | pending | Outline | -- | -- | -- |
-| ticket-026 | Render the submarket and interchange charts | epic-03 | pending | Outline | -- | -- | -- |
+| ticket-019 | Build the brand theme module | epic-03 | pending | Refined | -- | -- | -- |
+| ticket-020 | Export the compact JSON payload | epic-03 | pending | Refined | -- | -- | -- |
+| ticket-021 | Assemble the single-file HTML shell | epic-03 | pending | Refined | -- | -- | -- |
+| ticket-022 | Implement the JavaScript chart renderer core | epic-03 | pending | Refined | -- | -- | -- |
+| ticket-023 | Implement the view mode and deck selector | epic-03 | pending | Refined | -- | -- | -- |
+| ticket-024 | Implement the absolute and difference toggle | epic-03 | pending | Refined | -- | -- | -- |
+| ticket-025 | Render the SIN level charts | epic-03 | pending | Refined | -- | -- | -- |
+| ticket-026 | Render the submarket and interchange charts | epic-03 | pending | Refined | -- | -- | -- |
 | ticket-027 | Render the hydro plant charts | epic-04 | pending | Outline | -- | -- | -- |
 | ticket-028 | Implement the name and code filters | epic-04 | pending | Outline | -- | -- | -- |
 | ticket-029 | Render the thermal plant charts | epic-04 | pending | Outline | -- | -- | -- |
@@ -167,7 +167,7 @@ Epics 1 and 2; they are re-estimated when refined.
 | ----- | ---- | ------- | ------ | --------------- | ---------- |
 | 1 | epic-01-project-foundation | 8 | 17 | ~2.5–3.5 h | High |
 | 2 | epic-02-data-layer | 10 | 28 | ~4–5.5 h | High |
-| 3 | epic-03-dashboard-core | 8 | 21 | ≈3–5 h | Low (outline) |
+| 3 | epic-03-dashboard-core | 8 | 24 | ≈5–6.5 h | High (refined) |
 | 4 | epic-04-plant-and-scalar-charts | 6 | 14 | ≈2–3.5 h | Low (outline) |
 | 5 | epic-05-delivery-and-legacy-removal | 6 | 14 | ≈2–3.5 h | Low (outline) |
 

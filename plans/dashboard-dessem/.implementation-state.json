@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T01:40:00Z",
+  "last_updated": "2026-09-11T02:05:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -49,7 +49,7 @@
           "dependency_clarity": 1.0,
           "atomicity": 0.8
         },
-        "quality": 0.90,
+        "quality": 0.9,
         "quality_breakdown": {
           "conformance": 1.0,
           "scope_adherence": 1.0,
@@ -497,50 +497,50 @@
     "ticket-019-build-brand-theme-module.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 3
     },
     "ticket-020-export-compact-json-payload.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 4
     },
     "ticket-021-assemble-single-file-html-shell.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 4
     },
     "ticket-022-implement-js-chart-renderer-core.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
+      "detail_level": "refined",
       "points": 3
     },
     "ticket-023-implement-view-mode-and-deck-selector.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
+      "detail_level": "refined",
       "points": 3
     },
     "ticket-024-implement-absolute-difference-toggle.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 3
     },
     "ticket-025-render-sin-level-charts.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
+      "detail_level": "refined",
       "points": 2
     },
     "ticket-026-render-submarket-and-interchange-charts.md": {
       "epic": "epic-03-dashboard-core",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 2
     },
     "ticket-027-render-hydro-plant-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
@@ -651,9 +651,10 @@
       }
     },
     "epic-03-dashboard-core": {
-      "phase": "outline",
+      "phase": "executing",
       "learning_extracted": false,
-      "estimate": "~3-5 h (Low, outline)"
+      "estimate": "~5-6.5 h (High, refined; 24 points)",
+      "refined": true
     },
     "epic-04-plant-and-scalar-charts": {
       "phase": "outline",

@@ -113,9 +113,19 @@ Reuse this vocabulary rather than inventing synonyms; the operator should meet o
 | Series length mismatch (`StoreError`) | `… tem 7 valor(es) … tem 9 posição(ões)` |
 | Unknown plant label | `Usina {code}` · unknown submarket: `Submercado {code}` |
 
-**Dates in operator-facing text are `%d/%m/%Y`**, from `dashboard.date_format` — never ISO. This
-was the subject of a ticket-016 amendment: an acceptance criterion demanded the ISO literal while
-the same ticket's own patterns mandated `%d/%m/%Y`, and a message cannot carry both.
+**Dates in operator-facing text are `%d/%m/%Y`** — never ISO. This was the subject of a ticket-016
+amendment: an acceptance criterion demanded the ISO literal while the same ticket's own patterns
+mandated `%d/%m/%Y`, and a message cannot carry both.
+
+> **Corrected 2026-09-11.** That format comes from the module-level `_DATE_FORMAT` constants in
+> `store.py`, `timeline.py` and `consolidate.py` — **not** from `settings.dashboard.date_format`,
+> which is actually `"%d/%m/%Y %H:%M"`. The two are not interchangeable: formatting a deck label or
+> an axis map key through the settings key yields `03/03/2024 00:00`. An earlier revision of this
+> section credited the settings key, and a boundary-review finding (L10) proposed consolidating the
+> three constants onto it — that consolidation would have introduced the bug rather than removed it,
+> and L10 is therefore closed as **rejected on measurement**. Where a date-only label is needed,
+> read `TimeAxis.key`, which already carries the rendered `%d/%m/%Y`, rather than re-formatting a
+> `date`. `settings.dashboard.date_format` is for text that genuinely wants the time component.
 
 ---
 

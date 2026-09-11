@@ -1,8 +1,8 @@
 # Epic 03: Dashboard Core
 
 > Implementation mode: Rigoroso — follow the mode policy in CLAUDE.md.
-> Detail level: **outline** — every ticket in this epic carries the `[OUTLINE]` marker and must be
-> refined with the learnings of Epics 1 and 2 before dispatch.
+> Detail level: **refined** — all eight tickets were refined on 2026-09-11 with the learnings of
+> Epics 1 and 2; the `[OUTLINE]` markers are removed and every ticket is dispatch-ready.
 
 ## Goal
 
@@ -26,14 +26,14 @@ data, the parity check and the legacy removal, which are Epic 5.
 
 | Ticket | Title | Points | Detail |
 | ------ | ----- | ------ | ------ |
-| ticket-019 | Build the brand theme module | 2 | outline |
-| ticket-020 | Export the compact JSON payload | 3 | outline |
-| ticket-021 | Assemble the single-file HTML shell | 3 | outline |
-| ticket-022 | Implement the JavaScript chart renderer core | 3 | outline |
-| ticket-023 | Implement the view mode and deck selector | 3 | outline |
-| ticket-024 | Implement the absolute and difference toggle | 2 | outline |
-| ticket-025 | Render the SIN level charts | 2 | outline |
-| ticket-026 | Render the submarket and interchange charts | 3 | outline |
+| ticket-019 | Build the brand theme module | 3 | refined |
+| ticket-020 | Export the compact JSON payload | 4 | refined |
+| ticket-021 | Assemble the single-file HTML shell | 4 | refined |
+| ticket-022 | Implement the JavaScript chart renderer core | 3 | refined |
+| ticket-023 | Implement the view mode and deck selector | 3 | refined |
+| ticket-024 | Implement the absolute and difference toggle | 3 | refined |
+| ticket-025 | Render the SIN level charts | 2 | refined |
+| ticket-026 | Render the submarket and interchange charts | 2 | refined |
 
 ## Dependency Order
 
@@ -43,13 +43,13 @@ ticket-020 ─┴─> ticket-021 -> ticket-022 ─┬─> ticket-023 ─┬─> 
                                           └─> ticket-024 ─┘
 ```
 
-## Refinement Inputs Required
+## Refinement Inputs Required — all satisfied 2026-09-11
 
-Before these tickets can be refined into detailed tickets, the following must be available:
+All three inputs were available and used; refinement is complete.
 
-- `epic-01-learnings.md`: the `Settings` field names, the interpreter used, the error hierarchy.
-- `epic-02-learnings.md`: the `DashboardData` accessor names, the `EntityRef` and `TimeAxis` shapes,
-  the entity identifier format, the warning wording, the `ChartSpec` field names.
+- ✅ `epic-01-learnings.md`: the `Settings` field names, the interpreter used, the error hierarchy.
+- ✅ `epic-02-learnings.md`: the `DashboardData` accessor names, the `EntityRef` and `TimeAxis`
+  shapes, the entity identifier format, the warning wording, the `ChartSpec` field names.
 - ~~A decision on whether chart titles come from `ChartSpec.title` or from `Registries.title_for`,
   which ticket-015 made available but did not settle.~~ **RESOLVED 2026-09-10 by the developer** —
   see decision E3-2 below.
@@ -73,7 +73,16 @@ Automated, in pytest:
   `output.decimals`, absence of the `NaN` token;
 - the generated HTML: `plotly.min.js` inlined, the logo embedded as base64, **no external
   reference of any kind** (the file must open offline), one container per enabled chart, and the
-  total size within the configured budget.
+  total size logged and asserted within a measured range.
+
+> **Two clarifications added 2026-09-11, found during refinement and both measured.** First, the
+> "no external reference" assertion **cannot be run over the whole document**: `get_plotlyjs()`
+> carries 52 `https://`, 71 `http://`, one `cdn.plot.ly`, 9 `src=` and 17 `href=` inside its own
+> string literals. The check must therefore excise the `<script id="plotly-js">` block first and
+> assert over the remainder; ticket-021 states those counts so the excision is not later
+> "simplified" away. Second, the size assertion here is a **measured range**, not a budget check:
+> `output.size_warning_mb` enforcement belongs to Epic 4 (ticket-032), and an assertion of "under
+> 50 MB" would be a can-never-fail check on a 4.37 MB floor. The measured shell is ≈4.52 MB.
 
 Manual, in a checklist committed under `docs/`, walked once per release: opening the file offline,
 the Por deck and Encadeado modes, the Absoluto and Diferença toggle against the reference, the

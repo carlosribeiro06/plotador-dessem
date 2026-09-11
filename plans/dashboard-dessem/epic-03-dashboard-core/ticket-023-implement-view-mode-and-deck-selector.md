@@ -1,40 +1,297 @@
 # ticket-023 Implement the view mode and deck selector
 
-> **[OUTLINE]** This ticket requires refinement before execution.
-> It will be refined with learnings from earlier epics.
 > Implementation mode: Rigoroso — follow the mode policy in CLAUDE.md.
 > Epic: `epic-03-dashboard-core` · Recommended agent: `python-task-automation-developer`
+> Commands run in WSL bash at `/home/carlosribeiro/git/plotador-dessem` through `.venv/bin/`.
+> **Single-writer note:** this ticket and ticket-024 both modify `builder.py` and
+> `assets/dashboard.js`. The dependency graph allows either order but **not** a parallel dispatch;
+> run them sequentially, per Epic 2 learnings section 9.
 
-## Objective
+## Context
 
-Add the two navigation controls that `planning-context.md` decision 5 requires: a Por deck and
-Encadeado mode toggle, and, in Por deck mode, a deck selector by date, together with the
-aggregation-level navigation that switches between the SIN, submarket, hydro plant, thermal plant
-and execution groups.
+### Background
 
-## Anticipated Scope
+`planning-context.md` decision 5 gives the dashboard two view modes. **Por deck** shows one deck at
+its full original horizon — all stages, original granularity, half-hour stages on day one and 2, 6
+or 8 hour stages afterwards — with a selector to choose which deck. **Encadeado** takes only the
+first `chaining.stages_per_deck` stages of every deck, default 48, and concatenates them in deck-date
+order into one contiguous timeline, which is exactly what the legacy scripts plotted. The data layer
+already built both axes: `DashboardData` carries one `TimeAxis` per deck date and one chained axis,
+and ticket-020 exported them under the `%d/%m/%Y` deck keys and the `encadeado` key. This ticket adds
+the three controls that select among them: the mode toggle, the deck selector and the
+aggregation-level navigation.
 
-- **Files likely to be modified**: `src/dessem_dashboard/dashboard/assets/dashboard.js`,
-  `src/dessem_dashboard/dashboard/assets/dashboard.css`,
-  `src/dessem_dashboard/dashboard/assets/dashboard.html`, `tests/test_builder.py`.
-- **Key decisions needed**:
-  - whether the deck selector is hidden or merely disabled in Encadeado mode;
-  - whether the level navigation is a tab bar or a sidebar, given that there are six chart groups
-    and up to eight charts in the hydro group;
-  - which mode is preselected, defaulting to the CLI `--modo-inicial` value of `encadeado`.
-- **Open questions**:
-  - Are all charts of a group rendered at once, one below the other as the legacy scripts produced
-    one file per chart, or is one chart shown at a time with a chart selector? This affects
-    perceived performance at plant-level volumes and must be decided before ticket-025.
-  - Does the selected deck persist when the user switches level, and does it reset when switching to
-    Encadeado and back?
-  - How are the deck dates labelled: `%d/%m/%Y` matching the operator convention.
+The three original key decisions and the three open questions resolve as follows.
+
+- **The deck selector is disabled in Encadeado mode, not hidden.** Hiding it would shift the whole
+  control row when the mode changes, and a control that vanishes reads as a bug; a disabled control
+  states that it exists and does not apply.
+- **The level navigation is a tab bar**, `<nav id="level-nav">` with one button per group. There are
+  six groups, which fit one row, and a sidebar would take horizontal space away from charts that are
+  up to 1400 pixels wide.
+- **The preselected mode is the `--modo-inicial` value**, whose CLI default is `encadeado`. It
+  arrives as the `initial_mode` argument of `build_html`, and reaches the browser through
+  `<body data-initial-mode="...">`, which ticket-022 reads into `state.mode`.
+- **All charts of the active group render at once, stacked**, one below the other, and only the active
+  group renders. This settles the open question that ticket-023 flagged as blocking ticket-025. The
+  legacy scripts produced one HTML file per chart and the analyst scrolled through them, so stacking
+  matches the established reading habit; and the volume is small, because the largest Epic 3 group is
+  `SBM` with six charts of at most 3 scenarios by 97 points, while the Epic 4 hydro group draws one
+  selected plant per chart rather than 165.
+- **The selected deck and the value mode are global state**, not per group. Switching level keeps the
+  comparison context, which is the point of a comparison dashboard; and switching to Encadeado and
+  back **retains** the deck selection, because only the `disabled` attribute changes and the
+  `<select>` value is never cleared.
+- **Deck dates are labelled `%d/%m/%Y`.** They arrive already formatted in `payload.deck_dates` and
+  must not be re-formatted with `dashboard.date_format`, which carries `%H:%M`.
+
+Master plan open question 8, a shared URL-hash state so a particular view can be linked, was ruled
+**out of scope** by the orchestrator on 2026-09-10: the spec does not ask for linkable views. Do not
+introduce hash routing, `location.hash`, `history.pushState` or `popstate` handling.
+
+### Relation to Epic
+
+One of the two tickets that turn the static shell into a usable dashboard, alongside ticket-024. It
+owns the initial state of the mode and level controls in `builder.py` and their behaviour in
+`dashboard.js`; ticket-024 owns the value control in exactly the same shape, so each control initial
+state is verified by the ticket that defines what that control means. Ticket-025 depends on the
+`setGroup` implemented here to reach any group other than the initially active one.
+
+### Current State
+
+`build_html(data, *, settings, initial_mode="encadeado")` produces the whole document from
+`assets/dashboard.html` with fifteen `string.Template` placeholders. Three of the fragments it
+substitutes are generated by private helpers in `builder.py` and are the ones this ticket changes:
+`_level_nav` emits one `<button type="button" data-group="G">Label</button>` per group with at least
+one enabled chart, labelled from `GROUP_LABELS` (`SIN`, `Submercado`, `Intercâmbio`,
+`Usinas hidrelétricas`, `Usinas termelétricas`, `Execução`); `_mode_toggle` emits one
+`<button type="button" data-mode="M">Label</button>` per entry of `MODE_LABELS` (`deck` maps to
+`Por deck`, `encadeado` to `Encadeado`); `_deck_selector` emits
+`<select id="deck-selector">` with one `<option value="D">D</option>` per `payload["deck_dates"]`
+entry. **None of them currently emits `aria-pressed` or `disabled`**: ticket-021 requirement 2
+withheld those on purpose. `_value_toggle` is ticket-024 territory and must not be touched here.
+
+Each chart lives in `<section class="chart" id="chart-KEY" data-chart="KEY" data-group="G"
+data-selector="S">`, carrying `hidden` unless its group is that of the first enabled spec, which is
+`SIN`. `dashboard.css` already styles `[aria-pressed="true"]` visibly and `.chart[hidden]` as
+`display: none`.
+
+`dashboard.js` exposes `window.DessemDashboard` with `payload`, `state`, `axisKey`, `buildTraces`,
+`renderChart`, `renderActiveGroup` and `init`. `state` is `{mode, deck, valueMode, entities}`, with
+`mode` read from `document.body.dataset.initialMode` and `deck` defaulting to the first entry of
+`payload[KEYS.DECK_DATES]`. `axisKey()` already returns `state.deck` in `"deck"` mode and
+`payload[KEYS.CHAINED_KEY]` otherwise, so the whole view-mode mechanism reduces to setting
+`state.mode` and re-rendering. Every payload read goes through the frozen `KEYS` object, and
+`tests/test_renderer_contract.py` asserts that each declared key literal appears exactly once in the
+asset and that the asset is pure ASCII.
+
+Measured on the `scenario_tree` fixture: two deck dates, `03/03/2024` and `04/03/2024`; six
+navigation groups; deck axes of length 50 and a chained axis of length 96.
+
+## Specification
+
+### Requirements
+
+1. In `builder.py`, validate `initial_mode` against the two identifiers `"deck"` and `"encadeado"`,
+   raising `ValueError` with an English message for anything else. The CLI already restricts
+   `--modo-inicial` to those two choices, so this guards a programming error rather than an operator
+   error and deliberately does not become a `DashboardError`.
+2. `_mode_toggle` marks the button whose `data-mode` equals `initial_mode` with
+   `aria-pressed="true"` and the other with `aria-pressed="false"`, so the shell already shows the
+   selected mode before any JavaScript runs.
+3. `_deck_selector` adds the bare `disabled` attribute to `<select id="deck-selector">` when
+   `initial_mode` is `"encadeado"`, and omits it when `initial_mode` is `"deck"`. The `<option>` list
+   is unchanged and its values stay the `%d/%m/%Y` strings of `payload["deck_dates"]`.
+4. `_level_nav` marks the button of the initially active group — the group of the first entry of
+   `enabled_specs(disabled=settings.charts.disabled)` — with `aria-pressed="true"` and every other
+   group button with `aria-pressed="false"`, so the navigation state agrees with which chart sections
+   ticket-021 left unhidden.
+5. In `dashboard.js`, add `setMode(mode)`: it assigns `state.mode`, syncs `aria-pressed` on both
+   `#mode-toggle` buttons, sets or clears the `disabled` property of `#deck-selector` according to
+   whether the mode is `"encadeado"`, and calls `renderActiveGroup()`. It must not clear the
+   `<select>` value.
+6. Add `setDeck(deck)`: it assigns `state.deck` and calls `renderActiveGroup()`. It performs no
+   validation, because the only source is the `<select>` whose options `builder.py` generated from
+   the payload.
+7. Add `setGroup(group)`: it assigns the `hidden` attribute on every `#charts .chart` section whose
+   `data-group` differs from `group`, removes it from those that match, syncs `aria-pressed` on the
+   `#level-nav` buttons, and calls `renderActiveGroup()`. The selected deck, the value mode and every
+   per-chart entity selection survive the switch untouched, per the global-state ruling.
+8. Register exactly three delegated listeners, each on the container rather than on the individual
+   controls: a `click` listener on `#level-nav` reading `event.target.dataset.group`, a `click`
+   listener on `#mode-toggle` reading `event.target.dataset.mode`, and a `change` listener on
+   `#deck-selector` reading its `value`. Each ignores an event whose relevant dataset entry is
+   absent, so a click on the container padding does nothing.
+9. Expose `setMode`, `setDeck` and `setGroup` on `window.DessemDashboard` in addition to the seven
+   members ticket-022 declared. Add no payload key access outside the frozen `KEYS` object, and keep
+   the file pure ASCII: every operator-visible string in these controls was rendered into the HTML by
+   `builder.py`.
+10. In `dashboard.css`, add a visibly distinct rule for `#deck-selector:disabled` — reduced opacity
+    and `cursor: not-allowed` — so the Encadeado state reads as deliberate. Use only `var(--ons-*)`
+    values for any colour, per the no-colour-literal rule of ticket-021 requirement 3.
+11. Introduce no `location.hash`, `history.pushState` or `popstate` handling anywhere, per the
+    out-of-scope ruling on master plan open question 8.
+
+### Inputs
+
+`initial_mode` from `build_html`, whose value originates in `--modo-inicial`; at run time the three
+DOM controls and `payload.deck_dates`.
+
+### Outputs and Behavior
+
+`build_html` returns a document whose mode, deck and level controls already display the initial
+state. In the browser, clicking a level button shows that group and hides the others; clicking a mode
+button switches every visible chart between the selected deck axis and the chained axis and
+enables or disables the deck selector; changing the deck redraws every visible chart on that deck
+axis. Nothing is written to disk and no navigation occurs.
+
+### Error Handling
+
+`ValueError` from `build_html` for an unknown `initial_mode`. In the browser, an event whose dataset
+entry is absent is ignored silently, which is the normal outcome of a click on container padding
+rather than an error. No `try`/`catch` is added: a failure inside `renderActiveGroup` must reach the
+console, which the manual checklist inspects.
 
 ## Dependencies
 
 - **Blocked By**: `ticket-022-implement-js-chart-renderer-core.md`
 - **Blocks**: `ticket-025-render-sin-level-charts.md`
 
+## Acceptance Criteria
+
+- [ ] Given the `scenario_tree` fixture and the repository `settings.json`, when
+      `build_html(data, settings=settings, initial_mode="encadeado")` is called, then the
+      `data-mode="encadeado"` button carries `aria-pressed="true"`, the `data-mode="deck"` button
+      carries `aria-pressed="false"`, and the `<select id="deck-selector"` element carries the
+      `disabled` attribute.
+- [ ] Given the same fixture, when `build_html(data, settings=settings, initial_mode="deck")` is
+      called, then the `data-mode="deck"` button carries `aria-pressed="true"`, the
+      `<select id="deck-selector"` element carries no `disabled` attribute, and its two options are
+      still `<option value="03/03/2024">03/03/2024</option>` and
+      `<option value="04/03/2024">04/03/2024</option>`; and
+      `build_html(data, settings=settings, initial_mode="por-deck")` raises `ValueError`.
+- [ ] Given either document, when the `<nav id="level-nav">` slice is inspected, then the
+      `data-group="SIN"` button carries `aria-pressed="true"`, the five buttons for `SBM`, `SBP`,
+      `UHE`, `UTE` and `EXECUCAO` each carry `aria-pressed="false"`, and the `aria-pressed="true"`
+      group matches the single `data-group` value whose chart sections lack the `hidden` attribute.
+- [ ] Given `assets/dashboard.js`, when its text is inspected, then `window.DessemDashboard`
+      names `setMode`,
+      `setDeck` and `setGroup` in addition to the seven members of ticket-022; the text contains
+      `"level-nav"`, `"mode-toggle"` and `"deck-selector"`, and both `addEventListener("click"` and
+      `addEventListener("change"`; it contains `hidden` and `disabled`; it contains none of
+      `location.hash`, `pushState` or `popstate`; and `text.isascii()` is `True`.
+- [ ] Given `assets/dashboard.css`, when its text is inspected, then it contains a
+      `#deck-selector:disabled` rule,
+      `re.search(r"#[0-9A-Fa-f]{3,8}\b", css)` is `None`, and
+      `.venv/bin/pytest tests/test_renderer_controls.py tests/test_renderer_contract.py
+      tests/test_builder.py -q && .venv/bin/mypy src` exits 0.
+
+## Implementation Guide (Technical Details)
+
+### Suggested Approach
+
+1. Change the three `builder.py` helpers first and add the `initial_mode` validation; run
+   `tests/test_builder.py` to confirm the ticket-021 assertions still pass, since the placeholder set
+   and the section count are unchanged.
+2. Write a tiny private JavaScript helper `syncPressed(containerId, datasetKey, value)` that walks
+   the buttons of a container and sets `aria-pressed` from a comparison, and use it from `setMode`
+   and `setGroup`. Ticket-024 will reuse it for the value toggle, so keep it generic and place it
+   above the setters.
+3. Delegate all three listeners on the containers rather than binding per button. Delegation means
+   the listener count does not grow with the number of groups, and it survives a future group being
+   added to the catalogue.
+4. Toggle visibility with `element.hidden = ...`, the property rather than `setAttribute`, so the
+   attribute is added and removed consistently, and let the existing `.chart[hidden]` CSS rule do the
+   hiding.
+5. Write `tests/test_renderer_controls.py` with the builder assertions and the static asset
+   assertions, using the `tmp_path/settings.json` copy pattern so nothing is written into the
+   repository `output/`.
+
+### Key Files to Create/Modify
+
+- `src/dessem_dashboard/dashboard/builder.py` (modify: three helpers plus the mode validation)
+- `src/dessem_dashboard/dashboard/assets/dashboard.js` (modify: three setters, one helper, three
+  listeners)
+- `src/dessem_dashboard/dashboard/assets/dashboard.css` (modify: the disabled-selector rule)
+- `tests/test_renderer_controls.py` (create)
+
+### Patterns to Follow
+
+- The generated-fragment pattern already in `builder.py`: one private helper per fragment, returning
+  a string, with `html.escape` on every dynamic text node.
+- The frozen `KEYS` discipline in `dashboard.js`: no payload key literal outside that object.
+- English identifiers and comments in the JavaScript; Portuguese only in the HTML that
+  `builder.py` emits.
+- `tests/test_builder.py` settings-copy-in-`tmp_path` pattern.
+
+### Pitfalls to Avoid
+
+- Do not hide the deck selector in Encadeado mode. Requirement 3 disables it, and a control that
+  disappears makes the control row jump.
+- Do not reset `state.deck` or the `<select>` value when the mode changes. The retained selection is
+  the ruling, and clearing it would silently move the operator back to the first deck.
+- Do not make the selected deck or the value mode per group. One global state is the ruling; per
+  group state would give two levels different comparison contexts with nothing on screen to say so.
+- Do not add `location.hash`, `pushState` or a `popstate` handler. That is master plan open question
+  8, ruled out of scope.
+- Do not bind a listener per button. Delegated listeners on `#level-nav`, `#mode-toggle` and
+  `#deck-selector` keep the count fixed and let ticket-026 add its own without touching these.
+- Do not re-format a deck date. `payload.deck_dates` is already `%d/%m/%Y`; `dashboard.date_format`
+  is `%d/%m/%Y %H:%M` and would render `03/03/2024 00:00` in the selector.
+- Do not touch `_value_toggle`, `_chart_sections` or `_warnings_section`: ticket-024 modifies the
+  first and a concurrent edit would collide, and the other two are settled.
+- Do not assert an exact member count on `window.DessemDashboard` or an exact `addEventListener`
+  count: tickets 024 and 026 add one each, and an exact count here would break their runs.
+
+### Out of Scope
+
+- The Absoluto and Diferença control, its initial state and the difference arithmetic (ticket-024).
+- The per-chart layout and the Y-axis unit title (ticket-025).
+- The entity selector behaviour for submarkets and interchange pairs (ticket-026).
+- The plant name and code filters (ticket-028).
+- Any URL-hash or history state (master plan open question 8, out of scope).
+- Any change to `payload.py`, `theme.py` or `assets/dashboard.html`.
+
+## Testing Requirements
+
+### Unit Tests
+
+`tests/test_renderer_controls.py`:
+
+- the five acceptance criteria;
+- `initial_mode="deck"` and `initial_mode="encadeado"` producing documents that differ only in the
+  `data-initial-mode` attribute, the two `aria-pressed` values of `#mode-toggle` and the presence of
+  `disabled` on `#deck-selector`, asserted by normalising those four differences away and comparing
+  the rest character for character;
+- `charts.disabled` set so that no `SIN` chart remains: the initially active group becomes the group
+  of the new first enabled spec, its nav button carries `aria-pressed="true"`, and its sections are
+  the unhidden ones;
+- a single-deck tree: the selector holds exactly one option, and the Encadeado initial mode still
+  disables it;
+- every `data-group` value emitted in the navigation also appears on at least one chart section, so
+  the tab bar can never offer an empty group;
+- the static asset assertions of the fourth and fifth acceptance criteria.
+
+### Integration Tests
+
+None automated, by epic decision E3-1. Items 3, 4 and the console check of
+`docs/checklist-manual-dashboard.md` cover the mode toggle, the deck selector, the level navigation
+and the deck-retention behaviour in a browser.
+
+## Definition of Done
+
+- [ ] The four files exist, with three modified and one created, and all five acceptance criteria
+      pass.
+- [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
+- [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent.
+- [ ] `tests/test_builder.py` and `tests/test_renderer_contract.py` still pass unchanged, proving the
+      placeholder set, the section count and the `KEYS` contract were not disturbed.
+- [ ] The deck selector is disabled and never hidden in Encadeado mode, and the deck selection
+      survives a mode round trip.
+- [ ] No hash-routing construct exists anywhere in `dashboard.js`.
+
 ## Effort Estimate
 
-**Points**: 3 · **Confidence**: Low (will be re-estimated during refinement)
+**Points**: 3 · **Confidence**: Medium · **Agent time**: about 30 minutes. Confidence is Medium
+because E3-1 leaves the three behaviours themselves — re-render on mode change, on deck change and on
+level change — to the manual checklist; the builder half of the ticket is fully covered.
