@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T20:56:14Z",
+  "last_updated": "2026-09-11T21:30:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -1108,7 +1108,7 @@
     },
     "ticket-038-remove-legacy-scripts.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 1,
       "scores": {
@@ -1119,8 +1119,33 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 0.6
+        },
+        "quality": 1.0,
+        "quality_breakdown": {
+          "conformance": 1.0,
+          "scope_adherence": 1.0,
+          "lint_cleanliness": 1.0,
+          "type_safety": 1.0,
+          "test_delta": 1.0
         }
-      }
+      },
+      "agent": "docker-linux-server-architect",
+      "workflow_step": "guardian_approved",
+      "quality_scored": true,
+      "notes": [
+        "Thirteen legacy paths removed: Leitura/leitor_arquivos.py, seven Plotadores/*.py and five main_*.py. 13 files changed, 584 deletions(-). Tracked files 147 -> 134, exactly -13; git ls-files exemplo stayed 0 throughout.",
+        "Procedure as specified and quoted verbatim in the specialist report: rm on the thirteen enumerated paths, then git add -- on the same thirteen. No git rm, git checkout, git clean, git add -A or git add . at any point; no force-push.",
+        "SPEC DEFECT 25 (found and amended by the orchestrator before dispatch, committed as e077f86): the ticket's Background claimed the legacy-reference sweep 'returns no match'. True when epic 5 was refined, false when the ticket ran -- ticket-035 created tests/test_parity.py with fifteen file:line provenance comments, and ticket-036 wrote the README's Legacy scripts subsection. Requirement 6 and acceptance criterion 3 therefore demanded a result no state of the repository could produce, and a literal implementer could have satisfied them by deleting the parity check's audit trail. The amended gate is substantive rather than syntactic: every match must be prose about the deleted code, never a live dependency on it.",
+        "REQUIREMENT-1 STOP, first dispatch: the specialist stopped without deleting anything because git status --porcelain was not empty. The dirty file was the orchestrator's own spec-defect-25 amendment, edited AFTER the clean-tree snapshot quoted in the dispatch. The specialist surfaced the disagreement instead of assuming it away, and declined to extend requirement 1's deliberately narrow __pycache__ carve-out to a tracked file on the plan's only irreversible step. It also rejected folding the fix into the closing commit, because acceptance criterion 5 checks that git show --stat HEAD holds exactly thirteen deletions plus three files. Resolved by committing the amendment on its own (e077f86) and re-dispatching against a clean tree.",
+        "Requirement 2 verified BEFORE deleting, by the specialist and re-verified by the guardian: the parity report's legacy inventory names all seven Plotadores modules, Leitura/leitor_arquivos.py, the five drivers, the 21 runtime output filenames (1+1+4+4+4+3+4) and a file:line reference per Y-axis and figure title. That document is now the only working-tree record of what the deleted code did, which is the whole basis of the delete-outright ruling.",
+        "Gate after deletion, re-run independently by the guardian as five separate invocations: ruff check 'All checks passed!', ruff format --check '61 files already formatted', mypy 'no issues in 26 source files', pytest tests/test_parity.py '15 passed', pytest --cov '637 passed' with TOTAL 99% in 446.73 s. 637 collected equals the count measured immediately before the deletion, which is the ticket's falsifiable prediction.",
+        "tests/test_parity.py passes with Leitura/ and Plotadores/ genuinely gone rather than moved aside. ticket-035's independence proof was made about exactly this event.",
+        "Requirement 6 sweep: 18 matches in exactly two files (15 in tests/test_parity.py, 3 in README.md), zero in src/, docs/, CLAUDE.md and pyproject.toml. The guardian classified every match itself rather than accepting the specialist's classification, and confirmed by targeted regex that no import, subprocess or open() of a legacy module exists in the swept scope. The only imports of the legacy modules were 21 'from ... import *' lines INSIDE the thirteen deleted files, so they vanished with the files holding them.",
+        "17-vs-18 judgement call: the amended requirement predicted 17 matches; the actual total is 18 because the recovery note wraps 'Plotadores' onto README.md:530 and :531 rather than one line. The specialist declined to rewrap the prose to chase the number and flagged it instead; the guardian agreed. The prediction was about a count, the gate is about a classification, and the number the criterion actually gates on -- tests/test_parity.py's per-file count -- is unchanged at 15.",
+        "Housekeeping: the specialist removed an untracked, gitignored Leitura/__pycache__ (sanctioned by Suggested Approach step 5) and the orchestrator then removed Leitura/ and Plotadores/ themselves, which were still on disk as EMPTY directories -- invisible to git, since git tracks files rather than directories, so the ticket's 'both directories gone' claim was true in the index and false on disk. Removed with rmdir, which refuses a non-empty directory by construction; git status --porcelain was byte-identical before and after.",
+        "Out of scope by design and left to the orchestrator: requirement 7's commit and push and the two plan state-file writes, because in this plan the commit follows guardian approval. The guardian marked acceptance criterion 5 N/A rather than FAIL and verified its substance with git diff --cached --stat (exactly the thirteen deletions) and git diff --stat (exactly README.md) instead.",
+        "Rulings honoured: no legacy/ directory created, plano_dashboard_dessem.md left at the repository root, __pycache__ not re-investigated, and both orphaned .claude/worktrees/ copies of the repository left untouched -- every sweep scoped exactly as requirement 6 specifies, so no grep result pointed into them."
+      ]
     }
   },
   "epics": {
@@ -1344,6 +1369,15 @@
         "THE PRESENTATION COLLAPSE HAS A TWIN NOBODY HAD RECORDED, orchestrator-verified: Plotadores/Tempo.py emits FOUR write_html figures where the dashboard ships one grouped bar chart - the same 3-to-1 question as CUSTOS, now 4-to-1 for TEMPO. This doubles the scope of the presentation ruling the developer owes. NOTE THE CORROBORATION: all four legacy figures are titled 'Tempo em Minutos', so the TEMPO axis defect ticket-031 closed was a REGRESSION AGAINST THE LEGACY TOOL, not a new ambiguity - the two now agree again.",
         "EPIC-02 LEARNINGS SECTION 5 IS STALE: its stated gate, grep -rn 'exemplo' tests/, has matched test_renderer_contract.py since ticket-024. Flagged in ticket-034 as 'not a gate'.",
         "Cosmetic, unassigned: the epic-04 boundary commit left a dangling 'from' in test_renderer_contract.py's _settings_dict docstring - 'One deliberate divergence, from `time.stage_groups`: it is deliberately reduced...'. The orchestrator's own reflow script produced it."
+      ],
+      "spec_defects_found_during_execution": [
+        {
+          "id": 25,
+          "ticket": "ticket-038-remove-legacy-scripts.md",
+          "shape": "a claim about the repository, true when written and stale when read",
+          "summary": "Background asserted the legacy-reference sweep 'returns no match'; ticket-035 and ticket-036, both inside the same epic and both after this ticket was refined, falsified it. Requirement 6, acceptance criterion 3, the matching DoD line and the Background bullet were amended before dispatch (commit e077f86).",
+          "why_it_mattered": "The original wording was satisfiable only by deleting tests/test_parity.py's fifteen file:line provenance comments -- the parity check's audit trail -- to make a grep quiet, on the plan's only irreversible step."
+        }
       ]
     }
   },

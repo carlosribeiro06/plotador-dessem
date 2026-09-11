@@ -525,8 +525,10 @@ driver scripts at the repository root are the tool this project replaces. Their 
 what each one plotted, which unit and axis convention it used, and where this project intentionally
 diverges from it — is transcribed and checked in
 [`plans/dashboard-dessem/epic-05-parity-report.md`](plans/dashboard-dessem/epic-05-parity-report.md);
-consult that report rather than the scripts themselves for what they did. Removing them from the
-repository is ticket-038's job, with the parity report above as the record of what they did.
+consult that report rather than the scripts themselves for what they did. The commit that removed
+these thirteen files is the one whose message names the legacy removal, findable with
+`git log --oneline -- Plotadores`; any single file can still be recovered from history, for example
+`git show <sha>^:Plotadores/Custos.py`, with `<sha>` replaced by that commit's hash.
 
 ## Logging and auditing
 
