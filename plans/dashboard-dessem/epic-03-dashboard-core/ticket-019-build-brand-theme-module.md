@@ -188,10 +188,26 @@ an eighth class to `errors.py`.
 
 ### Key Files to Create/Modify
 
-- `src/dessem_dashboard/dashboard/__init__.py` (create)
-- `src/dessem_dashboard/dashboard/assets/__init__.py` (create)
+- `src/dessem_dashboard/dashboard/__init__.py` (**already created** — see the note below)
+- `src/dessem_dashboard/dashboard/assets/__init__.py` (**already created** — see the note below)
 - `src/dessem_dashboard/dashboard/theme.py` (create)
 - `tests/test_theme.py` (create)
+
+> **Orchestrator note, 2026-09-11.** The two package markers were created before dispatch, because
+> tickets 019 and 020 run in parallel and ticket-020's own Current State allowed it to create
+> `dashboard/__init__.py` as well — two writers on one file. Pre-creating them removes the collision
+> and lets ticket-020's tests import `dashboard.payload` without waiting for this ticket. Both were
+> created and verified before dispatch (`ruff`, `mypy` and an import check all pass) and are
+> committed **with this ticket**, not before it — an earlier wording of this note claimed they were
+> already committed, which the implementing agent correctly caught as false. Each holds one English
+> module docstring plus `from __future__ import annotations`, the docstring per requirement 1 and the
+> future-import per the convention of `data/__init__.py` and `models/__init__.py` — which carry that
+> import and **no** docstring, so the convention is followed only in that half; requirement 1 asks
+> for a docstring on these two new files specifically. `assets/__init__.py` carries
+> the docstring explaining that it exists so `[tool.setuptools.packages.find]` discovers the package
+> that `[tool.setuptools.package-data]` keys, without which a built wheel ships no CSS, JavaScript or
+> HTML. This ticket still owns `theme.py` and `tests/test_theme.py`, and the prohibition on editing
+> `pyproject.toml` stands.
 
 ### Patterns to Follow
 

@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T02:40:00Z",
+  "last_updated": "2026-09-11T03:55:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -496,7 +496,7 @@
     },
     "ticket-019-build-brand-theme-module.md": {
       "epic": "epic-03-dashboard-core",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 3,
       "scores": {
@@ -507,12 +507,23 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
+        },
+        "quality": 1.0,
+        "quality_breakdown": {
+          "conformance": 1.0,
+          "scope_adherence": 1.0,
+          "lint_cleanliness": 1.0,
+          "type_safety": 1.0,
+          "test_delta": 1.0
         }
-      }
+      },
+      "agent": "python-task-automation-developer",
+      "quality_scored": true,
+      "workflow_step": null
     },
     "ticket-020-export-compact-json-payload.md": {
       "epic": "epic-03-dashboard-core",
-      "status": "pending",
+      "status": "in_progress",
       "detail_level": "refined",
       "points": 4,
       "scores": {
@@ -759,28 +770,31 @@
     {
       "id": 1,
       "blocking": false,
-      "summary": "Cost total definition defaults to PRESENTE + FUTURO; VIOLACOES and PEQUENAS PENALIDADES configurable.",
+      "summary": "Resolved 2026-09-11 (epic-04 decision E4-1): the cost total is the sum of costs.total_parcels, which settings.json ships as [PRESENTE, FUTURO]. Ticket-030 must never hard-code the pair, and a parcel named in settings but absent from CUSTOS.parquet is a Portuguese warning plus omission, not a crash.",
       "affects": [
         "ticket-030-render-cost-bar-charts.md"
-      ]
+      ],
+      "resolved": "2026-09-11"
     },
     {
       "id": 2,
       "blocking": false,
-      "summary": "UHE 'Volume armazenado' ships both VARMF_UHE (hm3) and VARPF_UHE (percent).",
+      "summary": "UHE 'Volume armazenado' ships both VARMF_UHE (hm3) and VARPF_UHE (percent). CLOSED 2026-09-11 (epic-04 decision E4-2) by existing work: ticket-011 shipped both members of the pair enabled with distinguishing curated titles, and decision E3-2 made those titles the chart headings so the disambiguation survives.",
       "affects": [
         "ticket-011-declare-enabled-chart-specs.md",
         "ticket-027-render-hydro-plant-charts.md"
-      ]
+      ],
+      "resolved": "2026-09-11"
     },
     {
       "id": 3,
       "blocking": false,
-      "summary": "UHE 'Vazao' ships both QAFL_UHE (afluente) and QINC_UHE (incremental).",
+      "summary": "UHE 'Vazao' ships both QAFL_UHE (afluente) and QINC_UHE (incremental). CLOSED 2026-09-11 (epic-04 decision E4-2) by existing work: ticket-011 shipped both members of the pair enabled with distinguishing curated titles, and decision E3-2 made those titles the chart headings so the disambiguation survives.",
       "affects": [
         "ticket-011-declare-enabled-chart-specs.md",
         "ticket-027-render-hydro-plant-charts.md"
-      ]
+      ],
+      "resolved": "2026-09-11"
     },
     {
       "id": 4,
@@ -838,6 +852,26 @@
         "ticket-023-implement-view-mode-and-deck-selector.md"
       ],
       "resolved": "2026-09-10"
+    },
+    {
+      "id": 9,
+      "blocking": false,
+      "summary": "Resolved 2026-09-11 (epic-04 decision E4-3): the plant payload stays FULLY EMBEDDED, because the deliverable is one self-contained offline HTML and any lazy fetch needs a server or sibling files. Size is managed by rounding to output.decimals, omitting entities whose arrays are entirely null, and ticket-032 measuring and warning. Lazy RENDERING already exists: ticket-023 renders only the active group. Refine 032 together with 027. Measured motivation: the epic-03 payload alone reaches about 56 MB at 30 decks times 3 scenarios, past the 50 MB default.",
+      "affects": [
+        "ticket-027-render-hydro-plant-charts.md",
+        "ticket-029-render-thermal-plant-charts.md",
+        "ticket-032-enforce-output-size-strategy.md"
+      ],
+      "resolved": "2026-09-11"
+    },
+    {
+      "id": 10,
+      "blocking": false,
+      "summary": "Resolved 2026-09-11 (epic-04 decision E4-4): filtering plants by submarket and by equivalent reservoir is OUT OF SCOPE. The spec asks for name and code filters only; the registry supports more, which is why it is tempting, but it is unrequested scope. Consistent with the epic-03 ruling on URL-hash state. Reopen only on explicit request.",
+      "affects": [
+        "ticket-028-implement-name-and-code-filters.md"
+      ],
+      "resolved": "2026-09-11"
     }
   ]
 }
