@@ -18,7 +18,7 @@ from dessem_dashboard.config import Settings, load_settings
 from dessem_dashboard.data.consolidate import build_dashboard_data
 from dessem_dashboard.data.discovery import discover_scenarios
 from dessem_dashboard.data.schemas import AggregationLevel
-from dessem_dashboard.errors import SchemaError
+from dessem_dashboard.errors import DataFileError, SchemaError
 from fixtures_sintese import make_sintese_dir
 
 # tests.conftest.scenario_tree overrides (n_stages=50, half_hour_stages=48, long_stage_hours=6.0),
@@ -130,6 +130,113 @@ def _build_mismatched_hydro_tree(tmp_path: Path) -> Path:
         scenario_dir / "deck_2" / "sintese",
         first_stage_start=_DECK_STARTS[1],
         hydro_codes=(1, 2),
+    )
+    return scenario_dir
+
+
+# Deliberately far from any digit pair appearing in "03/03/2024", so a match on these counts in a
+# warning message cannot be satisfied incidentally by the date (epic-02-learnings section 7).
+_MISMATCHED_STAGE_COUNTS: dict[str, int] = {"caso_a": 10, "caso_b": 16}
+
+
+def _build_stage_count_mismatch_tree(tmp_path: Path) -> dict[str, Path]:
+    """Two scenarios, one deck each, sharing a deck date but disagreeing on stage count."""
+    tree: dict[str, Path] = {}
+    for scenario_name, n_stages in _MISMATCHED_STAGE_COUNTS.items():
+        scenario_dir = tmp_path / scenario_name
+        make_sintese_dir(
+            scenario_dir / "deck_um" / "sintese",
+            first_stage_start=_DECK_STARTS[0],
+            n_stages=n_stages,
+            half_hour_stages=n_stages,
+        )
+        tree[scenario_name] = scenario_dir
+    return tree
+
+
+# Same calendar date, deliberately six hours apart so the mismatch cannot be mistaken for a
+# rounding artefact, and "06" never appears in "03/03/2024".
+_MISMATCHED_STARTS: dict[str, datetime] = {
+    "caso_a": datetime(2024, 3, 3, 0, tzinfo=UTC),
+    "caso_b": datetime(2024, 3, 3, 6, tzinfo=UTC),
+}
+
+
+def _build_start_mismatch_tree(tmp_path: Path) -> dict[str, Path]:
+    """Two scenarios, one deck each, sharing a deck date but starting at different hours."""
+    tree: dict[str, Path] = {}
+    for scenario_name, first_start in _MISMATCHED_STARTS.items():
+        scenario_dir = tmp_path / scenario_name
+        make_sintese_dir(scenario_dir / "deck_um" / "sintese", first_stage_start=first_start)
+        tree[scenario_name] = scenario_dir
+    return tree
+
+
+def _build_registry_gap_tree(tmp_path: Path, *, omit_from: str) -> Path:
+    """One scenario, two decks (alphabetically deck_1 before deck_2); omit REE.parquet from one.
+
+    Discovery sorts decks by folder name, so deck_1 is always the primary deck.
+    """
+    scenario_dir = tmp_path / "caso_unico"
+    for deck_name, deck_start in zip(("deck_1", "deck_2"), _DECK_STARTS, strict=True):
+        make_sintese_dir(
+            scenario_dir / deck_name / "sintese",
+            first_stage_start=deck_start,
+            omit=("REE.parquet",) if deck_name == omit_from else (),
+        )
+    return scenario_dir
+
+
+def _duplicate_entity_under_new_ree(frame: pd.DataFrame) -> pd.DataFrame:
+    """Duplicate codigo_usina 1's rows under a different codigo_ree, at the same estagio.
+
+    read_series' own uniqueness check is over the wider (codigo_usina, codigo_ree,
+    codigo_submercado, estagio) key, which stays unique here (codigo_ree differs); the narrower
+    (entity_id, estagio) pivot key data.consolidate checks does not.
+    """
+    duplicated = frame[frame["codigo_usina"] == 1].copy()
+    duplicated["codigo_ree"] = duplicated["codigo_ree"] + 1000
+    return pd.concat([frame, duplicated], ignore_index=True)
+
+
+_MIDDLE_GAP_DECK_NAMES: tuple[str, str, str] = ("deck_um", "deck_dois", "deck_tres")
+_MIDDLE_GAP_DECK_STARTS: tuple[datetime, datetime, datetime] = (
+    datetime(2024, 3, 3, tzinfo=UTC),
+    datetime(2024, 3, 4, tzinfo=UTC),
+    datetime(2024, 3, 5, tzinfo=UTC),
+)
+
+
+def _build_middle_gap_scenario_tree(tmp_path: Path) -> dict[str, Path]:
+    """Three decks for caso_a; caso_b lacks the middle one, a gap at chained positions 4-7."""
+    tree: dict[str, Path] = {}
+    deck_names_by_scenario = {
+        "caso_a": _MIDDLE_GAP_DECK_NAMES,
+        "caso_b": (_MIDDLE_GAP_DECK_NAMES[0], _MIDDLE_GAP_DECK_NAMES[2]),
+    }
+    for scenario_name, deck_names in deck_names_by_scenario.items():
+        scenario_dir = tmp_path / scenario_name
+        for deck_name in deck_names:
+            deck_start = _MIDDLE_GAP_DECK_STARTS[_MIDDLE_GAP_DECK_NAMES.index(deck_name)]
+            make_sintese_dir(
+                scenario_dir / deck_name / "sintese",
+                first_stage_start=deck_start,
+                n_stages=_DECK_STAGE_COUNT,
+                half_hour_stages=48,
+                long_stage_hours=6.0,
+            )
+        tree[scenario_name] = scenario_dir
+    return tree
+
+
+def _build_registry_missing_submarket_tree(tmp_path: Path) -> Path:
+    """One scenario, one deck: submarket 3 present in CMO_SBM but absent from SBM.parquet."""
+    scenario_dir = tmp_path / "caso_unico"
+    sintese_dir = scenario_dir / "deck_um" / "sintese"
+    make_sintese_dir(sintese_dir, first_stage_start=_DECK_STARTS[0], submarket_codes=(1, 2, 3))
+    _rewrite_parquet(
+        sintese_dir / "SBM.parquet",
+        lambda raw: raw[raw["codigo_submercado"] != 3].reset_index(drop=True),
     )
     return scenario_dir
 
@@ -268,6 +375,64 @@ def test_build_dashboard_data_deck_missing_from_scenario_pads_chained_array_with
     assert all(value is None for value in chained[_STAGES_PER_DECK:])
 
 
+# A gap in the middle deck must pad exactly that deck's window, not the tail of the array
+# (finding 7 of the epic-02 boundary review): the original suite only ever omitted the last
+# deck, which an implementation that appends padding instead of inserting it would pass anyway.
+def test_build_dashboard_data_deck_missing_from_middle_pads_gap_at_correct_position(
+    tmp_path: Path,
+) -> None:
+    tree = _build_middle_gap_scenario_tree(tmp_path)
+    scenarios = discover_scenarios([tree["caso_a"], tree["caso_b"]])
+    settings = _build_settings(tmp_path)
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+    chained = data.series("GHID_SIN", "", "caso_b", None)
+    assert len(chained) == _STAGES_PER_DECK * 3
+    assert all(value is not None for value in chained[:_STAGES_PER_DECK])
+    assert all(value is None for value in chained[_STAGES_PER_DECK : 2 * _STAGES_PER_DECK])
+    assert all(value is not None for value in chained[2 * _STAGES_PER_DECK :])
+
+
+# --- axis coverage mismatch between scenarios sharing a deck date (finding 4) -------------------
+
+
+def test_build_dashboard_data_stage_count_mismatch_between_scenarios_warns(
+    tmp_path: Path,
+) -> None:
+    tree = _build_stage_count_mismatch_tree(tmp_path)
+    scenarios = discover_scenarios([tree["caso_a"], tree["caso_b"]])
+    settings = _build_settings(tmp_path)
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+    axis_count = _MISMATCHED_STAGE_COUNTS["caso_a"]
+    other_count = _MISMATCHED_STAGE_COUNTS["caso_b"]
+    matching = [
+        w
+        for w in data.warnings()
+        if "caso_b" in w and str(axis_count) in w and str(other_count) in w
+    ]
+    assert len(matching) == 1
+
+
+def test_build_dashboard_data_first_start_mismatch_between_scenarios_warns(
+    tmp_path: Path,
+) -> None:
+    tree = _build_start_mismatch_tree(tmp_path)
+    scenarios = discover_scenarios([tree["caso_a"], tree["caso_b"]])
+    settings = _build_settings(tmp_path)
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+    matching = [
+        w
+        for w in data.warnings()
+        if "caso_b" in w and "2024-03-03 00:00:00" in w and "2024-03-03 06:00:00" in w
+    ]
+    assert len(matching) == 1
+
+
 # --- per-chart entity lists ----------------------------------------------------------------------
 
 
@@ -390,7 +555,11 @@ def test_build_dashboard_data_tempo_stores_raw_stage_times_without_dividing_by_s
 ) -> None:
     scenarios = discover_scenarios([scenario_tree["caso_a"], scenario_tree["caso_b"]])
     settings = _build_settings(tmp_path)
-    deck_path = scenario_tree["caso_a"] / "deck_dois" / "sintese" / "TEMPO.parquet"
+    # data.deck_dates[0] is deck_um's date (2024-03-03): the expected value must come from the
+    # same deck the assertion below reads back, not from deck_dois (finding 3 of the epic-02
+    # boundary review; this passed vacuously before build_scenario_tree gave each deck its own
+    # seed, because every deck held byte-identical arrays).
+    deck_path = scenario_tree["caso_a"] / "deck_um" / "sintese" / "TEMPO.parquet"
     raw = pd.read_parquet(deck_path, engine="pyarrow")
     expected_milp = float(raw.loc[raw["etapa"] == "MILP", "tempo"].iloc[0])
 
@@ -399,6 +568,53 @@ def test_build_dashboard_data_tempo_stores_raw_stage_times_without_dividing_by_s
     stored = data.scalars("TEMPO")
     assert len(stored) == _TEMPO_DISTINCT_ETAPA_COUNT * 2 * 2
     assert stored[("MILP", "caso_a", data.deck_dates[0])] == pytest.approx(expected_milp)
+
+
+# PL executes three times in fixtures_sintese._TEMPO_ETAPAS: the store must hold their sum, not
+# the last row's value (finding 1 of the epic-02 boundary review).
+def test_build_dashboard_data_tempo_sums_repeated_pl_rows_instead_of_overwriting(
+    scenario_tree: dict[str, Path], tmp_path: Path
+) -> None:
+    scenarios = discover_scenarios([scenario_tree["caso_a"], scenario_tree["caso_b"]])
+    settings = _build_settings(tmp_path)
+    deck_path = scenario_tree["caso_a"] / "deck_um" / "sintese" / "TEMPO.parquet"
+    raw = pd.read_parquet(deck_path, engine="pyarrow")
+    pl_rows = raw.loc[raw["etapa"] == "PL", "tempo"]
+    assert len(pl_rows) == 3, "fixture drifted: PL must repeat exactly three times"
+    expected_pl_sum = float(pl_rows.sum())
+    last_pl_row_value = float(pl_rows.iloc[-1])
+    assert expected_pl_sum != pytest.approx(last_pl_row_value), (
+        "fixture drifted: the sum must differ from the last row for this test to be meaningful"
+    )
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+    stored = data.scalars("TEMPO")
+    assert len(stored) == _TEMPO_DISTINCT_ETAPA_COUNT * 2 * 2
+    assert stored[("PL", "caso_a", data.deck_dates[0])] == pytest.approx(expected_pl_sum)
+
+
+# A NaN valor_esperado must store as None, never as float("nan") (finding 2 of the epic-02
+# boundary review): json.dumps has no valid token for NaN, and the browser fails to parse it.
+def test_build_dashboard_data_nan_scalar_round_trips_as_none_and_stays_json_clean(
+    scenario_tree: dict[str, Path], tmp_path: Path
+) -> None:
+    path = scenario_tree["caso_a"] / "deck_um" / "sintese" / "CUSTOS.parquet"
+    _rewrite_parquet(
+        path,
+        lambda raw: raw.assign(
+            valor_esperado=raw["valor_esperado"].where(raw["parcela"] != "FUTURO", float("nan"))
+        ),
+    )
+    scenarios = discover_scenarios([scenario_tree["caso_a"], scenario_tree["caso_b"]])
+    settings = _build_settings(tmp_path)
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+    stored = data.scalars("CUSTOS")
+    key = ("FUTURO", "caso_a", data.deck_dates[0])
+    assert stored[key] is None
+    assert json.dumps({f"{k[0]}|{k[1]}|{k[2]}": v for k, v in stored.items()})
 
 
 # --- entity present in one deck, absent from the other -----------------------------------------
@@ -438,6 +654,83 @@ def test_build_dashboard_data_malformed_series_file_raises_schema_error(
 
     with pytest.raises(SchemaError):
         build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+
+# A duplicate (entity_id, estagio) key must raise SchemaError naming the file and the entity
+# instead of pandas.DataFrame.pivot's bare ValueError (finding 6 of the epic-02 boundary review).
+# read_series' own uniqueness check is over the wider (codigo_usina, codigo_ree,
+# codigo_submercado, estagio) key and does not catch this.
+def test_build_dashboard_data_duplicate_entity_id_at_same_stage_raises_schema_error(
+    scenario_tree: dict[str, Path], tmp_path: Path
+) -> None:
+    path = scenario_tree["caso_a"] / "deck_um" / "sintese" / "GHID_UHE.parquet"
+    _rewrite_parquet(path, _duplicate_entity_under_new_ree)
+    scenarios = discover_scenarios([scenario_tree["caso_a"], scenario_tree["caso_b"]])
+    settings = _build_settings(tmp_path)
+
+    with pytest.raises(SchemaError, match="entidade '1'"):
+        build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+
+# A non-numeric scalar value column must raise SchemaError naming the file and the column,
+# instead of a bare ValueError from float() (finding 9 of the epic-02 boundary review).
+def test_build_dashboard_data_non_numeric_custos_value_raises_schema_error(
+    scenario_tree: dict[str, Path], tmp_path: Path
+) -> None:
+    path = scenario_tree["caso_a"] / "deck_um" / "sintese" / "CUSTOS.parquet"
+    _rewrite_parquet(path, lambda raw: raw.assign(valor_esperado=["abc"] * len(raw)))
+    scenarios = discover_scenarios([scenario_tree["caso_a"], scenario_tree["caso_b"]])
+    settings = _build_settings(tmp_path)
+
+    with pytest.raises(SchemaError, match="valor_esperado"):
+        build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+
+# --- non-primary deck missing a registry file (finding 5) --------------------------------------
+
+
+def test_build_dashboard_data_non_primary_deck_missing_registry_still_produces_dashboard(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    scenario_dir = _build_registry_gap_tree(tmp_path, omit_from="deck_2")
+    scenarios = discover_scenarios([scenario_dir])
+    settings = _build_settings(tmp_path)
+    caplog.set_level(logging.WARNING, logger=_CONSOLIDATE_LOGGER_NAME)
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_unico")
+
+    assert data.value_count() > 0
+    assert any("deck_2" in record.getMessage() for record in caplog.records)
+
+
+def test_build_dashboard_data_primary_deck_missing_registry_raises(tmp_path: Path) -> None:
+    scenario_dir = _build_registry_gap_tree(tmp_path, omit_from="deck_1")
+    scenarios = discover_scenarios([scenario_dir])
+    settings = _build_settings(tmp_path)
+
+    with pytest.raises(DataFileError):
+        build_dashboard_data(scenarios, settings=settings, reference="caso_unico")
+
+
+# --- submarket present in data but absent from the registry (finding 8) ------------------------
+
+
+def test_build_dashboard_data_submarket_absent_from_registry_but_present_in_data_warns(
+    tmp_path: Path,
+) -> None:
+    scenario_dir = _build_registry_missing_submarket_tree(tmp_path)
+    scenarios = discover_scenarios([scenario_dir])
+    settings = _build_settings(tmp_path, include_fictitious=True)
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_unico")
+
+    assert {e.entity_id for e in data.entities("CMO_SBM")} == {"1", "2"}
+    matching = [
+        w
+        for w in data.warnings()
+        if "CMO_SBM" in w and "caso_unico" in w and "descartado(s): 3" in w
+    ]
+    assert len(matching) == 1
 
 
 # --- value_count ------------------------------------------------------------------------------

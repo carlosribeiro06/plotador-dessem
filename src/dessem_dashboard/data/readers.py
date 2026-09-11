@@ -39,6 +39,12 @@ _NON_TIMESTAMP_SERIES_DTYPES: Mapping[str, str] = {
     column: dtype for column, dtype in SERIES_DTYPES.items() if column not in _TIMESTAMP_COLUMNS
 }
 
+# The value column each scalar-per-deck file stores through data.consolidate._load_scalars; cast
+# to float64 here, consistent with read_series' dtype enforcement, so a malformed value column
+# raises SchemaError naming the file and the column instead of a bare ValueError from float()
+# further downstream (finding 9 of the epic-02 boundary review).
+_SCALAR_VALUE_COLUMN: Mapping[str, str] = {"CUSTOS": "valor_esperado", "TEMPO": "tempo"}
+
 
 def _read_parquet(path: Path) -> pd.DataFrame:
     """Read path as Parquet, raising DataFileError when it is missing or unreadable."""
@@ -154,9 +160,14 @@ def read_registry(path: Path, name: str) -> pd.DataFrame:
 
 
 def _read_scalar(path: Path, name: str) -> pd.DataFrame:
-    """Read a scalar-per-deck Parquet file, validating against SCALAR_COLUMNS[name]."""
+    """Read a scalar-per-deck Parquet file, validating against SCALAR_COLUMNS[name].
+
+    Casts the file's value column to float64, raising SchemaError naming the column on failure,
+    the same contract read_series enforces for its own numeric columns.
+    """
     frame = _read_parquet(path)
     validate_columns(frame, SCALAR_COLUMNS[name], source=path)
+    frame = _cast(frame, {_SCALAR_VALUE_COLUMN[name]: "float64"}, source=path)
     return frame
 
 

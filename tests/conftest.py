@@ -24,6 +24,13 @@ _DECK_STARTS: tuple[datetime, datetime] = (
     datetime(2024, 3, 4, tzinfo=UTC),
 )
 
+# Base seed for build_scenario_tree's four (scenario, deck) combinations, each offset by a
+# distinct index so every deck gets its own deterministic-but-different value array. A shared
+# seed across all four made scenario/deck attribution untestable: no test could distinguish a
+# value stored under the wrong scenario or the wrong deck, because every deck held byte-identical
+# arrays (finding 3 of the epic-02 boundary review).
+_SCENARIO_TREE_BASE_SEED = 42
+
 
 @pytest.fixture
 def sintese_dir(tmp_path: Path) -> Path:
@@ -35,9 +42,14 @@ def build_scenario_tree(root: Path) -> dict[str, Path]:
     """Build the two-scenario, two-deck-per-scenario tree backing the scenario_tree fixture.
 
     A plain function, not a fixture, so tests.test_fixtures_sintese can call it directly and
-    time it without depending on pytest's fixture-resolution machinery.
+    time it without depending on pytest's fixture-resolution machinery. Each (scenario, deck)
+    combination gets its own seed, offset from _SCENARIO_TREE_BASE_SEED by its position in the
+    tree, so a test can tell a value apart by which scenario and which deck it came from while
+    every run of the suite still generates the exact same fixtures (rules/python.md's
+    reproducibility requirement).
     """
     tree: dict[str, Path] = {}
+    seed_offset = 0
     for scenario_name in ("caso_a", "caso_b"):
         scenario_dir = root / scenario_name
         for deck_name, deck_start in zip(_DECK_DIR_NAMES, _DECK_STARTS, strict=True):
@@ -47,7 +59,9 @@ def build_scenario_tree(root: Path) -> dict[str, Path]:
                 n_stages=_CHAINED_N_STAGES,
                 half_hour_stages=_CHAINING_WINDOW_STAGES,
                 long_stage_hours=_CHAINED_LONG_STAGE_HOURS,
+                seed=_SCENARIO_TREE_BASE_SEED + seed_offset,
             )
+            seed_offset += 1
         tree[scenario_name] = scenario_dir
     return tree
 
