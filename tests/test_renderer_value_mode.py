@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import importlib.resources
 import json
+import re
 import shutil
 from collections.abc import Sequence
 from pathlib import Path
@@ -196,7 +197,12 @@ def test_dashboard_js_keys_object_declares_reference_formats_decimals_once_each(
 
 
 def test_dashboard_js_returns_empty_array_when_reference_read_is_absent() -> None:
-    """The Diferenca early-return: a missing reference series yields [], never a zero line."""
+    """The Diferenca early-return: a missing reference series yields [], never a zero line.
+
+    The early-return check is a regex, not the exact-indentation literal the epic-03 boundary
+    review judged over-pinned: only the early return's existence is meant to be gated here, not
+    the depth it happens to sit at, so a reindent of this branch must not turn this test red.
+    """
     text = _read_js_asset()
 
     branch_start = text.index('if (state.valueMode === "diferenca") {')
@@ -204,7 +210,7 @@ def test_dashboard_js_returns_empty_array_when_reference_read_is_absent() -> Non
     branch_text = text[branch_start:traces_declaration]
 
     assert "payload[KEYS.REFERENCE]" in branch_text
-    assert "=== undefined) {\n        return [];\n      }" in branch_text
+    assert re.search(r"===\s*undefined\)\s*\{\s*return \[\];", branch_text) is not None
 
 
 # --- acceptance criterion 4: the missing-reference-deck payload shape and its warning -------

@@ -195,7 +195,11 @@ def _section_heading(section: str) -> str:
 
 
 def _entity_label_text(section: str) -> str:
-    match = re.search(r'<label class="entity-label">([^<]*)</label>', section)
+    # Attributes, not just the opening tag's exact text, are pinned here: builder.py's
+    # _entity_selector_fragment now also emits a for="entity-{key}" attribute (finding 2 of the
+    # epic-03 boundary review) so the label focuses its select, and this regex must not require
+    # the opening tag to carry no attributes at all.
+    match = re.search(r'<label class="entity-label"[^>]*>([^<]*)</label>', section)
     assert match is not None, f"no entity-label found in section slice: {section[:120]!r}"
     return match.group(1)
 
@@ -203,6 +207,14 @@ def _entity_label_text(section: str) -> str:
 def _entity_selector_id(section: str) -> str:
     match = re.search(r'<select class="entity-selector" id="entity-([^"]+)">', section)
     assert match is not None, f"no entity-selector select found in section slice: {section[:120]!r}"
+    return match.group(1)
+
+
+def _entity_label_for_attribute(section: str) -> str:
+    match = re.search(r'<label class="entity-label" for="entity-([^"]+)">', section)
+    assert match is not None, (
+        f"no for attribute found on the entity-label in section slice: {section[:120]!r}"
+    )
     return match.group(1)
 
 
@@ -375,8 +387,19 @@ def test_dashboard_js_is_pure_ascii() -> None:
 
 
 def test_dashboard_js_registers_exactly_one_change_listener_on_charts_container() -> None:
+    """Exactly one delegated `change` listener on the charts container, alongside the deck
+    selector's own listener -- two `change` listeners in total.
+
+    Split into two assertions, neither of which forbids a line break between the container
+    lookup and the `addEventListener` call: the epic-03 boundary review judged the original
+    single contiguous string over-pinned, since a reformat that moved `.addEventListener` onto
+    its own line would turn this suite red at the mutation site rather than at the invariant it
+    protects (exactly one delegated listener on the container).
+    """
     text = _read_js_asset()
-    assert text.count('document.querySelector("#charts").addEventListener("change"') == 1
+
+    assert text.count('addEventListener("change"') == 2
+    assert 'document.querySelector("#charts")' in text
 
 
 def test_renderer_contract_suite_still_passes_after_this_ticket_extends_the_asset() -> None:
@@ -433,8 +456,24 @@ def _mutate_set_entity_adds_render_active_group_call(text: str) -> str:
     )
 
 
+def _remove_member_line(text: str, member: str) -> str:
+    """Remove member's own `member: member,` line from window.DessemDashboard's assignment.
+
+    Built from the member name via regex, not as a whitespace- and newline-pinned literal: the
+    epic-03 boundary review judged the literal form over-pinned, since a reformat (different
+    indentation, no trailing comma on the last member) would turn this non-vacuity mutation red
+    at the mutation site itself rather than at the check it exists to exercise.
+    """
+    pattern = re.compile(
+        rf"^[ \t]*{re.escape(member)}\s*:\s*{re.escape(member)}\s*,?\s*\n", re.MULTILINE
+    )
+    mutated, count = pattern.subn("", text, count=1)
+    assert count == 1, f"expected exactly one '{member}: {member},' member line in dashboard.js"
+    return mutated
+
+
 def _mutate_removes_set_entity_member(text: str) -> str:
-    return _remove_first(text, "    setEntity: setEntity,\n")
+    return _remove_member_line(text, "setEntity")
 
 
 def _mutate_removes_entity_selector_literal(text: str) -> str:
@@ -525,6 +564,9 @@ def test_document_sbm_sections_carry_selector_label_and_two_submarket_options(
         assert 'data-selector="SUBMARKET"' in section
         assert _entity_label_text(section) == "Submercado"
         assert _entity_selector_id(section) == chart_key
+        # Finding 2 of the epic-03 boundary review: the label must be associated with its select
+        # via a matching for/id pair, or a screen reader announces an unlabelled combobox.
+        assert _entity_label_for_attribute(section) == chart_key
         options = _entity_options(section)
         assert options == list(_EXPECTED_SBM_OPTIONS)
         assert all(value not in {"11", "99"} for value, _label in options)
@@ -546,6 +588,7 @@ def test_document_sbp_section_carries_selector_heading_label_and_two_pair_option
     assert _section_heading(section) == "Intercâmbios"
     assert _entity_label_text(section) == "Par de submercados"
     assert _entity_selector_id(section) == "INT_SBP"
+    assert _entity_label_for_attribute(section) == "INT_SBP"
     assert _entity_options(section) == list(_EXPECTED_SBP_OPTIONS)
 
 

@@ -27,6 +27,7 @@ from dessem_dashboard.dashboard.builder import build_html
 from dessem_dashboard.dashboard.payload import build_payload
 from dessem_dashboard.data.consolidate import build_dashboard_data
 from dessem_dashboard.data.discovery import discover_scenarios
+from dessem_dashboard.errors import ConfigError
 from dessem_dashboard.models.store import DashboardData
 
 _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
@@ -54,6 +55,35 @@ _ELEVEN_MEMBERS_AFTER_TICKET_024 = (
 
 # The five default-enabled SIN-group chart keys, in dessem_dashboard.charts.specs.SPECS order.
 _SIN_CHART_KEYS: tuple[str, ...] = ("GTER_SIN", "GHID_SIN", "GUNS_SIN", "EARMF_SIN", "VARMF_SIN")
+
+# The full 23 keys SPECS enables by default (dessem_dashboard.charts.specs.SPECS), disabling all
+# of which leaves enabled_specs() empty -- the precondition finding 1 of the epic-03 boundary
+# review guards against, since _level_nav and _chart_sections both index specs[0] unguarded.
+_ALL_ENABLED_CHART_KEYS: tuple[str, ...] = (
+    "GTER_SIN",
+    "GHID_SIN",
+    "GUNS_SIN",
+    "EARMF_SIN",
+    "VARMF_SIN",
+    "MER_SBM",
+    "GHID_SBM",
+    "GTER_SBM",
+    "GUNS_SBM",
+    "CMO_SBM",
+    "VARMF_SBM",
+    "INT_SBP",
+    "GHID_UHE",
+    "QTUR_UHE",
+    "QVER_UHE",
+    "VARMF_UHE",
+    "VARPF_UHE",
+    "QDEF_UHE",
+    "QAFL_UHE",
+    "QINC_UHE",
+    "GTER_UTE",
+    "CUSTOS",
+    "TEMPO",
+)
 
 # Measured on the scenario_tree fixture (ticket-025 context), in enabled_specs order.
 _SIN_TITLES_IN_ORDER: tuple[str, ...] = (
@@ -272,8 +302,38 @@ def _check_yaxis_assigned_in_exactly_one_function(text: str) -> None:
     assert len(matching) == 1, f"'yaxis' assigned in {len(matching)} functions, expected exactly 1"
 
 
+def _keys_declaration_span(text: str) -> tuple[int, int]:
+    """Return the (start, end) character span of the raw `const KEYS = Object.freeze({...});`
+    declaration inside text.
+
+    Shared by `_check_keys_entry_declared_once` below and `_duplicate_first` further down: the
+    declaration carries no comment of its own (this file's only comments sit before it), so the
+    same lookup finds identical content whether text has been comment-stripped first or not.
+    """
+    start = text.index("const KEYS")
+    end = text.index("});", start) + len("});")
+    return start, end
+
+
 def _check_keys_entry_declared_once(text: str, quoted_value: str) -> None:
-    assert text.count(quoted_value) == 1, f"{quoted_value} must occur exactly once"
+    """Assert a KEYS entry is declared once and never used as a raw index.
+
+    Narrowed 2026-09-11 at the epic-03 boundary, for the same reason as the sibling check in
+    tests/test_renderer_contract.py: counting the quoted literal over the raw file text conflated
+    "a payload object is indexed with this literal", which is the contract, with "a string equal to
+    a payload key appears anywhere, comments included", which is a naming coincidence. The broad
+    form forced a workaround in two consecutive tickets. The contract is unchanged; only the
+    incidental collisions are now allowed.
+    """
+    stripped = re.sub(r"//[^\n]*", "", re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL))
+    start, end = _keys_declaration_span(stripped)
+    keys_block = stripped[start:end]
+    assert keys_block.count(quoted_value) == 1, (
+        f"{quoted_value} must be declared exactly once in the KEYS object"
+    )
+    assert not re.search(rf"\[\s*{re.escape(quoted_value)}\s*\]", stripped), (
+        f"{quoted_value} is used as a raw index; a payload key must be read only through KEYS"
+    )
 
 
 # --- acceptance criterion 1: buildLayout, its deep copy, KEYS.UNIT, and no unit literal --------
@@ -406,6 +466,19 @@ def test_document_with_earmf_sin_disabled_has_four_sin_sections_and_unchanged_he
     assert remaining_titles == expected_remaining
 
 
+def test_build_html_with_every_enabled_chart_disabled_raises_config_error_naming_the_key(
+    scenario_tree: dict[str, Path], tmp_path: Path
+) -> None:
+    """Finding 1 of the epic-03 boundary review: disabling the whole catalogue leaves
+    enabled_specs() empty, and _level_nav/_chart_sections both index specs[0] unguarded. build_html
+    must fail fast with a Portuguese ConfigError naming 'charts.disabled', never a bare IndexError
+    that names neither the offending settings key nor its value."""
+    assert len(_ALL_ENABLED_CHART_KEYS) == 23
+
+    with pytest.raises(ConfigError, match=r"charts\.disabled"):
+        _build_document(scenario_tree, tmp_path, disabled=_ALL_ENABLED_CHART_KEYS)
+
+
 # --- acceptance criterion 5: entities, per-axis series lengths, and pre-rounded values ----------
 
 
@@ -450,9 +523,43 @@ def _remove_first(text: str, target: str) -> str:
 
 
 def _duplicate_first(text: str, target: str) -> str:
-    assert text.count(target) == 1, f"expected exactly one occurrence of {target!r}"
-    index = text.index(target)
-    return text[: index + len(target)] + target + text[index + len(target) :]
+    """Duplicate target's sole occurrence inside the KEYS declaration slice, never the whole file.
+
+    Narrowed 2026-09-11 at the epic-03 boundary, for the same reason
+    `_check_keys_entry_declared_once` was narrowed one layer up: asserting
+    `text.count(target) == 1` over the raw file, as the original form did, breaks the instant an
+    unrelated comment anywhere in the file mentions the same word -- exactly the collision class
+    the sibling checker was narrowed away from. Scoping both the precondition and the mutation to
+    the KEYS declaration slice removes that fragility.
+    """
+    start, end = _keys_declaration_span(text)
+    keys_block = text[start:end]
+    assert keys_block.count(target) == 1, (
+        f"expected exactly one occurrence of {target!r} inside the KEYS declaration"
+    )
+    index_in_block = keys_block.index(target)
+    mutated_block = (
+        keys_block[: index_in_block + len(target)]
+        + target
+        + keys_block[index_in_block + len(target) :]
+    )
+    return text[:start] + mutated_block + text[end:]
+
+
+def _remove_member_line(text: str, member: str) -> str:
+    """Remove member's own `member: member,` line from window.DessemDashboard's assignment.
+
+    Built from the member name via regex, not as a whitespace- and newline-pinned literal: the
+    epic-03 boundary review judged the literal form over-pinned, since a reformat (different
+    indentation, no trailing comma on the last member) would turn this non-vacuity mutation red
+    at the mutation site itself rather than at the check it exists to exercise.
+    """
+    pattern = re.compile(
+        rf"^[ \t]*{re.escape(member)}\s*:\s*{re.escape(member)}\s*,?\s*\n", re.MULTILINE
+    )
+    mutated, count = pattern.subn("", text, count=1)
+    assert count == 1, f"expected exactly one '{member}: {member},' member line in dashboard.js"
+    return mutated
 
 
 def _append_as_comment(text: str, literal: str) -> str:
@@ -473,7 +580,7 @@ def _mutate_render_chart_reintroduces_inline_yaxis(text: str) -> str:
 _NON_VACUITY_CASES: tuple[tuple[str, Callable[[str], str], Callable[[str], None]], ...] = (
     (
         "buildLayout member removed from window.DessemDashboard",
-        lambda text: _remove_first(text, "    buildLayout: buildLayout,\n"),
+        lambda text: _remove_member_line(text, "buildLayout"),
         _check_build_layout_member_and_deep_copy,
     ),
     (

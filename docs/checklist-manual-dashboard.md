@@ -48,19 +48,31 @@ decision E3-1 means no test parses this file, so a syntax error would otherwise 
    `SIN`, `Submercado`, `Intercâmbio`, `Usinas hidrelétricas`, `Usinas termelétricas`, `Execução`.
 
    **Expected result:** six buttons, in that order, each with the exact Portuguese label quoted
-   above. (Clicking them does not yet switch the visible charts in this epic's build — level-switch
-   wiring is out of this checklist's automated-parity scope and is exercised visually below only for
-   the groups this epic renders.)
+   above.
+
+7. Click `Submercado`.
+
+   **Expected result:** the five SIN charts disappear, the six `Submercado` charts appear in their
+   place, and the `Submercado` button becomes the pressed one while `SIN` stops being pressed. Click
+   back to `SIN` and confirm the reverse. Level switching is a re-render, not a page reload, so the
+   browser must not navigate.
+
+   **Note on the two levels Epic 3 does not populate:** clicking `Usinas hidrelétricas`,
+   `Usinas termelétricas` or `Execução` must still switch — the nav button becomes pressed and the
+   previous level's charts disappear — but their chart areas are expected to be **empty frames**
+   until Epic 4 renders them. Empty plot areas under those three headings are correct at this
+   milestone; a nav button that does not respond is not.
 
 ## 4. Por deck and Encadeado modes
 
-7. Confirm the mode toggle (`#mode-toggle`) shows two buttons labelled `Por deck` and `Encadeado`.
-8. Switch to `Por deck` mode. Confirm the deck selector (the `Deck` dropdown, `#deck-selector`)
+8. Confirm the mode toggle (`#mode-toggle`) shows two buttons labelled `Por deck` and `Encadeado`.
+9. Switch to `Por deck` mode. Confirm the deck selector (the `Deck` dropdown, `#deck-selector`)
    becomes usable and lets you pick one of the individual deck dates.
-9. While in `Por deck` mode, pick a deck and inspect a chart's time axis: confirm that a 6-hour stage
-   renders six times wider along the horizontal axis than a 30-minute stage of the same deck, since
-   master plan decision 14 keeps a true date axis rather than one evenly-spaced tick per stage.
-10. Switch to `Encadeado` mode. Confirm the deck selector is disabled while this mode is active,
+10. While in `Por deck` mode, pick a deck and inspect a chart's time axis: confirm that a 6-hour
+    stage renders six times wider along the horizontal axis than a 30-minute stage of the same
+    deck, since master plan decision 14 keeps a true date axis rather than one evenly-spaced tick
+    per stage.
+11. Switch to `Encadeado` mode. Confirm the deck selector is disabled while this mode is active,
     since the chained axis does not read from a single deck.
 
     **Expected result:** both mode buttons render with the quoted labels; the deck selector's
@@ -72,7 +84,7 @@ decision E3-1 means no test parses this file, so a syntax error would otherwise 
 This is the one computation E3-1 accepts as untested by the automated suite, because master plan
 decision 8 puts the difference arithmetic in the browser. Verify it against this concrete case.
 
-11. Build the dashboard for the bundled two-scenario example (do not run this command as part of an
+12. Build the dashboard for the bundled two-scenario example (do not run this command as part of an
     automated check; it is the manual reproduction case for this release):
 
     ```bash
@@ -81,35 +93,45 @@ decision 8 puts the difference arithmetic in the browser. Verify it against this
 
     Because `--referencia` defaults to the first `--casos` directory's basename, the reference
     scenario for this build is `caso_oficial`.
-12. Select the chart `GHID_SIN` and switch to `Encadeado` mode.
-13. Hover the point at timestamp `04/03/2024 12:00` (point 73 of 96 on the chained axis, since
+13. Select the chart `GHID_SIN` and switch to `Encadeado` mode.
+14. Hover the point at timestamp `04/03/2024 12:00` (point 73 of 96 on the chained axis, since
     chaining takes the first 48 half-hour stages of each deck: the chained axis runs
     03/03/2024 00:00–23:30 followed by 04/03/2024 00:00–23:30) and write down the `caso_oficial` and
     `caso_gurobi` values shown in the hover tooltip.
-14. Switch the value toggle (`#value-toggle`) from `Absoluto` to `Diferença`.
+15. Switch the value toggle (`#value-toggle`) from `Absoluto` to `Diferença`.
 
     **Expected result:** the `caso_oficial` trace is a flat line at zero across the whole axis,
     since it is its own reference; the `caso_gurobi` trace's value at `04/03/2024 12:00` equals
-    `caso_gurobi - caso_oficial` (the two absolute values recorded in step 13), rounded to the
-    number of decimals configured in `output.decimals` in `settings.json`.
+    `caso_gurobi - caso_oficial` (the two absolute values recorded in step 14), rounded to the
+    number of decimals configured in `output.decimals` in `settings.json`. The chart's Y-axis
+    title must also switch: it reads `MW (diferença)` while Diferença is the active toggle, and
+    reverts to the bare `MW` the moment Absoluto is reselected.
 
 ## 6. Submarket and interchange-pair selectors
 
-15. Navigate to a chart with a submarket entity selector (for example `CMO_SBM`, labelled
+16. Navigate to a chart with a submarket entity selector (for example `CMO_SBM`, labelled
     `Submercado`) and confirm its `<select>` offers one option per submarket, each showing the
     submarket's Portuguese label (for example `SE (SUDESTE)`).
-16. Navigate to a chart with an interchange-pair entity selector (for example `INT_SBP`, labelled
+17. Navigate to a chart with an interchange-pair entity selector (for example `INT_SBP`, labelled
     `Par de submercados`) and confirm its `<select>` offers one option per submarket pair, each
     showing a label of the form `<origem> para <destino>`.
 
     **Expected result:** both selectors are populated, ordered, and their options' Portuguese
     labels match what the corresponding chart plots when an option is picked.
 
+18. Still inside the `Submercado` level, pick a **different** submarket on two different charts —
+    for example `SE (SUDESTE)` on `CMO_SBM` and `S (SUL)` on `MER_SBM`. Then switch to another
+    level and back.
+
+    **Expected result:** each chart keeps its own selection. The two selectors do not synchronise,
+    picking on one does not redraw the other, and both choices survive the level round trip. Entity
+    selection is per chart by design (ticket-026 requirement 5), so a shared selection is a defect.
+
 ## 7. Avisos section
 
-17. Build (or reuse a build of) a scenario tree where one scenario is missing a deck date that
+19. Build (or reuse a build of) a scenario tree where one scenario is missing a deck date that
     another scenario has, so `DashboardData.add_warning` records the gap.
-18. Confirm a section headed `Avisos` renders below the controls and above the charts, listing one
+20. Confirm a section headed `Avisos` renders below the controls and above the charts, listing one
     Portuguese warning message per missing combination.
 
     **Expected result:** the `Avisos` section is present only when there is at least one warning,

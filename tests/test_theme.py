@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.resources
 import re
 
 import pytest
@@ -19,6 +20,17 @@ from dessem_dashboard.dashboard.theme import (
     scenario_colors,
     tint,
 )
+
+_ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
+_CSS_ASSET = "dashboard.css"
+
+
+def _read_dashboard_css() -> str:
+    """Read dashboard.css exactly as builder.py itself does, through importlib.resources."""
+    return (
+        importlib.resources.files(_ASSETS_PACKAGE).joinpath(_CSS_ASSET).read_text(encoding="utf-8")
+    )
+
 
 # --- tint ---------------------------------------------------------------------------------
 
@@ -222,3 +234,73 @@ def test_css_root_block_contains_green_grid_and_logo_width_substrings() -> None:
     assert "--ons-green: #486018;" in text
     assert "--ons-grid: #DFDFDF;" in text
     assert "--ons-logo-width: 393px;" in text
+
+
+# --- css_root_block <-> dashboard.css correspondence ------------------------------------------
+
+
+def test_css_root_block_and_dashboard_css_reference_the_same_custom_property_names() -> None:
+    """Both directions of the `var(--ons-*)` <-> `css_root_block()` correspondence, not just one.
+
+    The correspondence held at the epic-03 boundary only as a one-time human read (learnings
+    section 5, point 4): neither this file's own expected-list check above nor test_builder.py's
+    no-hex-literal check compares the two sets to each other. A `var()` naming a property the
+    theme does not emit renders an unstyled page silently -- exactly the defect a one-directional
+    check would miss -- and ticket-028 adds filter-control CSS to dashboard.css next.
+    """
+    css_text = _read_dashboard_css()
+
+    referenced = set(re.findall(r"var\((--ons-[a-z-]+)\)", css_text))
+    declared = set(re.findall(r"(--ons-[a-z-]+):", css_root_block()))
+
+    assert referenced != set()
+    assert referenced == declared
+
+
+# --- dashboard.css: rgb(), hsl() and named-colour guard, beyond the existing hex-literal check --
+
+_FORBIDDEN_NAMED_COLORS: tuple[str, ...] = (
+    "black",
+    "white",
+    "red",
+    "green",
+    "blue",
+    "yellow",
+    "cyan",
+    "magenta",
+    "silver",
+    "gray",
+    "grey",
+    "maroon",
+    "olive",
+    "lime",
+    "aqua",
+    "teal",
+    "navy",
+    "fuchsia",
+    "purple",
+    "orange",
+    "transparent",
+    "currentcolor",
+)
+
+
+def test_dashboard_css_forbids_rgb_hsl_and_common_named_colors() -> None:
+    """Strengthen the hex-literal guard test_builder.py already runs: a colour can also arrive as
+    `rgb(...)`, `hsl(...)` or a bare named keyword, none of which a `#[0-9A-Fa-f]` search catches.
+
+    Measured: dashboard.css contains none of these today, so this is a guard against ticket-028's
+    filter-control CSS addition, not a fix for an existing defect. `--ons-*` custom-property
+    references are stripped first: this file's own naming legitimately contains colour words
+    (`--ons-gray`, `--ons-green`, `--ons-white`), and a blanket keyword search would flag its own
+    custom properties as forbidden colour literals.
+    """
+    css_text = _read_dashboard_css()
+    without_custom_properties = re.sub(r"--ons-[a-z-]+", "", css_text)
+
+    assert "rgb(" not in without_custom_properties
+    assert "hsl(" not in without_custom_properties
+    for color_name in _FORBIDDEN_NAMED_COLORS:
+        assert re.search(rf"\b{color_name}\b", without_custom_properties, re.IGNORECASE) is None, (
+            f"forbidden named colour {color_name!r} found in dashboard.css"
+        )

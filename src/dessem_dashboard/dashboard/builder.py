@@ -81,8 +81,11 @@ VALUE_LABELS: Final[Mapping[str, str]] = {
     "diferenca": "Diferença",
 }
 
-# The value-mode toggle's initial state (requirement 2): the document's single source of truth,
-# read back client-side from `document.body.dataset.initialValue`.
+# The value-mode toggle's initial state (requirement 2): drives only `_value_toggle`'s
+# aria-pressed attribute. `dashboard.html` independently hard-codes `data-initial-value="absoluto"`,
+# the value `dashboard.js` actually reads client-side via `document.body.dataset.initialValue`; the
+# two are not wired together in code, only kept in sync by a test, so this constant is not itself
+# the document's single source of truth.
 INITIAL_VALUE_MODE: Final = "absoluto"
 
 
@@ -132,56 +135,49 @@ def _logo_data_uri(logo_file_path: Path) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
+def _pressed_buttons(dataset_key: str, labels: Mapping[str, str], active: str) -> str:
+    """Build one `<button>` per labels entry, in order, keyed by `data-<dataset_key>`.
+
+    The button whose key equals `active` carries `aria-pressed="true"` and every other carries
+    `aria-pressed="false"`, so the shell already shows the selected option before any JavaScript
+    runs (requirements 2 and 4). This is the Python counterpart of `syncPressed` in
+    `dashboard.js`: the level navigation and the two toggles share one pressed-state renderer
+    instead of keeping one variant each.
+    """
+    return "".join(
+        f'<button type="button" data-{dataset_key}="{html.escape(key)}" '
+        f'aria-pressed="{str(key == active).lower()}">{html.escape(label)}</button>'
+        for key, label in labels.items()
+    )
+
+
 def _level_nav(specs: Sequence[ChartSpec]) -> str:
     """Build one nav button per chart group holding at least one enabled chart.
 
     Groups appear in the order they first occur in specs (requirement 8), which is
     `enabled_specs`' own registration order, not an alphabetical or otherwise re-derived order.
     The button of `specs[0]`'s group -- the initially active level, matching the chart sections
-    `_chart_sections` leaves unhidden -- carries `aria-pressed="true"`; every other group button
-    carries `aria-pressed="false"` (requirement 4).
+    `_chart_sections` leaves unhidden -- is the pressed one (requirement 4).
     """
-    active_group = specs[0].group.value
-    seen_groups: list[str] = []
-    for spec in specs:
-        group = spec.group.value
-        if group not in seen_groups:
-            seen_groups.append(group)
-    pressed_by_group = {group: str(group == active_group).lower() for group in seen_groups}
-    buttons = (
-        f'<button type="button" data-group="{html.escape(group)}" '
-        f'aria-pressed="{pressed_by_group[group]}">'
-        f"{html.escape(GROUP_LABELS[group])}</button>"
-        for group in seen_groups
-    )
-    return "".join(buttons)
+    ordered_groups = list(dict.fromkeys(spec.group.value for spec in specs))
+    labels = {group: GROUP_LABELS[group] for group in ordered_groups}
+    return _pressed_buttons("group", labels, specs[0].group.value)
 
 
 def _mode_toggle(initial_mode: str) -> str:
-    """Build one button per MODE_LABELS entry, in declared order.
+    """Build one button per MODE_LABELS entry, in declared order, with initial_mode pressed.
 
-    The button whose `data-mode` equals `initial_mode` carries `aria-pressed="true"`; the other
-    carries `aria-pressed="false"` (requirement 2), so the shell already shows the selected mode
-    before any JavaScript runs.
+    Requirement 2: the shell shows the selected view mode before any JavaScript runs.
     """
-    return "".join(
-        f'<button type="button" data-mode="{html.escape(mode)}" '
-        f'aria-pressed="{str(mode == initial_mode).lower()}">{html.escape(label)}</button>'
-        for mode, label in MODE_LABELS.items()
-    )
+    return _pressed_buttons("mode", MODE_LABELS, initial_mode)
 
 
 def _value_toggle() -> str:
-    """Build one button per VALUE_LABELS entry, in declared order.
+    """Build one button per VALUE_LABELS entry, in declared order, INITIAL_VALUE_MODE pressed.
 
-    The button whose `data-value` equals `INITIAL_VALUE_MODE` carries `aria-pressed="true"`; the
-    other carries `aria-pressed="false"` (requirement 2), mirroring `_mode_toggle`'s pattern.
+    Requirement 2, mirroring `_mode_toggle`.
     """
-    return "".join(
-        f'<button type="button" data-value="{html.escape(value)}" '
-        f'aria-pressed="{str(value == INITIAL_VALUE_MODE).lower()}">{html.escape(label)}</button>'
-        for value, label in VALUE_LABELS.items()
-    )
+    return _pressed_buttons("value", VALUE_LABELS, INITIAL_VALUE_MODE)
 
 
 def _deck_selector(deck_dates: Sequence[str], *, disabled: bool) -> str:
@@ -220,7 +216,7 @@ def _entity_selector_fragment(spec: ChartSpec, entities: Sequence[Mapping[str, s
         for entity in entities
     )
     return (
-        f'<label class="entity-label">{label}</label>'
+        f'<label class="entity-label" for="entity-{spec.key}">{label}</label>'
         f'<select class="entity-selector" id="entity-{spec.key}">{options}</select>'
     )
 
@@ -271,11 +267,22 @@ def build_html(data: DashboardData, *, settings: Settings, initial_mode: str = "
     the epic-03 DOM contract, and performs exactly one `Template.substitute` call: no fragment
     (in particular the inlined `plotly.min.js` and the JSON payload) is ever re-scanned for a
     `$` placeholder. Touches no disk beyond those reads.
+
+    Raises:
+        ConfigError: if `settings.charts.disabled` names every enabled chart of the catalogue,
+            leaving no chart to render. `_level_nav` and `_chart_sections` both index `specs[0]`
+            for the initially active group, so an empty `specs` would otherwise surface as a
+            bare `IndexError` naming neither the offending settings key nor its value.
     """
     _validate_initial_mode(initial_mode)
     start = time.perf_counter()
 
     specs = enabled_specs(disabled=settings.charts.disabled)
+    if not specs:
+        raise ConfigError(
+            "Chave 'charts.disabled' desabilita todo o catálogo de gráficos: nenhum gráfico "
+            "ficaria disponível no dashboard"
+        )
 
     scenario_colors = theme.scenario_colors(data.scenarios, reference=data.reference)
     plotly_layout = theme.plotly_layout_template(date_format=settings.dashboard.date_format)

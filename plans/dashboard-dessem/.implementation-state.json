@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T09:20:00Z",
+  "last_updated": "2026-09-11T06:48:30Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -825,8 +825,8 @@
       }
     },
     "epic-03-dashboard-core": {
-      "phase": "executing",
-      "learning_extracted": false,
+      "phase": "completed",
+      "learning_extracted": true,
       "estimate": "~5-6.5 h (High, refined; 24 points)",
       "refined": true,
       "readiness_scored": true,
@@ -836,7 +836,32 @@
         "ORDER IS FORCED, 023 BEFORE 024 (corrected 2026-09-11): the refinement said either order, but ticket-024 requirement 4 syncs aria-pressed through the helper ticket-023 introduces, so 024 depends on 023 having landed. Dispatching 024 first would leave it inventing a helper 023 then duplicates.",
         "019 and 020 ran in parallel successfully; 021 depended on both.",
         "Cross-ticket contract verified 2026-09-11: 021 emits data-mode/data-group/data-value/data-chart and no aria-pressed or disabled; 023 adds aria-pressed to mode, level and deck plus disabled on the selector; 024 adds aria-pressed to the value toggle plus data-initial-value on body; 022 reads data-initial-mode and takes valueMode from a constant that 024 replaces. payload.labels.y_axis_difference_suffix is emitted by 020 and consumed by 025, not by 024."
-      ]
+      ],
+      "quality_gate_ran": true,
+      "simplifier_ran": true,
+      "reviewer_ran": true,
+      "quality_gate": {
+        "tickets": 8,
+        "points": 24,
+        "quality_min": 1.0,
+        "quality_avg": 1.0,
+        "readiness_avg": 0.9875,
+        "below_gate": 0
+      },
+      "boundary_findings": {
+        "findings_addressed": 9,
+        "fixed": 9,
+        "deferred": [],
+        "high": [
+          "H1: the manual checklist told the operator that level navigation does not work, when it does - a false statement in the only behavioural gate E3-1 leaves. Rewritten as step 7 plus a note on the three levels Epic 4 populates.",
+          "H2: settings.charts.disabled covering the whole catalogue surfaced as a bare IndexError naming neither the key nor its value. Guarded with a Portuguese ConfigError in build_html."
+        ],
+        "notes": [
+          "A fifth KEYS evasion (chart.unit / axis.starts dot access) was caught by nothing and pre-dated the orchestrator narrowing; closed with _assert_no_dot_access_to_keys_values scoped to seven payload-derived locals, with a non-vacuity proof test.",
+          "Two cross-ticket constraint collisions were resolved during execution by narrowing over-broad literal-count assertions in test_renderer_contract.py and test_charts_sin.py to the KEYS declaration slice.",
+          "code-simplifier has no Bash tool; it was dispatched with an explicit recommend-do-not-verify contract and returned two behaviour-neutral edits."
+        ]
+      }
     },
     "epic-04-plant-and-scalar-charts": {
       "phase": "outline",

@@ -12,9 +12,11 @@ from __future__ import annotations
 import importlib.resources
 import json
 import re
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 from dessem_dashboard.config import Settings, load_settings
 from dessem_dashboard.dashboard.builder import build_html
@@ -58,6 +60,22 @@ _BANNED_NETWORK_AND_EVAL_TOKENS = (
 _KEYS_BLOCK_PATTERN = re.compile(r"const KEYS = Object\.freeze\(\{(.*?)\}\);", re.DOTALL)
 _KEYS_ENTRY_PATTERN = re.compile(r'([A-Z_]+):\s*"([^"]+)"')
 
+# The payload-derived locals dashboard.js actually declares: payload itself, the per-chart
+# "chart" and per-axis "axis" locals of buildTraces/buildLayout, and the per-entity/per-scenario
+# locals of buildTraces's reference and main loops. Deliberately not every KEYS value name and
+# not every local that happens to read from payload (state.entities is the counter-example this
+# list must exclude): a blanket `\.(value)\b` pattern would flag state.entities, a state-derived
+# object whose "entities" property is merely named the same as the payload key "entities".
+_PAYLOAD_DERIVED_LOCALS: tuple[str, ...] = (
+    "payload",
+    "chart",
+    "axis",
+    "referenceEntity",
+    "referenceScenario",
+    "byEntity",
+    "byScenario",
+)
+
 
 # --- shared helpers ------------------------------------------------------------------------------
 
@@ -78,6 +96,28 @@ def _extract_keys(asset_text: str) -> dict[str, str]:
     block_match = _KEYS_BLOCK_PATTERN.search(asset_text)
     assert block_match is not None, "KEYS object literal not found in dashboard.js"
     return dict(_KEYS_ENTRY_PATTERN.findall(block_match.group(1)))
+
+
+def _assert_no_dot_access_to_keys_values(text: str, values: Iterable[str]) -> None:
+    """Forbid `<local>.<value>` for every payload-derived local and every KEYS value.
+
+    The fifth KEYS-contract evasion, found at the epic-03 boundary: dot access carries no quoted
+    literal, so `chart.unit` or `axis.starts` evade the dot-on-`payload` check, the bracket-on-
+    `payload` check and all four evasion patterns above, none of which inspect a dot access on
+    anything other than the `payload` identifier itself. A payload rename from `unit` to
+    `unit_label` would turn `chart.unit` into `undefined` with every existing test green.
+
+    Scoped to the locals this file actually derives from the payload -- not every KEYS value name
+    -- because `state.entities` legitimately dot-accesses a name identical to the payload key
+    "entities" on a state-derived object; a blanket pattern would flag that as a false positive.
+    """
+    for local in _PAYLOAD_DERIVED_LOCALS:
+        for value in values:
+            pattern = rf"\b{re.escape(local)}\.{re.escape(value)}\b"
+            assert re.search(pattern, text) is None, (
+                f"{local}.{value} dot-accesses a KEYS value outside KEYS; "
+                f"read it as {local}[KEYS.<NAME>] instead"
+            )
 
 
 def _collect_keys(value: object) -> set[str]:
@@ -225,16 +265,38 @@ def test_dashboard_js_keys_values_are_all_real_payload_keys(
         assert value in payload_keys, f"KEYS.{name} = {value!r} is not a key of the payload"
 
 
+def _strip_js_comments(text: str) -> str:
+    """Remove // and /* */ comments so prose cannot trip a literal count."""
+    without_block = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    return re.sub(r"//[^\n]*", "", without_block)
+
+
 def test_dashboard_js_keys_values_each_occur_exactly_once_as_quoted_literals() -> None:
-    """Proves no payload key is read outside KEYS: its literal is written exactly once."""
-    text = _read_js_asset()
+    """Prove no payload key is read outside KEYS: its literal appears only in the KEYS block.
+
+    Narrowed 2026-09-11 at the epic-03 boundary. The original form counted each quoted literal
+    over the raw file text and required exactly one occurrence, which conflated two different
+    properties: "a payload object is indexed with this literal", which is what the contract is for,
+    and "a string equal to a payload key appears anywhere", which is a naming coincidence. It forced
+    a workaround in two consecutive tickets — ticket-025 needed an unquoted object key for the value
+    mode, and ticket-026 could not write `getElementById` for the `<main>` container whose DOM id
+    happens to match a top-level payload key. Neither was a payload read.
+
+    The check now ignores comments and counts only inside the KEYS declaration, with the genuine
+    bypass — an index expression carrying a raw literal — caught by
+    `test_dashboard_js_never_accesses_payload_outside_keys` and its four evasion patterns.
+    """
+    text = _strip_js_comments(_read_js_asset())
     keys = _extract_keys(text)
+    keys_block = text[text.index("const KEYS") : text.index("});", text.index("const KEYS"))]
 
     for name, value in keys.items():
         quoted = f'"{value}"'
-        occurrences = text.count(quoted)
-        assert occurrences == 1, (
-            f"KEYS.{name}'s value {quoted} occurs {occurrences} times in dashboard.js; "
+        assert keys_block.count(quoted) == 1, (
+            f"KEYS.{name}'s value {quoted} must be declared exactly once in the KEYS object"
+        )
+        assert not re.search(rf"\[\s*{re.escape(quoted)}\s*\]", text), (
+            f"KEYS.{name}'s value {quoted} is used as a raw index somewhere in dashboard.js; "
             "a payload key must be read only through KEYS"
         )
 
@@ -270,6 +332,33 @@ def test_dashboard_js_payload_access_resists_the_four_known_evasions() -> None:
     assert re.search(r"payload\[(?!\s*KEYS\.)", text) is None, (
         "every payload[...] access must go through KEYS, whatever the quoting"
     )
+
+
+def test_dashboard_js_never_dot_accesses_a_keys_value_on_a_payload_derived_local() -> None:
+    """Close the fifth KEYS-contract evasion: dot access, on payload itself or on any of the
+    per-chart, per-axis, per-entity or per-scenario locals buildTraces and buildLayout declare."""
+    text = _read_js_asset()
+    keys = _extract_keys(text)
+
+    _assert_no_dot_access_to_keys_values(text, keys.values())
+
+
+def test_dot_access_check_fires_on_injected_chart_unit_and_stays_silent_on_state_entities() -> None:
+    """Non-vacuity proof for the dot-access evasion: the same assertion that stays silent on the
+    real asset -- which already dot-accesses `state.entities`, a state-derived local coincidentally
+    named like the payload key "entities" -- must fire on an injected `chart.unit`, the exact
+    evasion a payload rename from `unit` to `unit_label` would otherwise hide undetected."""
+    text = _read_js_asset()
+    keys = _extract_keys(text)
+    assert "state.entities" in text, "precondition: the coincidence this check must not flag"
+
+    # Silent on the real, unmodified asset.
+    _assert_no_dot_access_to_keys_values(text, keys.values())
+
+    # Fires on an injected dot-access evasion of a KEYS value.
+    mutated_text = text + "\n  const debugValue = chart.unit;\n"
+    with pytest.raises(AssertionError):
+        _assert_no_dot_access_to_keys_values(mutated_text, keys.values())
 
 
 # --- acceptance criterion 4: Plotly.react-only render path and step interpolation --------------
@@ -362,6 +451,16 @@ def test_checklist_covers_absoluto_diferenca_toggle_with_the_reproducible_case()
     assert "caso_oficial" in text
     assert "caso_gurobi" in text
     assert "--casos exemplo/caso_oficial exemplo/caso_gurobi" in text
+
+
+def test_checklist_step_15_expected_result_covers_the_y_axis_title_switch() -> None:
+    """Finding 6 of the epic-03 boundary review: step 15 checked the trace values and the
+    flat-zero reference but never the Y-axis title, so a misspelled `diferenca` key in
+    buildLayout's unquoted lookup would silently keep the absolute unit forever with this
+    checklist step still reporting a pass."""
+    text = _read_checklist()
+
+    assert "MW (diferença)" in text
 
 
 def test_checklist_covers_submarket_and_interchange_pair_selectors() -> None:

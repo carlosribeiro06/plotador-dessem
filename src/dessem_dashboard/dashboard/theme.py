@@ -67,9 +67,8 @@ TINT_FRACTION: Final[float] = 0.6
 def _slot_color(index: int) -> str:
     """Return the color assigned to slot index of the scenario color-assignment rule.
 
-    Slot `index` takes `SCENARIO_PALETTE[index % 4]` unshaded while `index < 4`, and
-    `tint(SCENARIO_PALETTE[index % 4], TINT_FRACTION ** (index // 4))` from slot 4 on, so
-    scenarios beyond the fourth use the 60 percent tints of the first four.
+    The first four slots take the palette unshaded; scenarios beyond the fourth reuse it in
+    60 percent tints, one further tint level per completed cycle of four.
     """
     base = SCENARIO_PALETTE[index % 4]
     if index < 4:

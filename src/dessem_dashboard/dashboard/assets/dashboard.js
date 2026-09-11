@@ -180,6 +180,13 @@
   }
 
   function renderActiveGroup() {
+    // init() returns early on a schema-version mismatch, leaving state null while the five
+    // listeners below are already live; every one of them reaches this function, so guarding
+    // here once is what keeps the next click a no-op instead of a TypeError on top of the
+    // console.error init() already logged.
+    if (state === null) {
+      return;
+    }
     const sections = document.querySelectorAll("#charts .chart:not([hidden])");
     for (const section of sections) {
       renderChart(section.dataset.chart);

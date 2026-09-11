@@ -43,9 +43,9 @@ See "Phases & Estimates" below.
 
 | Epic | Name | Tickets | Points | Detail | Phase |
 | ---- | ---- | ------- | ------ | ------ | ----- |
-| epic-01 | Project foundation and repo hygiene | 001-008 | 17 | detailed | executing |
-| epic-02 | Data layer | 009-018 | 28 | detailed | executing |
-| epic-03 | Dashboard core | 019-026 | 24 | refined | executing |
+| epic-01 | Project foundation and repo hygiene | 001-008 | 17 | detailed | completed |
+| epic-02 | Data layer | 009-018 | 28 | detailed | completed |
+| epic-03 | Dashboard core | 019-026 | 24 | refined | completed |
 | epic-04 | Plant-level and scalar charts | 027-032 | 14 | outline | outline |
 | epic-05 | Delivery, validation and legacy removal | 033-038 | 14 | outline | outline |
 
