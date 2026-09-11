@@ -21,10 +21,10 @@
     THEME: "theme",
     SCENARIO_COLORS: "scenario_colors",
     LAYOUT: "layout",
+    REFERENCE: "reference",
+    FORMATS: "formats",
+    DECIMALS: "decimals",
   });
-
-  // ticket-024 replaces this line with a read of the initial value-mode attribute it adds.
-  const INITIAL_VALUE_MODE = "absoluto";
 
   let payload = null;
   let state = null;
@@ -54,7 +54,7 @@
     state = {
       mode: document.body.dataset.initialMode,
       deck: payload[KEYS.DECK_DATES][0],
-      valueMode: INITIAL_VALUE_MODE,
+      valueMode: document.body.dataset.initialValue,
       entities: entities,
     };
 
@@ -68,6 +68,25 @@
     return payload[KEYS.CHAINED_KEY];
   }
 
+  // The one branch that decides the value mode's effect on a trace's y array: referenceValues
+  // null means Absoluto (values pass through unchanged); a resolved array means Diferenca, and
+  // each point becomes null when either side is null, otherwise the rounded difference. factor
+  // is computed once per call, not once per point, since Math.pow is the same for every point
+  // of a given call.
+  function valuesForMode(values, referenceValues) {
+    if (referenceValues === null) {
+      return values;
+    }
+    const factor = Math.pow(10, payload[KEYS.FORMATS][KEYS.DECIMALS]);
+    return values.map(function (value, index) {
+      const referenceValue = referenceValues[index];
+      if (value === null || referenceValue === null) {
+        return null;
+      }
+      return Math.round((value - referenceValue) * factor) / factor;
+    });
+  }
+
   function buildTraces(chartKey) {
     const chart = payload[KEYS.CHARTS][chartKey];
     const entityId = state.entities[chartKey];
@@ -75,8 +94,23 @@
     const axis = payload[KEYS.AXES][key];
     const x = axis[KEYS.STARTS].concat([axis[KEYS.END]]);
     const scenarioColors = payload[KEYS.THEME][KEYS.SCENARIO_COLORS];
-    const traces = [];
 
+    // Read the reference series once, before the per-scenario loop: a missing reference is
+    // Diferenca's own empty-plot case, not a per-scenario skip, and reading it inside the loop
+    // would both re-read the same value on every iteration and turn one branch into several.
+    let referenceValues = null;
+    if (state.valueMode === "diferenca") {
+      const referenceEntity = chart[KEYS.SERIES][entityId];
+      const referenceScenario =
+        referenceEntity === undefined ? undefined : referenceEntity[payload[KEYS.REFERENCE]];
+      const referenceRaw = referenceScenario === undefined ? undefined : referenceScenario[key];
+      if (referenceRaw === undefined) {
+        return [];
+      }
+      referenceValues = referenceRaw.concat([referenceRaw[referenceRaw.length - 1]]);
+    }
+
+    const traces = [];
     for (const scenario of payload[KEYS.SCENARIOS]) {
       const byEntity = chart[KEYS.SERIES][entityId];
       if (byEntity === undefined) {
@@ -93,7 +127,8 @@
 
       // The terminal point gives the final stage the width its duration entitles it to; a
       // null last value stays null instead of being special-cased.
-      const y = values.concat([values[values.length - 1]]);
+      const extendedValues = values.concat([values[values.length - 1]]);
+      const y = valuesForMode(extendedValues, referenceValues);
 
       traces.push({
         type: "scatter",
@@ -160,6 +195,12 @@
     renderActiveGroup();
   }
 
+  function setValueMode(valueMode) {
+    state.valueMode = valueMode;
+    syncPressed("value-toggle", "value", valueMode);
+    renderActiveGroup();
+  }
+
   function setGroup(group) {
     const sections = document.querySelectorAll("#charts .chart");
     for (const section of sections) {
@@ -191,6 +232,14 @@
     setDeck(event.target.value);
   });
 
+  document.getElementById("value-toggle").addEventListener("click", function (event) {
+    const valueMode = event.target.dataset.value;
+    if (valueMode === undefined) {
+      return;
+    }
+    setValueMode(valueMode);
+  });
+
   window.DessemDashboard = {
     get payload() {
       return payload;
@@ -206,6 +255,7 @@
     setMode: setMode,
     setDeck: setDeck,
     setGroup: setGroup,
+    setValueMode: setValueMode,
   };
 
   document.addEventListener("DOMContentLoaded", init);

@@ -201,7 +201,7 @@ that the manual checklist inspects.
    assertions, and the payload-shape assertion of the fourth acceptance criterion, building the
    variant tree with `build_scenario_tree` and removing the reference deck directory before
    discovery.
-6. Walk item 6 of `docs/checklist-manual-dashboard.md` by hand before declaring the ticket done: it
+6. Walk section 5, steps 11 to 14, of `docs/checklist-manual-dashboard.md` by hand before declaring the ticket done: it
    is the only verification this arithmetic has.
 
 ### Key Files to Create/Modify
@@ -252,6 +252,17 @@ that the manual checklist inspects.
   `docs/checklist-manual-dashboard.md`, whose Absoluto and Diferença item ticket-022 already wrote.
 - Precomputing differences in Python: master plan decision 8 places them in the browser.
 
+> **Amended 2026-09-11 during execution.** Three places in this ticket named "item 6" of
+> `docs/checklist-manual-dashboard.md` as the Absoluto and Diferenca case to walk. That is an
+> off-by-one: the checklist ticket-022 actually wrote puts that case under **section 5, Absoluto and
+> Diferenca toggle, numbered steps 11 to 14**, while section 6 is the unrelated submarket and
+> interchange-pair selectors. Ticket-022 never used the phrase "item 6" at all, so the error
+> originated here. The content match left no real ambiguity, since this ticket also names the exact
+> command and the exact `GHID_SIN` / `04/03/2024 12:00` / `caso_oficial` case that section 5
+> contains, and the implementing agent reported the mismatch rather than picking a number silently.
+> The fourteenth spec defect of this plan, and the same shape as the rest: a cross-reference
+> contradicting the document it points at.
+
 ## Testing Requirements
 
 ### Unit Tests
@@ -275,7 +286,7 @@ that the manual checklist inspects.
 
 ### Integration Tests
 
-None automated, by epic decision E3-1. Item 6 of `docs/checklist-manual-dashboard.md` is the only
+None automated, by epic decision E3-1. Section 5, steps 11 to 14, of `docs/checklist-manual-dashboard.md` is the only
 verification of the difference arithmetic and must be walked before this ticket is closed.
 
 ## Definition of Done
@@ -288,7 +299,7 @@ verification of the difference arithmetic and must be walked before this ticket 
       flat zero line.
 - [ ] The difference is rounded with a factor computed from `payload.formats.decimals`, and
       `dashboard.js` hard-codes no decimal count, verified by the absence of `Math.pow(10, 2)`.
-- [ ] Item 6 of `docs/checklist-manual-dashboard.md` was walked by hand against
+- [ ] Section 5, steps 11 to 14, of `docs/checklist-manual-dashboard.md` was walked by hand against
       `--casos exemplo/caso_oficial exemplo/caso_gurobi`, and the result is reported with the ticket.
 - [ ] `tests/test_builder.py`, `tests/test_renderer_contract.py` and
       `tests/test_renderer_controls.py` pass unchanged.

@@ -81,6 +81,10 @@ VALUE_LABELS: Final[Mapping[str, str]] = {
     "diferenca": "Diferença",
 }
 
+# The value-mode toggle's initial state (requirement 2): the document's single source of truth,
+# read back client-side from `document.body.dataset.initialValue`.
+INITIAL_VALUE_MODE: Final = "absoluto"
+
 
 def _validate_initial_mode(initial_mode: str) -> None:
     """Raise ValueError when initial_mode is neither "deck" nor "encadeado" (requirement 1).
@@ -168,9 +172,14 @@ def _mode_toggle(initial_mode: str) -> str:
 
 
 def _value_toggle() -> str:
-    """Build one button per VALUE_LABELS entry, in declared order."""
+    """Build one button per VALUE_LABELS entry, in declared order.
+
+    The button whose `data-value` equals `INITIAL_VALUE_MODE` carries `aria-pressed="true"`; the
+    other carries `aria-pressed="false"` (requirement 2), mirroring `_mode_toggle`'s pattern.
+    """
     return "".join(
-        f'<button type="button" data-value="{html.escape(value)}">{html.escape(label)}</button>'
+        f'<button type="button" data-value="{html.escape(value)}" '
+        f'aria-pressed="{str(value == INITIAL_VALUE_MODE).lower()}">{html.escape(label)}</button>'
         for value, label in VALUE_LABELS.items()
     )
 

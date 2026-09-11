@@ -78,7 +78,7 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-021 | Assemble the single-file HTML shell | epic-03 | completed | Refined | 0.98 | 1.00 | EXCELLENT |
 | ticket-022 | Implement the JavaScript chart renderer core | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-023 | Implement the view mode and deck selector | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-024 | Implement the absolute and difference toggle | epic-03 | pending | Refined | 1.00 | -- | -- |
+| ticket-024 | Implement the absolute and difference toggle | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-025 | Render the SIN level charts | epic-03 | pending | Refined | 1.00 | -- | -- |
 | ticket-026 | Render the submarket and interchange charts | epic-03 | pending | Refined | 1.00 | -- | -- |
 | ticket-027 | Render the hydro plant charts | epic-04 | pending | Outline | -- | -- | -- |

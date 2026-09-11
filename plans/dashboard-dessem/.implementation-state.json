@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T06:50:00Z",
+  "last_updated": "2026-09-11T07:40:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -636,7 +636,7 @@
     },
     "ticket-024-implement-absolute-difference-toggle.md": {
       "epic": "epic-03-dashboard-core",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 3,
       "scores": {
@@ -647,8 +647,20 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
+        },
+        "quality": 1.0,
+        "quality_breakdown": {
+          "conformance": 1.0,
+          "scope_adherence": 1.0,
+          "lint_cleanliness": 1.0,
+          "type_safety": 1.0,
+          "test_delta": 1.0
         }
-      }
+      },
+      "agent": "python-task-automation-developer",
+      "quality_scored": true,
+      "workflow_step": null,
+      "open_human_action": "Walk docs/checklist-manual-dashboard.md section 5, steps 11 to 14, in a browser against --casos exemplo/caso_oficial exemplo/caso_gurobi. Inherent to decision E3-1: the difference arithmetic runs in the browser and has no automated test. The check is self-validating, so no precomputed reference number is needed."
     },
     "ticket-025-render-sin-level-charts.md": {
       "epic": "epic-03-dashboard-core",
