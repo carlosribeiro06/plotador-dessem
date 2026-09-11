@@ -49,9 +49,15 @@ def exemplo_root() -> Path:
 def _has_sintese_deck(candidate: Path) -> bool:
     """Return whether candidate is an immediate subdirectory holding a sintese deck.
 
-    Mirrors ``dessem_dashboard.data.discovery._decks_of`` exactly, so this helper and discovery
-    agree on what counts as a deck. Never raises: any ``OSError`` while probing candidate
-    resolves to ``False``.
+    Stricter than ``dessem_dashboard.data.discovery._decks_of``, not an exact mirror: it also
+    requires ``EST.parquet`` to exist, because the deck date this suite reads comes from that
+    file, and it hardcodes the ``sintese`` directory name (``_SINTESE_DIRNAME``) instead of
+    reading the shipped ``settings.discovery.sintese_dirname`` that
+    ``tests/test_integration_exemplo.py`` loads from disk. The stricter direction is the
+    dangerous one: it can only make ``qualifying_scenarios()`` return too few paths, never too
+    many, so a mismatch here degrades to every real-data test silently reporting SKIPPED while
+    the suite stays green, rather than to a false positive. Never raises: any ``OSError`` while
+    probing candidate resolves to ``False``.
     """
     try:
         if not candidate.is_dir():

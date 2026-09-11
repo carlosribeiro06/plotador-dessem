@@ -266,7 +266,6 @@ def test_exemplo_two_scenarios_universal_invariants(
 
     # Acceptance criterion 4: classify the warnings instead of counting them.
     warnings = result.warnings
-    assert warnings is not None
     assert all(_matches_known_warning_shape(message) for message in warnings)
     # Non-vacuity: an unrecognised message must make the same check fail, proving the
     # classification rejects an unknown shape instead of accepting anything.

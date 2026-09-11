@@ -75,6 +75,11 @@ def _isolated_root_logger() -> Iterator[None]:
 def _settings_dict(*, sintese_dirname: str = "sintese") -> dict[str, Any]:
     """Build a settings.json-shaped dict matching the repository's own values.
 
+    One deliberate divergence, in `time.stage_groups`: it is reduced to the single `PL` group,
+    so these tests do not depend on the shipped three-group default. Correct this sentence
+    rather than the value -- changing it would move the `TEMPO` bar count and invalidate
+    tests/test_output_size.py's measured byte range.
+
     sintese_dirname is the one knob this module needs beyond tests/test_output_size.py's own
     pair, so acceptance criterion 4's pair can flip it without touching any other key.
     """

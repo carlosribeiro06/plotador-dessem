@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T21:30:00Z",
+  "last_updated": "2026-09-11T22:15:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -1295,8 +1295,8 @@
       }
     },
     "epic-05-delivery-and-legacy-removal": {
-      "phase": "executing",
-      "learning_extracted": false,
+      "phase": "completed",
+      "learning_extracted": true,
       "estimate": "~3-4 h (Medium, refined; 15 points)",
       "refinement_inputs": [
         "ORDERING RISK CHECKED AND ABSENT, 2026-09-11. The epic-05 dependency order is strictly sequential 033 -> 034 -> 035 -> 036 -> 037 -> 038, so ticket-038's deletion of Plotadores/ happens AFTER ticket-035's legacy parity check. The parity check therefore still has its reference implementation in the working tree when it runs. Do not reorder these two under any circumstances.",
@@ -1333,7 +1333,15 @@
         "BOTH PRESENTATION COLLAPSES, and the TEMPO half is new: the legacy tool emits three CUSTOS figures and four TEMPO figures where the dashboard ships one grouped bar chart each. Ticket-035 puts both on the desk with the evidence and two options (accept, or add three to four ChartSpec entries in a follow-up) and deliberately chooses neither.",
         "THE COST SCALE IS NOW MEASURABLE RATHER THAN ASSERTED, which is the proper closure of the orchestrator's defect-17 mis-ruling: PRESENTE about 5.87e4 against FUTURO about 2.28e8, both in 10^3 R$, from the committed dump - about four orders of magnitude, so PRESENTE may be invisible on a shared linear axis. A log axis is ruled out because it cannot render the signed Diferenca view.",
         "Carried from epic 4 and still unowned by any ticket: plant labels carry the name without the code, and output.decimals is global rather than per chart.",
-        "AUTHORISATION THE REFINEMENT NARROWED RATHER THAN BLOCKED ON: ticket-035's specialist may RUN the pipeline over exemplo/ but may not open, list or transcribe it, with the committed schema dump as the only quotable source of real figures. Widen this only if the parity report should quote live values."
+        "AUTHORISATION THE REFINEMENT NARROWED RATHER THAN BLOCKED ON: ticket-035's specialist may RUN the pipeline over exemplo/ but may not open, list or transcribe it, with the committed schema dump as the only quotable source of real figures. Widen this only if the parity report should quote live values.",
+        {
+          "id": "warning-cap-sink",
+          "from": "epic-05 boundary review finding 1",
+          "decision": "Whether the warning cap should apply to the console only, with the rotating log file taking every warning, instead of capping both.",
+          "current_state": "Both sinks are capped at _MAX_LOGGED_WARNINGS = 20 and the message now says so. The complete list is in run_manifest.json and the dashboard's Avisos section.",
+          "cost_of_changing": "A logging.Filter on the console handler in logging_setup.py, plus a test that the file holds every warning while the console holds twenty. Touches the logging architecture, which is why it was not done at the close of the plan.",
+          "argument_for_changing": "CLAUDE.md asks for a log file sufficient to reconstruct what an official run did, and a degraded run with 92 warnings currently leaves 72 of them out of the log file."
+        }
       ],
       "refinement_inputs_consumed": "All four refinement_inputs honoured: the 035-before-038 ordering risk (now a banner in both tickets), the cost-parity tension (ticket-035 requirement 6, plus its unrecorded TEMPO twin), the answered __pycache__ question (dropped by measurement) and the delete-versus-legacy/ argument (resolved by making ticket-035's report a precondition of ticket-038).",
       "measured_baselines": {
@@ -1378,7 +1386,67 @@
           "summary": "Background asserted the legacy-reference sweep 'returns no match'; ticket-035 and ticket-036, both inside the same epic and both after this ticket was refined, falsified it. Requirement 6, acceptance criterion 3, the matching DoD line and the Background bullet were amended before dispatch (commit e077f86).",
           "why_it_mattered": "The original wording was satisfiable only by deleting tests/test_parity.py's fifteen file:line provenance comments -- the parity check's audit trail -- to make a grep quiet, on the plan's only irreversible step."
         }
-      ]
+      ],
+      "learnings_file": "epic-05-delivery-and-legacy-removal/epic-05-learnings.md",
+      "quality_gate": {
+        "tickets": 6,
+        "points": 15,
+        "quality_mean": 0.9917,
+        "quality_min": 0.95,
+        "readiness_mean": 0.97,
+        "readiness_min": 0.93,
+        "below_1.00": {
+          "ticket-034": 0.95
+        },
+        "verdict": "PASS",
+        "floor": "mean >= 0.90, min >= 0.85"
+      },
+      "boundary_findings": {
+        "code_simplifier": {
+          "files_reviewed": 3,
+          "files_modified": 0,
+          "edits": 0,
+          "note": "Zero edits on pipeline.py, cli.py and logging_setup.py. Twelve candidates considered and rejected, recorded in epic-05-learnings.md section 9 so a future pass does not revisit them. Notable rejections: deriving cli._LOG_LEVELS from logging_setup._VALID_LEVEL_NAMES would reorder the user-facing --help list from severity order to alphabetical (a frozenset); dropping the rich_handler: logging.Handler annotation was declined because the simplifier has no Bash tool and cannot run mypy under strict = true with an optional rich import.",
+          "finding_reported_not_acted_on": "cli.main's output_file.parent.mkdir overlaps write_dashboard's own mkdir but is NOT redundant: it keeps a place for the run manifest when discovery or consolidation raises, and it fails fast on an unwritable --saida before minutes of Parquet reading. Keep both."
+        },
+        "code_reviewer": {
+          "verdict": "NEEDS_ATTENTION",
+          "considered": 14,
+          "reported": 10,
+          "critical": 0,
+          "important": 3,
+          "minor": 7,
+          "gate_rerun": "637 passed, 99%, 508.89 s before the fixes",
+          "all_ten_applied": true,
+          "findings": [
+            "1 DEFECT (100/100): the warning cap silently truncates the ROTATING LOG FILE as well as the console, because both handlers hang off the same logger, while the truncation line written into that file says the messages were omitted 'no console'. Measured: 25 messages in, 20 in the file, the file blaming the console for the missing five. Same shape as ticket-037's stdout defect (a correspondence with no owner), one sink over. RULING: fix the message, not the logging architecture -- the complete list survives in run_manifest.json and the dashboard's Avisos section, both named in the message, so only the clause was false. The console-only-cap-via-logging.Filter alternative is deliberately NOT implemented and is an open decision for the developer.",
+            "2 RISK (95/100): --modo-inicial had no test owner. Deleting initial_mode=args.modo_inicial leaves all 637 tests passing with cli.py still at 100% LINE coverage, because line coverage cannot see an omitted keyword argument, while the shipped tool would write data-initial-mode=encadeado against a manifest recording deck. Fixed with one test pinning the flag -> manifest -> document triple, proved to fail by removing the keyword argument.",
+            "3 DEFECT (100/100): README's measured quality-gate table still said 631 passed / 1543 statements while ticket-037's own commit message, three hunks away in the same file, said 637. Re-measured and corrected to 638 / 1554 after fix 2's new test.",
+            "4 RISK (90/100): 'assert \"5\" in truncation_message' is mutation-insensitive, not vacuous, which is worse because it reads like a real check: omitted = len(messages) makes the audit log say 25 when five were omitted and the substring still matches. Replaced with a delimited comparison, proved to fail under that mutation.",
+            "5 DEFECT (90/100): spec defect 20's shape recurring -- tests/test_pipeline.py's _settings_dict docstring claimed to mirror the repository's values while shipping stage_groups = {'PL': ['PL']}, copying test_renderer_contract.py's pattern without its correction; tests/test_cli.py's twin documented logo_file but stayed silent about use_rich: False. Both fixed in the DOCSTRING, never the value.",
+            "6 DEFECT+RISK (85/100): tests/exemplo_tree.py's _has_sintese_deck claimed to mirror discovery._decks_of exactly while being stricter (it also requires EST.parquet) and hardcoding the sintese dirname. The divergence direction is the dangerous one: too few qualifying scenarios makes every real-data test report SKIPPED while the suite stays green, converting a loud discovery failure into a silent one. Documentation corrected, behaviour unchanged.",
+            "7 DEFECT (85/100): README's '15 log_step lines per run' cannot hold -- three line groups scale with scenarios and decks, so a two-by-two run writes 25. Re-measured independently and reworded as a formula with a worked number.",
+            "8 DEFECT (100/100): two assertions that cannot fail -- 'warnings is not None' on a field declared list[str] = field(default_factory=list), and a sum comparison entailed by the tuple equality on the line above. Both deleted; the docstring advertising two pinned facts corrected to one.",
+            "9 RISK (80/100): Group B's TEMPO recomputation mirrors Plotadores/Tempo.py's .values[0], and the reference deck already repeats an etapa (nine rows over five names); a future deck with two MILP rows would fail as a parity regression that does not exist. Legacy mirror KEPT, with an explicit one-row precondition naming the mirrored semantics and pointing at the Group C test that owns the summing proof.",
+            "10 NOTE (75/100): the parity report's reason for the 198.12 TEMPO pin was stated as a general property; the nine values sum to 11887 s = 198.11666..., so a different MILP/PL/Leitura split could round to 198.11. The pin is measured, not invariant. One clause added; pin unchanged."
+          ],
+          "false_positives_recorded": [
+            "Absolute pins at unreproducible precision -- disproved: the dump's values are shortest-repr float64 strings that parse back to the identical double.",
+            "Group B never runs, so parity is unproven -- disproved by pytest -rs: 15 passed, zero skips, and zero skips across the full suite.",
+            "assert not all(_matches_known_warning_shape(...)) is vacuous -- unfalsifiable by the product on purpose, guarding the all(...) above it from accepting anything.",
+            "Byte reproducibility filtered to a latent risk rather than a finding, because the artefact was MEASURED reproducible: two CLI subprocesses under PYTHONHASHSEED 1 and 777 produced byte-identical 4,531,704-byte documents. The in-process comparisons in test_builder.py and test_output_size.py genuinely cannot detect hash-seed ordering.",
+            "Mode compliance checked in both directions and clean."
+          ]
+        },
+        "fixes_applied": {
+          "files": 8,
+          "source_lines_changed": 1,
+          "test_count": "637 -> 638 (exactly the one test added)",
+          "coverage": "99%",
+          "mutation_proofs": 3,
+          "orchestrator_reverification": "ruff check, ruff format --check, mypy src all clean, and the four affected modules (test_cli, test_pipeline, test_parity, test_integration_exemplo) 46 passed with zero skips, before the boundary commit."
+        }
+      }
     }
   },
   "open_questions": [

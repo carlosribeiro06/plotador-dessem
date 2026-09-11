@@ -139,8 +139,8 @@ def _log_warnings(messages: Sequence[str]) -> None:
     omitted = len(messages) - _MAX_LOGGED_WARNINGS
     if omitted > 0:
         logger.warning(
-            "%d aviso(s) adicional(is) omitido(s) no console; lista completa em "
-            "run_manifest.json e na seção Avisos do dashboard.",
+            "%d aviso(s) adicional(is) omitido(s) no console e no arquivo de log; lista "
+            "completa em run_manifest.json e na seção Avisos do dashboard.",
             omitted,
         )
 

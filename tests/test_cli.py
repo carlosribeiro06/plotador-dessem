@@ -13,7 +13,7 @@ from typing import Any
 import pytest
 
 from dessem_dashboard import pipeline
-from dessem_dashboard.cli import build_parser, main
+from dessem_dashboard.cli import _MAX_LOGGED_WARNINGS, build_parser, main
 from dessem_dashboard.config import load_settings
 from dessem_dashboard.errors import DashboardError
 from fixtures_sintese import make_sintese_dir
@@ -54,6 +54,13 @@ def _settings_dict() -> dict[str, Any]:
     resolves them inside that same temporary directory. `paths.logo_file` points at the
     repository's own logo instead of a relative path, because `pipeline.run` now reads it while
     rendering the document and no temporary directory ships a logo file of its own.
+
+    A second divergence, in `logging.use_rich`: it is set to `False`, the only one of this
+    plan's eighteen `_settings_dict`-shaped modules that detunes it -- the silence that let the
+    stdout defect survive eight guardians undetected. Ticket-037 requirement 11 item 4 keeps
+    this module's value; the separate
+    test_main_success_under_shipped_use_rich_still_prints_only_the_path_to_stdout covers the
+    shipped `True`.
     """
     return {
         "project": "dessem-dashboard",
@@ -211,6 +218,39 @@ def test_main_explicit_referencia_is_honoured_in_manifest_params(
     manifest_path = tmp_path / "output" / "run_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["params"]["referencia"] == "caso_b"
+
+
+def test_main_modo_inicial_reaches_the_document_and_the_manifest(
+    tmp_path: Path, scenario_tree: dict[str, Path]
+) -> None:
+    """Pins --modo-inicial's full correspondence: cli.main forwards it to pipeline.run, which
+    renders it into the document's data-initial-mode attribute, while the same value
+    independently reaches run_manifest.json through cli.main's own params dict -- an audited
+    artefact that must agree with what the document actually shows (ticket-033's "declared and
+    never applied" defect shape).
+    """
+    settings_path = _write_settings(tmp_path)
+    caso_a, caso_b = scenario_tree["caso_a"], scenario_tree["caso_b"]
+
+    exit_code = main(
+        [
+            "--casos",
+            str(caso_a),
+            str(caso_b),
+            "--settings",
+            str(settings_path),
+            "--modo-inicial",
+            "deck",
+        ]
+    )
+
+    assert exit_code == 0
+    document = (tmp_path / "output" / "dashboard_dessem.html").read_text(encoding="utf-8")
+    assert 'data-initial-mode="deck"' in document
+
+    manifest_path = tmp_path / "output" / "run_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["params"]["modo_inicial"] == "deck"
 
 
 def test_main_unknown_referencia_exits_2_naming_value(
@@ -465,10 +505,16 @@ def test_main_truncates_logged_warnings_at_the_cap_and_names_the_remainder(
 ) -> None:
     """Acceptance criterion 3: 25 synthetic warnings log 20 individually plus exactly one
     truncation line naming the 5 omitted, while the manifest keeps all 25 uncapped.
+
+    Checks the same correspondence directly against the rotating log FILE, not only against
+    caplog's records: dessem_dashboard.cli's logger feeds both the console handler and the
+    RotatingFileHandler, so a regression capping one while leaving the other complete would
+    otherwise go unnoticed.
     """
     settings_path, caso_a, caso_b = _settings_and_two_casos(tmp_path)
     synthetic_warnings = [f"Aviso sintético número {index}" for index in range(25)]
     output_file = tmp_path / "output" / "dashboard_dessem.html"
+    expected_omitted = len(synthetic_warnings) - _MAX_LOGGED_WARNINGS
 
     def _fake_run(**_: object) -> pipeline.RunResult:
         return pipeline.RunResult(
@@ -499,9 +545,23 @@ def test_main_truncates_logged_warnings_at_the_cap_and_names_the_remainder(
     ]
     assert len(truncation_records) == 1
     truncation_message = truncation_records[0].getMessage()
-    assert "5" in truncation_message
+    # A delimited token, not a bare substring: the omitted count is the message's leading
+    # token ("%d aviso(s) ..." % omitted), so a mutation computing the wrong count (e.g.
+    # len(messages) instead of len(messages) - _MAX_LOGGED_WARNINGS) changes this leading token
+    # even though "5" would still be a substring of the mutated "25 aviso(s) ...".
+    assert truncation_message.startswith(str(expected_omitted))
     assert "run_manifest.json" in truncation_message
     assert "Avisos" in truncation_message
+
+    log_lines = (tmp_path / "logs" / "dashboard.log").read_text(encoding="utf-8").splitlines()
+    file_messages = [parts[-1] for line in log_lines if len(parts := line.split(" | ", 3)) == 4]
+    individual_in_file = [message for message in file_messages if message in synthetic_warnings]
+    assert len(individual_in_file) == 20
+    assert set(individual_in_file) == set(synthetic_warnings[:20])
+    truncation_lines_in_file = [
+        message for message in file_messages if message == truncation_message
+    ]
+    assert len(truncation_lines_in_file) == 1
 
     manifest = json.loads((tmp_path / "output" / "run_manifest.json").read_text(encoding="utf-8"))
     assert manifest["warnings"] == synthetic_warnings

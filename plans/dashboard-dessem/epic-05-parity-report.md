@@ -140,8 +140,12 @@ asserted, neither changing the verdict above:**
    measured by actually running `build_dashboard_data` + `build_payload` over the real reference
    deck; `tests/test_parity.py` uses it, and `test_group_b_reference_deck_custos_total_pin_is_not_vacuous_under_single_parcel_total`
    proves the pin is not vacuous. **This is a one-cent arithmetic slip in the ticket's own
-   requirement 3, not a parity defect** — `TEMPO.TOTAL`'s pin (`198.12`) needed no correction, since
-   its three group values round-then-sum-then-round to the same figure either way.
+   requirement 3, not a parity defect** — `TEMPO.TOTAL`'s pin (`198.12`) needed no correction. That
+   is a measured fact about this particular reference deck, not a general property of the three
+   TEMPO groups: the nine raw values sum to `11887` s, i.e. `198.11666...` before any rounding, and
+   depending on how that total splits across the MILP/PL/Leitura groups, round-then-sum-then-round
+   can land on `198.11` instead of `198.12` — the same double-rounding trap diagnosed for
+   `CUSTOS.TOTAL` above. For this reference deck's actual split the two paths happen to agree.
 
 A third, smaller correction: Suggested Approach step 5's `make_sintese_dir(..., omit=("TEMPO",))`
 does not run as written — `make_sintese_dir`'s own `omit` parameter names full file names

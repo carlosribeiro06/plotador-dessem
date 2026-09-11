@@ -354,10 +354,36 @@ def _check_custos_scalars_match_legacy(context: _ParityContext) -> int:
 
 def _legacy_tempo_raw_seconds(sintese_dir: Path) -> tuple[float, float, float]:
     """Plotadores/Tempo.py:22 (Leitura `.values[0]`), :23 (MILP `.values[0]`) and :24 (the PL
-    group's `.sum()`), all before division -- returns (leitura, milp, pl) in raw seconds."""
+    group's `.sum()`), all before division -- returns (leitura, milp, pl) in raw seconds.
+
+    Asserts exactly one row before each `.values[0]`-mirroring read below: the reference deck
+    already has an etapa repeat (TEMPO.parquet shape=(9, 3), etapa: 5 unique), and that repeat
+    falls on the summed PL names only by measurement, not by any guarantee. A future deck
+    logging two Leitura or MILP rows would make the shipped pipeline's groupby-sum (correct)
+    diverge from this legacy first-row mirror (also correct, by design) -- a real behavioural
+    divergence this recomputation exists to surface, not the parity regression it would
+    otherwise look like. test_group_c_repeated_etapa_milp_is_summed_not_first_row_only owns the
+    proof that the shipped pipeline sums repeated rows.
+    """
     frame = pd.read_parquet(sintese_dir / "TEMPO.parquet", engine="pyarrow")
-    leitura = float(frame.loc[frame["etapa"] == _LEGACY_TEMPO_ETAPA_LEITURA, "tempo"].to_numpy()[0])
-    milp = float(frame.loc[frame["etapa"] == _LEGACY_TEMPO_ETAPA_MILP, "tempo"].to_numpy()[0])
+    leitura_rows = frame.loc[frame["etapa"] == _LEGACY_TEMPO_ETAPA_LEITURA, "tempo"]
+    assert len(leitura_rows) == 1, (
+        f"Expected exactly one '{_LEGACY_TEMPO_ETAPA_LEITURA}' row to mirror "
+        "Plotadores/Tempo.py:22's `.values[0]` semantics; got "
+        f"{len(leitura_rows)} rows instead. See "
+        "test_group_c_repeated_etapa_milp_is_summed_not_first_row_only for the proof that the "
+        "shipped pipeline sums repeated rows rather than taking the first one."
+    )
+    milp_rows = frame.loc[frame["etapa"] == _LEGACY_TEMPO_ETAPA_MILP, "tempo"]
+    assert len(milp_rows) == 1, (
+        f"Expected exactly one '{_LEGACY_TEMPO_ETAPA_MILP}' row to mirror "
+        "Plotadores/Tempo.py:23's `.values[0]` semantics; got "
+        f"{len(milp_rows)} rows instead. See "
+        "test_group_c_repeated_etapa_milp_is_summed_not_first_row_only for the proof that the "
+        "shipped pipeline sums repeated rows rather than taking the first one."
+    )
+    leitura = float(leitura_rows.to_numpy()[0])
+    milp = float(milp_rows.to_numpy()[0])
     pl = float(frame.loc[frame["etapa"].isin(_LEGACY_TEMPO_PL_ETAPAS), "tempo"].sum())
     return leitura, milp, pl
 
@@ -646,8 +672,13 @@ def test_group_b_reference_deck_custos_total_pin_is_not_vacuous_under_single_par
 
 
 def test_group_b_reference_deck_tempo_pins_match_committed_dump(tmp_path: Path) -> None:
-    """Requirement 3's TEMPO absolute pin: the file's nine distinct tempo values and their sum,
-    and the payload's TOTAL at two decimals, all transcribed from reference/parquet-schemas.txt."""
+    """Requirement 3's TEMPO absolute pin: the file's nine distinct tempo values, and the
+    payload's TOTAL at two decimals, both transcribed from reference/parquet-schemas.txt.
+
+    Only the nine-value tuple is an independent pin -- their sum is entailed by the tuple
+    equality below (equal tuples have equal sums), so it is not asserted separately; no
+    implementation change can fail one and pass the other.
+    """
     official = _resolve_official_scenario_dir()
     reference_dir = _reference_deck_sintese_dir(official)
     if reference_dir is None:
@@ -656,7 +687,6 @@ def test_group_b_reference_deck_tempo_pins_match_committed_dump(tmp_path: Path) 
     raw = pd.read_parquet(reference_dir / "TEMPO.parquet", engine="pyarrow")
     tempo_values = tuple(sorted(float(value) for value in raw["tempo"].to_numpy()))
     assert tempo_values == _REFERENCE_TEMPO_SECONDS
-    assert sum(tempo_values) == sum(_REFERENCE_TEMPO_SECONDS)
 
     settings = _build_settings(tmp_path)
     data = _build_parity_data([official], settings=settings, reference=official.name)

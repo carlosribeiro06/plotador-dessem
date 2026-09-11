@@ -545,9 +545,16 @@ attached to the root logger:
 
 The level comes from `logging.level` in `settings.json`, overridable per run with `--nivel-log`.
 `logging_setup.log_step` logs one structured `INFO` line per pipeline step, with optional key-value
-fields and elapsed seconds — 15 such lines per run plus one final pipeline summary, covering
-scenario discovery, deck timelines, time-axis construction, registry loading, series and scalar
-consolidation, and the two document-build steps — so a run can be reconstructed from the log alone.
+fields and elapsed seconds. The line count is not fixed — it scales with the run's own shape: 11
+lines are logged exactly once per run regardless of scenario or deck count (scenario-discovery
+completion, the five data-consolidation phase markers, consolidation completion, and the two
+payload-build and two document-build steps), plus two lines per scenario (`Cenário descoberto`,
+`Janela de encadeamento validada`) and two lines per deck (`Timeline de deck carregada`,
+`Registros carregados`), plus the pipeline's own completion summary and `cli.main`'s
+manifest-written line. Measured directly against the two-scenario, two-deck-per-scenario tree
+`tests/fixtures_sintese.make_sintese_dir` builds — the shape used throughout this README's own
+worked example — that totals **25** lines, so a run of that shape can be reconstructed from the
+log alone.
 
 The rotating log file, `run_manifest.json`'s `warnings` field, and the dashboard's own `Avisos`
 section carry overlapping but not identical information. The **eight warning shapes** described in
@@ -593,7 +600,7 @@ repository as it stands at the end of this ticket:
 | `ruff check src tests` | `All checks passed!` |
 | `ruff format --check src tests` | `61 files already formatted` |
 | `mypy src` | `Success: no issues found in 26 source files` |
-| `pytest --cov=dessem_dashboard --cov-report=term-missing` | `631 passed, 1 warning in 501.95s (0:08:21)`; total coverage **99%** (1543 statements, 14 missed) |
+| `pytest --cov=dessem_dashboard --cov-report=term-missing` | `638 passed, 1 warning in 441.41s (0:07:21)`; total coverage **99%** (1554 statements, 14 missed) |
 
 Total coverage is **99%**, well above the Epic 5 convention of an **85% floor** (raised from 80%
 at the Epic 4/5 boundary). That floor is a convention checked by reading this number on every
