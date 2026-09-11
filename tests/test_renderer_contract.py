@@ -525,3 +525,47 @@ def test_checklist_epic_4_section_replaces_the_ticket_028_placeholder() -> None:
     assert "Nenhuma usina corresponde ao filtro" in section_text
     assert "Geração" in section_text
     assert "Turbinamento" in section_text
+
+
+# --- ticket-034 requirement 5: the missing guard for checklist section 9 -----------------------
+
+
+def test_checklist_section_9_covers_cost_and_time_bar_charts() -> None:
+    """Closes the one gap epic-04's Live Defects table found: section 9 -- ``## 9. Cost and time
+    bar charts``, steps 27 to 32, written by ticket-031 -- was guarded by no test, so a
+    simplifier could delete step 30's ``min``-not-seconds check or step 29's ``Read and record``
+    cost-magnitude instruction without breaking anything (measured: ``grep -rn "checklist"
+    tests/test_charts_times.py`` returned no match before this test).
+
+    Scoped to section 9's own slice, from its heading to the next top-level heading or end of
+    file, following ``test_checklist_epic_4_section_replaces_the_ticket_028_placeholder``'s
+    narrowed shape. Deliberately does not assert that nothing follows section 9: ticket-036 may
+    append its own section, and asserting otherwise would reproduce cross-ticket collision 6's
+    shape one level up.
+
+    Proven to fail: deleting this slice from the checklist makes ``assert heading in text`` below
+    fail with ``AssertionError``, before the six content assertions run and before
+    ``text.index(heading)`` is reached at all -- confirmed by removing the section in place,
+    watching that assertion fire, and restoring the file to a byte-identical copy.
+
+    An earlier version of this docstring claimed the failure came from ``text.index(heading)``
+    raising ``ValueError: substring not found``. That was wrong: the membership assertion runs
+    first and short-circuits, so ``text.index`` never executes on a mutated copy. Corrected after
+    the ticket-034 guardian ran the mutation and reported the exception it actually observed --
+    which is the difference between describing a guard and measuring it.
+    """
+    text = _read_checklist()
+
+    heading = "## 9. Cost and time bar charts"
+    assert heading in text
+    section_start = text.index(heading)
+    next_heading_start = text.find("\n## ", section_start + len(heading))
+    section_end = len(text) if next_heading_start == -1 else next_heading_start
+    section_text = text[section_start:section_end]
+
+    assert "Custo Presente, Futuro e Total" in section_text
+    assert "Tempo Computacional" in section_text
+    assert "03/03/2024 - PRESENTE" in section_text
+    assert "Read and record" in section_text
+    assert "the Y axis reads `min`" in section_text
+    assert " (diferença)" in section_text

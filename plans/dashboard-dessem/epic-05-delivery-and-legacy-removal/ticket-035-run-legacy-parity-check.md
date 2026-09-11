@@ -224,6 +224,16 @@ codes 1 and 2 are visible on that fixture** — asserting "submarkets 1 to 4" on
      `TOTAL` is `round(11887.0 / 60.0, 2) = 198.12` minutes.
    Prove both can fail by asserting the same values against `unit_divisor = 1.0` and against a
    single-parcel `costs.total_parcels`, and confirming each mutation breaks them.
+
+   > **Take the figures from the dump's SAMPLE ROWS, never from its unique-value lists** — added
+   > 2026-09-11 after the orchestrator walked into this while auditing the ticket. The dump prints
+   > a `valor_esperado: N unique -> [...]` line before the sample rows, and those uniques are
+   > truncated to seven significant figures: `5.866757e+04` and `2.284204e+08`. Summing those gives
+   > `228479067.57`, which is wrong in the eighth digit and would fail the
+   > `== 228479057.91` assertion by about 10 R$. The sample rows carry full precision
+   > (`58667.5674`, `228420390.34615`) and are the only usable source for an absolute pin. The
+   > uniques appear *earlier* in the file than the sample rows, so they are what a reader greps
+   > first — which is exactly why this note exists.
 4. **Group C, the deliberate divergences, always runs.** Assert each documented divergence is real,
    on the new side only:
    - the repeated-`etapa` divergence: build a synthesis directory with
