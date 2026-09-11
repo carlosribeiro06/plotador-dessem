@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T04:55:00Z",
+  "last_updated": "2026-09-11T05:45:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -582,7 +582,7 @@
     },
     "ticket-022-implement-js-chart-renderer-core.md": {
       "epic": "epic-03-dashboard-core",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 3,
       "scores": {
@@ -593,8 +593,19 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
+        },
+        "quality": 1.0,
+        "quality_breakdown": {
+          "conformance": 1.0,
+          "scope_adherence": 1.0,
+          "lint_cleanliness": 1.0,
+          "type_safety": 1.0,
+          "test_delta": 1.0
         }
-      }
+      },
+      "agent": "python-task-automation-developer",
+      "quality_scored": true,
+      "workflow_step": null
     },
     "ticket-023-implement-view-mode-and-deck-selector.md": {
       "epic": "epic-03-dashboard-core",
@@ -777,7 +788,9 @@
       "readiness_mean": 0.9875,
       "dispatch_notes": [
         "023 and 024 must NOT run in parallel: both write builder.py and dashboard.js.",
-        "019 and 020 may run in parallel; 021 depends on both."
+        "ORDER IS FORCED, 023 BEFORE 024 (corrected 2026-09-11): the refinement said either order, but ticket-024 requirement 4 syncs aria-pressed through the helper ticket-023 introduces, so 024 depends on 023 having landed. Dispatching 024 first would leave it inventing a helper 023 then duplicates.",
+        "019 and 020 ran in parallel successfully; 021 depended on both.",
+        "Cross-ticket contract verified 2026-09-11: 021 emits data-mode/data-group/data-value/data-chart and no aria-pressed or disabled; 023 adds aria-pressed to mode, level and deck plus disabled on the selector; 024 adds aria-pressed to the value toggle plus data-initial-value on body; 022 reads data-initial-mode and takes valueMode from a constant that 024 replaces. payload.labels.y_axis_difference_suffix is emitted by 020 and consumed by 025, not by 024."
       ]
     },
     "epic-04-plant-and-scalar-charts": {
