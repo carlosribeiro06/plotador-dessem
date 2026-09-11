@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T06:59:38Z",
+  "last_updated": "2026-09-11T08:00:01Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -718,7 +718,7 @@
     },
     "ticket-027-render-hydro-plant-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 3,
       "scores": {
@@ -729,8 +729,24 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
-        }
-      }
+        },
+        "quality": 1.0
+      },
+      "agent": "python-task-automation-developer",
+      "workflow_step": "guardian_approved",
+      "quality_breakdown": {
+        "conformance": 1.0,
+        "scope_adherence": 1.0,
+        "lint_cleanliness": 1.0,
+        "type_safety": 1.0,
+        "test_delta": 1.0
+      },
+      "quality_scored": true,
+      "notes": [
+        "Spec defect 15 of this plan, and a new shape for the catalogue: not a requirement contradicting its own justification, but a FALSE FACTUAL CLAIM ABOUT THE TEST SUITE. The ticket asserted that no existing assertion covered an all-null array; _hand_built_data() builds a one-stage axis and one test stored values=[None], which is trivially all-None, so requirements 1 and 2 were logically incompatible with a pinned assertion. The specialist proved it by measurement before implementing anything and escalated. Amended as requirement 9. Lesson: a claim about an existing test is verifiable by running it, and neither refinement nor readiness scoring executes anything.",
+        "Guardian found one non-blocking gap the orchestrator then closed: requirement 3's negative direction (no INFO line for a chart that lost nothing) was correctly implemented but untested - mutating `if dropped:` to `if True:` passed all 504 tests. Closed with a drop-record assertion in the AC3 test, proven to fail under that exact mutation.",
+        "Orchestrator error worth recording: the first version of that assertion counted every INFO record of the payload logger, on the premise that _build_chart_entry was the module's only INFO caller. False - build_payload's timed-step helper in logging_setup emits 'Payload JSON construido' under this module's logger name. A grep for 'logger.' inside payload.py cannot see a record logged on the module's behalf from elsewhere. Fixed by matching the drop line's own message template."
+      ]
     },
     "ticket-028-implement-name-and-code-filters.md": {
       "epic": "epic-04-plant-and-scalar-charts",

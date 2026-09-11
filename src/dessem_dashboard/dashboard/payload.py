@@ -67,6 +67,12 @@ def _build_series(
     probing has_series for every deck plus the chained axis (requirement 3a), and emits an axis
     key only for the deck dates that accessor actually reports; a scenario missing a deck
     therefore contributes no key at all for it, rather than an array of nulls.
+
+    ticket-027 requirement 1: an axis entry whose stored values are all None carries no
+    information (consolidate's all_entity_ids union stores exactly that array for a plant absent
+    from one scenario but present in another), so it is omitted rather than emitted in full; a
+    scenario whose axis mapping becomes empty this way is then omitted as well. A partially
+    covered array -- decision 17's per-stage null -- is untouched.
     """
     result: dict[str, dict[str, list[float | None]]] = {}
     for scenario in data.scenarios:
@@ -77,7 +83,11 @@ def _build_series(
         for deck_date in stored_dates:
             axis = data.chained_axis() if deck_date is None else data.deck_axis(deck_date)
             values = data.series(chart_key, entity_id, scenario, deck_date)
+            if all(value is None for value in values):
+                continue
             by_axis[axis.key] = [_round_value(value, decimals) for value in values]
+        if not by_axis:
+            continue
         result[scenario] = by_axis
     return result
 
@@ -102,6 +112,11 @@ def _build_chart_entry(data: DashboardData, spec: ChartSpec, *, decimals: int) -
     name only when it is neither absent nor identical to title, so it stays additive rather than
     overriding the hm3-versus-percent and afluente-versus-incremental distinctions the catalogue
     preserves.
+
+    ticket-027 requirement 2: series is built first, and entities is then derived from the
+    entities that survived in it, rather than the two being filtered independently -- an entity
+    dropped from series but kept in entities would still render an <option> that init() could
+    pick as the chart's default selection, opening on a blank chart with nothing explaining it.
     """
     registry_title = data.registries.title_for(spec.key)
     subtitle = registry_title if registry_title not in (None, spec.title) else None
@@ -111,11 +126,28 @@ def _build_chart_entry(data: DashboardData, spec: ChartSpec, *, decimals: int) -
     series: dict[str, dict[str, dict[str, list[float | None]]]]
     if spec.kind is ChartKind.SERIES:
         entities = data.entities(spec.key)
-        entities_payload = [{"id": entity.entity_id, "label": entity.label} for entity in entities]
-        series = {
+        series_by_entity = {
             entity.entity_id: _build_series(data, spec.key, entity.entity_id, decimals=decimals)
             for entity in entities
         }
+        series = {
+            entity_id: entity_series
+            for entity_id, entity_series in series_by_entity.items()
+            if entity_series
+        }
+        entities_payload = [
+            {"id": entity.entity_id, "label": entity.label}
+            for entity in entities
+            if entity.entity_id in series
+        ]
+        dropped = len(entities) - len(entities_payload)
+        if dropped:
+            logger.info(
+                "Gráfico '%s' omitiu %d entidade(s) do payload: nenhum valor armazenado em "
+                "nenhum cenário",
+                spec.key,
+                dropped,
+            )
         scalars = {}
     else:
         entities_payload = []

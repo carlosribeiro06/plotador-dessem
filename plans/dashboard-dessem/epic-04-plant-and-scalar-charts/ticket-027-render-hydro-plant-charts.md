@@ -196,9 +196,43 @@ the curated title as the heading and demotes the registry name to a subtitle.
    `"MWh"`, `"hm3"`, `"m3/s"` **and `"%"`**. The first four are already pinned by
    `tests/test_charts_sin.py`; `"%"` is new with this level, because `VARPF_UHE` is the first
    percentage chart in the catalogue and a group-level default unit would mislabel it.
-8. Change no other file. No JavaScript, no CSS, no HTML template, no `builder.py`, no `theme.py`, and
-   no epic-02 module — in particular not `consolidate._entity_ref`, whose plant label and `sort_key`
+8. Amend `tests/test_payload.py` in exactly the two ways requirement 9 specifies, and change no
+   other file. No JavaScript, no CSS, no HTML template, no `builder.py`, no `theme.py`, and no
+   epic-02 module — in particular not `consolidate._entity_ref`, whose plant label and `sort_key`
    are test-pinned and whose format the Background settles.
+
+9. **Amendment of 2026-09-11 — the fifteenth spec defect of this plan, and the reason this ticket
+   now touches a fourth file.** The Testing Requirements section originally asserted that
+   "no existing assertion covers an all-`null` array". That claim is false, and the specialist
+   dispatched on this ticket proved it by measurement before implementing anything:
+   `test_build_payload_and_payload_json_none_value_survives_as_none_and_null` builds its store
+   through `_hand_built_data()`, whose axis is **one stage long**, and stores `values=[None]`. A
+   one-element array holding `None` is trivially an array whose values are all `None`, so
+   requirement 1 omits it, requirement 2 then drops the `""` entity from `entities`, and the test's
+   `payload["charts"]["GHID_SIN"]["series"][""]` raises `KeyError`. Requirements 1 and 2 and that
+   pinned assertion are logically incompatible for that one input. The production rule is right and
+   stays exactly as specified; the test's input is accidentally degenerate, because its own name and
+   intent are about a `None` **slot** surviving (decision 17), not about a wholly empty array
+   surviving. Therefore:
+
+   - Give `_hand_built_data` a keyword-only `stages: int = 1` parameter that extends `starts` and
+     `durations_hours` by half-hour steps for both the deck axis and the chained axis. The default
+     keeps the three other callers byte-identical in behaviour; only the amended test passes
+     `stages=2`.
+   - Amend `test_build_payload_and_payload_json_none_value_survives_as_none_and_null` to build with
+     `stages=2` and store `values=[1.0, None]`, asserting that `[1.0, None]` survives `build_payload`
+     and round-trips through `payload_json` as `[1.0, null]`. This preserves precisely what the test
+     was written to prove and no longer collides with the new rule.
+   - Add one new test to `tests/test_payload.py` covering the new rule at the level where it lives:
+     given a hand-built store with **two** registered entities on one chart, one holding a real
+     array and one holding an all-`None` array, the payload's `series` and `entities` both hold only
+     the first entity, and `entities` is not merely filtered but equal to the surviving id set. The
+     document-level test in `tests/test_charts_hydro.py` covers the rendered consequence; this one
+     covers the requirement-2 lockstep in the module that implements it, which the ticket otherwise
+     left with no payload-level coverage at all.
+
+   Do not weaken or delete any other assertion in `tests/test_payload.py`, and do not change
+   `_hand_built_data`'s default.
 
 ### Inputs
 
@@ -303,6 +337,9 @@ degradation, not a crash, and it must not be special-cased in the asset.
 - `src/dessem_dashboard/dashboard/payload.py` (modify: the two omission rules and one INFO line)
 - `tests/dashboard_document.py` (create)
 - `tests/test_charts_hydro.py` (create)
+- `tests/test_payload.py` (modify: only the three changes requirement 9 specifies — the `stages`
+  parameter on `_hand_built_data`, the two-stage `[1.0, None]` rewrite of the one colliding test,
+  and one new test for the requirement-2 lockstep)
 
 ### Patterns to Follow
 
@@ -391,9 +428,14 @@ degradation, not a crash, and it must not be special-cased in the asset.
   keys of `series`, asserted for every chart of the fixture payload as well;
 - the non-vacuity mutations of Suggested Approach step 7, each confirmed to fail before restoration.
 
-`tests/test_payload.py` is not modified by this ticket: no existing assertion covers an all-`null`
-array, and `test_build_payload_missing_series_file_omits_only_that_scenario_and_deck` stays green
-because the chained array of the affected scenario still holds its other deck's real values.
+`tests/test_payload.py` **is** modified by this ticket, in exactly the two ways requirement 9
+specifies and no others: `_hand_built_data` gains a `stages` parameter, the one-stage `[None]` test
+becomes a two-stage `[1.0, None]` test, and one new test covers the `entities`/`series` lockstep of
+requirement 2. The earlier wording here claimed no existing assertion covered an all-`null` array;
+that was wrong, and requirement 9 records how it was found. Note that
+`test_build_payload_missing_series_file_omits_only_that_scenario_and_deck` does stay green
+unchanged, for the reason originally given: the chained array of the affected scenario still holds
+its other deck's real values, so it is not an all-`null` array.
 
 ### Integration Tests
 
@@ -403,7 +445,7 @@ ticket-034.
 
 ## Definition of Done
 
-- [ ] The three files exist — one modified, two created — and all five acceptance criteria pass.
+- [ ] The four files exist — two modified, two created — and all five acceptance criteria pass.
 - [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
 - [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent.
 - [ ] Every hydro selector lists exactly the plants its own file covers, with `VARMF_UHE` and
@@ -411,8 +453,12 @@ ticket-034.
 - [ ] No array and no entity made only of `null` reaches the payload; `entities` and `series` hold the
       same id set for every chart; and one INFO line records each chart's dropped count.
 - [ ] `tests/test_charts_sin.py`, `tests/test_charts_submarket.py`, `tests/test_builder.py`,
-      `tests/test_payload.py`, `tests/test_renderer_contract.py`, `tests/test_renderer_controls.py`
-      and `tests/test_renderer_value_mode.py` all pass unchanged.
+      `tests/test_renderer_contract.py`, `tests/test_renderer_controls.py` and
+      `tests/test_renderer_value_mode.py` all pass unchanged.
+- [ ] `tests/test_payload.py` passes **as amended by requirement 9** — the `stages` parameter, the
+      two-stage `[1.0, None]` test and the new lockstep test — with every other assertion in that
+      module untouched and still passing. The amended test must still fail if `_round_value` or the
+      `allow_nan=False` guard is broken; confirm that by mutation before reporting done.
 - [ ] `tests/dashboard_document.py` is importable by a sibling test module and is not collected as a
       test module by pytest.
 

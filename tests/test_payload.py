@@ -99,12 +99,14 @@ def _empty_registries() -> Registries:
 
 
 def _hand_built_data(
-    *, scenarios: Sequence[str] = ("caso_a",), reference: str = "caso_a"
+    *, scenarios: Sequence[str] = ("caso_a",), reference: str = "caso_a", stages: int = 1
 ) -> DashboardData:
-    """Build a minimal one-stage store: one deck axis, a matching chained axis, one SIN entity.
+    """Build a minimal store: one deck axis, a matching chained axis, one SIN entity.
 
-    Registers "" (the SIN entity_id) against GHID_SIN, since build_payload reads its entity list
-    from data.entities(key) rather than from the series keys directly (requirement 7); every
+    stages sets the axis length in half-hour steps from 2024-03-03T00:00 UTC; the default of one
+    stage keeps every caller but the ticket-027 amendment below byte-identical. Registers "" (the
+    SIN entity_id) against GHID_SIN, since build_payload reads its entity list from
+    data.entities(key) rather than from the series keys directly (requirement 7); every
     hand-built edge-case test below stores a GHID_SIN series under that same entity_id.
     """
     data = DashboardData(
@@ -114,9 +116,13 @@ def _hand_built_data(
         registries=_empty_registries(),
     )
     start = pd.Timestamp("2024-03-03T00:00:00", tz="UTC")
-    axis = TimeAxis(key=_HAND_BUILT_DECK_KEY, starts=(start,), durations_hours=(0.5,))
+    starts = tuple(start + pd.Timedelta(hours=0.5 * index) for index in range(stages))
+    durations_hours = (0.5,) * stages
+    axis = TimeAxis(key=_HAND_BUILT_DECK_KEY, starts=starts, durations_hours=durations_hours)
     data.set_deck_axis(_HAND_BUILT_DATE, axis)
-    data.set_chained_axis(TimeAxis(key=_CHAINED_KEY, starts=(start,), durations_hours=(0.5,)))
+    data.set_chained_axis(
+        TimeAxis(key=_CHAINED_KEY, starts=starts, durations_hours=durations_hours)
+    )
     sin_entity = EntityRef(entity_id="", label="Sistema Interligado", sort_key=())
     data.set_entities("GHID_SIN", [sin_entity])
     return data
@@ -516,22 +522,72 @@ def test_build_payload_scenario_with_no_stored_dates_for_entity_contributes_no_k
 def test_build_payload_and_payload_json_none_value_survives_as_none_and_null(
     tmp_path: Path,
 ) -> None:
-    data = _hand_built_data()
+    """A None slot inside an otherwise-populated array (decision 17) survives untouched.
+
+    ticket-027 amendment (requirement 9): the original one-stage version of this test stored
+    values=[None], a single-element array that is trivially all-None -- exactly the shape
+    ticket-027 requirement 1 now omits. That collided with this test's own intent, which is
+    decision 17's per-slot null, not requirement 1's whole-array omission. Two stages with one
+    real value keep the array partially covered, so it survives both rules untouched.
+    """
+    data = _hand_built_data(stages=2)
     data.add_series(
         chart_key="GHID_SIN",
         entity_id="",
         scenario="caso_a",
         deck_date=_HAND_BUILT_DATE,
-        values=[None],
+        values=[1.0, None],
     )
     settings = _build_settings(tmp_path)
 
     payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
-    assert payload["charts"]["GHID_SIN"]["series"][""]["caso_a"]["03/03/2024"] == [None]
+    assert payload["charts"]["GHID_SIN"]["series"][""]["caso_a"]["03/03/2024"] == [1.0, None]
 
     text = payload_json(payload)
     decoded = json.loads(text)
-    assert decoded["charts"]["GHID_SIN"]["series"][""]["caso_a"]["03/03/2024"] == [None]
+    assert decoded["charts"]["GHID_SIN"]["series"][""]["caso_a"]["03/03/2024"] == [1.0, None]
+
+
+# --- requirement 2: the entities/series lockstep, at the level that implements it --------------
+
+
+def test_build_payload_entities_and_series_lockstep_drops_the_all_none_entity_only(
+    tmp_path: Path,
+) -> None:
+    """Two entities on one chart: the all-None one is dropped from both entities and series.
+
+    ticket-027 requirement 9's third change: the omission rule of requirement 1 and the lockstep
+    of requirement 2 live in payload.py, but the ticket as originally written left them with no
+    test at payload.py's own level -- tests/test_charts_hydro.py only covers the rendered
+    consequence, one module away. This asserts entities equals the surviving id set exactly, not
+    merely a subset of it, which is what "lockstep by construction" means.
+    """
+    data = _hand_built_data(stages=2)
+    data.add_series(
+        chart_key="GHID_SIN",
+        entity_id="",
+        scenario="caso_a",
+        deck_date=_HAND_BUILT_DATE,
+        values=[1.0, 2.0],
+    )
+    second_entity = EntityRef(entity_id="dropped", label="Usina Ausente", sort_key=("z",))
+    data.set_entities("GHID_SIN", [*data.entities("GHID_SIN"), second_entity])
+    data.add_series(
+        chart_key="GHID_SIN",
+        entity_id="dropped",
+        scenario="caso_a",
+        deck_date=_HAND_BUILT_DATE,
+        values=[None, None],
+    )
+    settings = _build_settings(tmp_path)
+
+    payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
+    entry = payload["charts"]["GHID_SIN"]
+
+    surviving_ids = {entity["id"] for entity in entry["entities"]}
+    assert surviving_ids == {""}
+    assert set(entry["series"]) == surviving_ids
+    assert entry["series"][""]["caso_a"]["03/03/2024"] == [1.0, 2.0]
 
 
 # --- NaN in the store makes payload_json raise ValueError ---------------------------------------

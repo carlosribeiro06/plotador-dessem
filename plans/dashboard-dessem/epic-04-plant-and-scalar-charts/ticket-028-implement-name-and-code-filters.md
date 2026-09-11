@@ -191,22 +191,52 @@ section reading `## Epic 4 placeholder — plant name and code filters (ticket-0
    font and size value must come from one of the eight properties `theme.css_root_block()` emits, and
    no hex literal and no `@import` may appear.
 9. Replace the `## Epic 4 placeholder` section of `docs/checklist-manual-dashboard.md` with a real
-   section titled for the plant filters, holding numbered steps continuing from 19 — navigate to
+   section titled for the plant filters, holding numbered steps continuing from **21** — navigate to
    `Usinas hidrelétricas`, type a partial name and confirm the list narrows and the chart follows,
    type a code and confirm the same, combine both, type a non-matching string and confirm the
    Portuguese message appears while the chart keeps its previous curve, clear both fields and confirm
    the full list returns, then filter two charts of the same level differently and confirm each keeps
    its own selection. State in the section that option hiding inside a native `<select>` is
    browser-dependent and is the reason these steps are manual.
+
+   > **Corrected 2026-09-11.** This requirement originally said "continuing from 19". The
+   > checklist's last step is **20** — the Avisos section owns steps 19 and 20. The refinement read
+   > the file as it stood before the epic-03 boundary inserted step 7 (level switching) and step 18
+   > (per-chart selector independence), which shifted the tail by two. Numbering from 19 would have
+   > produced a file holding two steps 19 and two steps 20. Verify the current last step number in
+   > the file itself before writing, rather than trusting this ticket or any other document.
 10. Create `tests/test_charts_filters.py`, importing the slicing helpers from
     `tests/dashboard_document.py`. It must assert the fragment on the nine plant sections **and its
     absence** on every other section, the asset invariants, the CSS rules, the checklist replacement,
     and the non-vacuity of each text assertion.
-11. Change no other file. No `payload.py`, no `theme.py`, no `consolidate.py`, no
+11. Change no other file, beyond the single test requirement 12 authorises. No `payload.py`, no `theme.py`, no `consolidate.py`, no
     `assets/dashboard.html`, no existing test module, and no `<option>` markup: ticket-026 asserts
     the exact option string of `entity-CMO_SBM` and ticket-027 the exact options of `entity-VARMF_UHE`
     and `entity-GHID_UHE`.
-12. Add no filter by submarket or equivalent reservoir, no `<optgroup>`, no multi-select, no
+12. **Amend exactly one test in `tests/test_renderer_contract.py`, and no other.** Requirement 9
+    deletes the `## Epic 4 placeholder` section, and
+    `test_checklist_ends_with_ticket_028_placeholder_for_plant_filters` asserts that the literal
+    string `ticket-028` is present in the checklist and that its last occurrence sits past 80
+    percent of the file. That test encodes the precondition that this ticket has **not** run yet,
+    so requirement 9 and that assertion cannot both hold — and the Definition of Done originally
+    demanded that `tests/test_renderer_contract.py` pass unchanged, which made the ticket
+    self-contradictory. This is spec defect 16 of the plan, the same shape as the ticket-023
+    defect: a DoD requiring a test file to pass unchanged while the ticket's own requirements force
+    it to change.
+
+    Replace that one test with one asserting what the checklist must carry **after** this ticket:
+    that the plant-filter section exists and sits last in the file, that it names the
+    `Usinas hidrelétricas` level, that it carries both Portuguese filter labels and the no-match
+    message the markup emits, and — the discriminating half — that the words `Not yet written` no
+    longer appear anywhere in the file. Name the replacement for the new state, not the old one.
+    Prove it fails against the pre-ticket checklist before returning: write
+    `git show HEAD:docs/checklist-manual-dashboard.md` to `tmp_path` and assert the replacement
+    rejects that content, or restore it temporarily and revert. Change nothing else in that module
+    — in particular leave the `KEYS` contract assertions,
+    `_assert_no_dot_access_to_keys_values` and
+    `test_checklist_step_15_expected_result_covers_the_y_axis_title_switch` untouched.
+
+13. Add no filter by submarket or equivalent reservoir, no `<optgroup>`, no multi-select, no
     "apply to all charts" control, no debounce timer and no URL-hash state. E4-4 rules the first two
     out explicitly; the rest are unrequested.
 
@@ -313,6 +343,7 @@ because matching is `indexOf` over normalised strings and never a constructed pa
 - `src/dessem_dashboard/dashboard/assets/dashboard.css` (modify: five rules)
 - `docs/checklist-manual-dashboard.md` (modify: replace the Epic 4 placeholder section)
 - `tests/test_charts_filters.py` (create)
+- `tests/test_renderer_contract.py` (modify: only the one test requirement 12 names)
 
 ### Patterns to Follow
 
@@ -404,8 +435,11 @@ behaviour, and the run against the real 165-plant and 89-plant registries is tic
 - [ ] The `docs/checklist-manual-dashboard.md` Epic 4 placeholder is gone, replaced by numbered steps
       that were walked by hand in a browser with the console open.
 - [ ] `tests/test_builder.py`, `tests/test_charts_sin.py`, `tests/test_charts_submarket.py`,
-      `tests/test_charts_hydro.py`, `tests/test_renderer_contract.py`,
-      `tests/test_renderer_controls.py` and `tests/test_renderer_value_mode.py` all pass unchanged.
+      `tests/test_charts_hydro.py`, `tests/test_renderer_controls.py` and
+      `tests/test_renderer_value_mode.py` all pass unchanged.
+- [ ] `tests/test_renderer_contract.py` passes **as amended by requirement 12** — one test
+      replaced, every other assertion in the module untouched — and the replacement is proven to
+      fail against the pre-ticket checklist content.
 
 ## Effort Estimate
 
