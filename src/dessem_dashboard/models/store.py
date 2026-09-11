@@ -293,3 +293,41 @@ class DashboardData:
         series_total = sum(len(values) for values in self._series.values())
         scalar_total = sum(len(chart_scalars) for chart_scalars in self._scalars.values())
         return series_total + scalar_total
+
+    def chart_keys(self) -> tuple[str, ...]:
+        """Return, sorted, every chart key holding at least one stored series.
+
+        Returns an empty tuple when no series has ever been added. Read-only: it inspects
+        self._series without mutating it, so calling it repeatedly never changes value_count().
+        """
+        return tuple(sorted({chart_key for chart_key, _, _, _ in self._series}))
+
+    def scalar_chart_keys(self) -> tuple[str, ...]:
+        """Return, sorted, every chart key holding at least one stored scalar.
+
+        Returns an empty tuple when no scalar has ever been added. add_scalar always assigns a
+        value immediately after creating a chart's scalar dict, so every key of self._scalars
+        already holds at least one entry.
+        """
+        return tuple(sorted(self._scalars))
+
+    def stored_deck_dates(
+        self, chart_key: str, entity_id: str, scenario: str
+    ) -> tuple[date | None, ...]:
+        """Return the deck dates actually stored for this (chart, entity, scenario) triple.
+
+        Ascending order, with None -- the chained axis -- sorted last, so a caller enumerating
+        this triple's axes sees every deck in chronological order followed by the chained axis.
+        Returns an empty tuple when the triple was never populated by add_series, distinguishing
+        "absent" (a stored key with an all-None array) from "never stored" (no key at all).
+        """
+        stored = [
+            deck_date
+            for series_chart_key, series_entity_id, series_scenario, deck_date in self._series
+            if series_chart_key == chart_key
+            and series_entity_id == entity_id
+            and series_scenario == scenario
+        ]
+        deck_dates = sorted(deck_date for deck_date in stored if deck_date is not None)
+        chained = [None] if None in stored else []
+        return (*deck_dates, *chained)

@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T03:55:00Z",
+  "last_updated": "2026-09-11T04:10:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -523,7 +523,7 @@
     },
     "ticket-020-export-compact-json-payload.md": {
       "epic": "epic-03-dashboard-core",
-      "status": "in_progress",
+      "status": "completed",
       "detail_level": "refined",
       "points": 4,
       "scores": {
@@ -534,9 +534,23 @@
           "boundary": 0.6,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
+        },
+        "quality": 1.0,
+        "quality_breakdown": {
+          "conformance": 1.0,
+          "scope_adherence": 1.0,
+          "lint_cleanliness": 1.0,
+          "type_safety": 1.0,
+          "test_delta": 1.0
         }
       },
-      "readiness_note": "Boundary 0.60 was caused by requirement 3a (epic-02 finding M6) not being swept into Key Files, Testing Requirements and the DoD file count. Those three sections were resynced 2026-09-11 after scoring; the 0.92 recorded here is the independently scored value as-written, not re-scored."
+      "readiness_note": "Boundary 0.60 was caused by requirement 3a (epic-02 finding M6) not being swept into Key Files, Testing Requirements and the DoD file count. Those three sections were resynced 2026-09-11 after scoring; the 0.92 recorded here is the independently scored value as-written, not re-scored.",
+      "agent": "python-task-automation-developer",
+      "quality_scored": true,
+      "workflow_step": null,
+      "followups": [
+        "stored_deck_dates does a per-call O(n) scan of _series with no index. Correct at this scope, but ticket-034 should measure wall-clock at production scale (165 plants x 30 decks x 3 scenarios); an index can be added later without changing the accessor contract."
+      ]
     },
     "ticket-021-assemble-single-file-html-shell.md": {
       "epic": "epic-03-dashboard-core",

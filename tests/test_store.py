@@ -448,3 +448,181 @@ def test_value_count_equals_sum_of_series_lengths_plus_scalar_count() -> None:
 def test_value_count_zero_for_freshly_built_store() -> None:
     data = _store()
     assert data.value_count() == 0
+
+
+# --- chart_keys ------------------------------------------------------------------------------
+
+
+def test_chart_keys_returns_sorted_keys_with_at_least_one_series() -> None:
+    data = _store()
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        values=[1.0, 2.0, 3.0, 4.0],
+    )
+    data.add_series(
+        chart_key="CMO_SBM",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        values=[1.0, 2.0, 3.0, 4.0],
+    )
+
+    assert data.chart_keys() == ("CMO_SBM", "GHID_UHE")
+
+
+def test_chart_keys_empty_store_returns_empty_tuple() -> None:
+    data = _store()
+    assert data.chart_keys() == ()
+
+
+def test_chart_keys_excludes_chart_with_only_scalars() -> None:
+    data = _store()
+    data.add_scalar(
+        chart_key="CUSTOS",
+        series_name="PRESENTE",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        value=100.0,
+    )
+
+    assert data.chart_keys() == ()
+
+
+def test_chart_keys_called_twice_returns_equal_results_and_preserves_value_count() -> None:
+    data = _store()
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        values=[1.0, 2.0, 3.0, 4.0],
+    )
+
+    first = data.chart_keys()
+    second = data.chart_keys()
+
+    assert first == second
+    assert data.value_count() == 4
+
+
+# --- scalar_chart_keys -------------------------------------------------------------------------
+
+
+def test_scalar_chart_keys_returns_only_charts_holding_scalars() -> None:
+    data = _store()
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        values=[1.0, 2.0, 3.0, 4.0],
+    )
+    data.add_scalar(
+        chart_key="CUSTOS",
+        series_name="PRESENTE",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        value=100.0,
+    )
+    data.add_scalar(
+        chart_key="TEMPO",
+        series_name="MILP",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        value=10.0,
+    )
+
+    assert data.scalar_chart_keys() == ("CUSTOS", "TEMPO")
+
+
+def test_scalar_chart_keys_empty_store_returns_empty_tuple() -> None:
+    data = _store()
+    assert data.scalar_chart_keys() == ()
+
+
+def test_scalar_chart_keys_called_twice_returns_equal_results_and_preserves_value_count() -> None:
+    data = _store()
+    data.add_scalar(
+        chart_key="CUSTOS",
+        series_name="PRESENTE",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        value=100.0,
+    )
+
+    first = data.scalar_chart_keys()
+    second = data.scalar_chart_keys()
+
+    assert first == second
+    assert data.value_count() == 1
+
+
+# --- stored_deck_dates -------------------------------------------------------------------------
+
+
+def test_stored_deck_dates_returns_decks_actually_stored_with_none_sorted_last() -> None:
+    data = _store()
+    second_deck = date(2024, 3, 4)
+    data.set_deck_axis(second_deck, _axis("second_deck", _DECK_AXIS_LENGTH))
+
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=second_deck,
+        values=[1.0, 2.0, 3.0, 4.0],
+    )
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=None,
+        values=[float(position) for position in range(_CHAINED_AXIS_LENGTH)],
+    )
+    # _DECK_DATE is deliberately never stored for this triple: the result must differ from
+    # data.deck_dates so the test cannot pass by accident (epic-02-learnings section 7).
+    assert data.deck_dates == (_DECK_DATE,)
+
+    assert data.stored_deck_dates("GHID_UHE", "1", "caso_a") == (second_deck, None)
+
+
+def test_stored_deck_dates_absent_triple_returns_empty_tuple() -> None:
+    data = _store()
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        values=[1.0, 2.0, 3.0, 4.0],
+    )
+
+    assert data.stored_deck_dates("GHID_UHE", "2", "caso_a") == ()
+    assert data.stored_deck_dates("GHID_UHE", "1", "caso_b") == ()
+    assert data.stored_deck_dates("QTUR_UHE", "1", "caso_a") == ()
+
+
+def test_stored_deck_dates_called_twice_returns_equal_results_and_preserves_value_count() -> None:
+    data = _store()
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=_DECK_DATE,
+        values=[1.0, 2.0, 3.0, 4.0],
+    )
+    data.add_series(
+        chart_key="GHID_UHE",
+        entity_id="1",
+        scenario="caso_a",
+        deck_date=None,
+        values=[float(position) for position in range(_CHAINED_AXIS_LENGTH)],
+    )
+
+    first = data.stored_deck_dates("GHID_UHE", "1", "caso_a")
+    second = data.stored_deck_dates("GHID_UHE", "1", "caso_a")
+
+    assert first == second
+    assert data.value_count() == _DECK_AXIS_LENGTH + _CHAINED_AXIS_LENGTH

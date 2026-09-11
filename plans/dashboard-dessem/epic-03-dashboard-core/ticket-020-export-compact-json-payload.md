@@ -364,8 +364,21 @@ None. The payload built from a real scenario tree is exercised end to end by tic
 - [ ] `ruff check src tests`, `ruff format --check src tests` and `mypy src` exit 0.
 - [ ] `pytest --cov=dessem_dashboard` total coverage is at or above 80 percent.
 - [ ] `payload.py` does not import `dashboard.theme`, verified with
-      `grep -n "theme" src/dessem_dashboard/dashboard/payload.py` printing nothing, so tickets 019
-      and 020 remain independently implementable.
+      `grep -nE "^ *(from|import) .*dashboard\.theme" src/dessem_dashboard/dashboard/payload.py`
+      printing nothing, so tickets 019 and 020 remain independently implementable
+      (command corrected 2026-09-11 — see the note below).
+
+> **Amended 2026-09-11 during execution.** This bullet originally asked for
+> `grep -n "theme" src/dessem_dashboard/dashboard/payload.py` to print **nothing**, which requirement
+> 11 of this same ticket makes impossible: it mandates a literal top-level `"theme"` key in the
+> payload, so that grep necessarily matches the key literal, plus the docstring mentions of
+> `dashboard.theme` that explain the independence. That is defect shape 7 of
+> `epic-02-learnings.md` section 6 — a verification command contradicting a requirement of its own
+> ticket, in the can-never-pass direction. The implementing agent reported it instead of silently
+> satisfying it, and verified the substantive constraint, which is the **import**, not the word. The
+> command now matches only an actual import line. The distinction matters: `payload.py` must take
+> `scenario_colors` and `plotly_layout` as caller-supplied arguments so that tickets 019 and 020 can
+> be implemented in parallel, which is exactly how they were run.
 - [ ] The exported payload contains no `warnings` key and no `durations_hours` key, both excluded on
       purpose by requirements 2 and 3.
 - [ ] Every raw value that reaches the JSON was rounded to `output.decimals`, and no missing value

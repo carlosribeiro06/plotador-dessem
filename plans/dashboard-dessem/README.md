@@ -74,7 +74,7 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-017 | Define the dashboard data store | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-018 | Implement series consolidation | epic-02 | completed | Detailed | 0.96 | 1.00 | EXCELLENT |
 | ticket-019 | Build the brand theme module | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-020 | Export the compact JSON payload | epic-03 | pending | Refined | 0.92 | -- | -- |
+| ticket-020 | Export the compact JSON payload | epic-03 | completed | Refined | 0.92 | 1.00 | EXCELLENT |
 | ticket-021 | Assemble the single-file HTML shell | epic-03 | pending | Refined | 0.98 | -- | -- |
 | ticket-022 | Implement the JavaScript chart renderer core | epic-03 | pending | Refined | 1.00 | -- | -- |
 | ticket-023 | Implement the view mode and deck selector | epic-03 | pending | Refined | 1.00 | -- | -- |
