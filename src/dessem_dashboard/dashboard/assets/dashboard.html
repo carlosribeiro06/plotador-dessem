@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$title</title>
+<style>
+$css
+</style>
+</head>
+<body data-initial-mode="$initial_mode">
+<header id="header">
+<img id="logo" src="$logo_data_uri" alt="Logotipo do ONS">
+<h1 id="title">$title</h1>
+</header>
+<nav id="level-nav">$level_nav</nav>
+<div id="controls">
+<div id="mode-toggle">$mode_toggle</div>
+<label for="deck-selector">Deck</label>
+$deck_selector
+<div id="value-toggle">$value_toggle</div>
+<span id="reference-label">Referência: $reference</span>
+</div>
+$warnings_section
+<main id="charts">$chart_sections</main>
+<footer id="footer">$footer</footer>
+<script id="plotly-js">$plotly_js</script>
+<script id="dashboard-payload" type="application/json">$payload_json</script>
+<script id="dashboard-js">$dashboard_js</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T04:10:00Z",
+  "last_updated": "2026-09-11T04:55:00Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -554,7 +554,7 @@
     },
     "ticket-021-assemble-single-file-html-shell.md": {
       "epic": "epic-03-dashboard-core",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 4,
       "scores": {
@@ -565,9 +565,20 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 0.8
+        },
+        "quality": 1.0,
+        "quality_breakdown": {
+          "conformance": 1.0,
+          "scope_adherence": 1.0,
+          "lint_cleanliness": 1.0,
+          "type_safety": 1.0,
+          "test_delta": 1.0
         }
       },
-      "readiness_note": "Atomicity 0.80 is a disclosed, accepted trade-off: 5 files sharing one acceptance surface. The ticket names its own split boundary. Not a blocker."
+      "readiness_note": "Atomicity 0.80 is a disclosed, accepted trade-off: 5 files sharing one acceptance surface. The ticket names its own split boundary. Not a blocker.",
+      "agent": "python-task-automation-developer",
+      "quality_scored": true,
+      "workflow_step": null
     },
     "ticket-022-implement-js-chart-renderer-core.md": {
       "epic": "epic-03-dashboard-core",
