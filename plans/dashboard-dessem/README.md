@@ -14,7 +14,7 @@ learnings of the earlier epics.
 | [`epic-01-project-foundation/`](epic-01-project-foundation/) | Scaffold and repository hygiene, 8 detailed tickets |
 | [`epic-02-data-layer/`](epic-02-data-layer/) | Discovery, readers, registries, timeline, chart registry, data store, 10 detailed tickets |
 | [`epic-03-dashboard-core/`](epic-03-dashboard-core/) | Theme, payload, HTML shell, JS renderer, SIN and SBM charts, 8 refined tickets |
-| [`epic-04-plant-and-scalar-charts/`](epic-04-plant-and-scalar-charts/) | Plant charts with filters, cost and time bars, size enforcement, 6 outline tickets |
+| [`epic-04-plant-and-scalar-charts/`](epic-04-plant-and-scalar-charts/) | Plant charts with filters, cost and time bars, size enforcement, 6 refined tickets |
 | [`epic-05-delivery-and-legacy-removal/`](epic-05-delivery-and-legacy-removal/) | Pipeline wiring, validation, documentation, legacy removal, 6 outline tickets |
 | `.implementation-state.json` | Machine-readable execution state, readiness scores and open questions |
 | [`HANDOFF-PROMPT.md`](HANDOFF-PROMPT.md) | Prompt to paste into a new chat to start `/implement-plan` with every decision carried over |
@@ -46,10 +46,12 @@ See "Phases & Estimates" below.
 | epic-01 | Project foundation and repo hygiene | 001-008 | 17 | detailed | completed |
 | epic-02 | Data layer | 009-018 | 28 | detailed | completed |
 | epic-03 | Dashboard core | 019-026 | 24 | refined | completed |
-| epic-04 | Plant-level and scalar charts | 027-032 | 14 | outline | outline |
+| epic-04 | Plant-level and scalar charts | 027-032 | 15 | refined | executing |
 | epic-05 | Delivery, validation and legacy removal | 033-038 | 14 | outline | outline |
 
-Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent time or less.
+Total: 38 tickets, 98 points. Detailed tickets are sized at 30 minutes of agent time or less.
+The count rose from the 94 of the original outline plan as Epics 3 and 4 were refined: epic-03 from
+21 to 24 points and epic-04 from 14 to 15. Refinement re-sizes; it does not add scope.
 
 ## Progress
 
@@ -81,12 +83,12 @@ Total: 38 tickets, 94 points. Detailed tickets are sized at 30 minutes of agent 
 | ticket-024 | Implement the absolute and difference toggle | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-025 | Render the SIN level charts | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-026 | Render the submarket and interchange charts | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-027 | Render the hydro plant charts | epic-04 | pending | Outline | -- | -- | -- |
-| ticket-028 | Implement the name and code filters | epic-04 | pending | Outline | -- | -- | -- |
-| ticket-029 | Render the thermal plant charts | epic-04 | pending | Outline | -- | -- | -- |
-| ticket-030 | Render the cost bar charts | epic-04 | pending | Outline | -- | -- | -- |
-| ticket-031 | Render the computational time bar charts | epic-04 | pending | Outline | -- | -- | -- |
-| ticket-032 | Enforce the output size strategy | epic-04 | pending | Outline | -- | -- | -- |
+| ticket-027 | Render the hydro plant charts | epic-04 | pending | Refined | 1.00 | -- | -- |
+| ticket-028 | Implement the name and code filters | epic-04 | pending | Refined | 0.98 | -- | -- |
+| ticket-029 | Verify the thermal plant chart end to end | epic-04 | pending | Refined | 1.00 | -- | -- |
+| ticket-030 | Render the cost bar charts | epic-04 | pending | Refined | 0.96 | -- | -- |
+| ticket-031 | Render the computational time bar charts | epic-04 | pending | Refined | 1.00 | -- | -- |
+| ticket-032 | Enforce the output size strategy | epic-04 | pending | Refined | 1.00 | -- | -- |
 | ticket-033 | Wire the end-to-end pipeline | epic-05 | pending | Outline | -- | -- | -- |
 | ticket-034 | Add the example-data integration test | epic-05 | pending | Outline | -- | -- | -- |
 | ticket-035 | Run the legacy parity check | epic-05 | pending | Outline | -- | -- | -- |
@@ -168,10 +170,11 @@ Epics 1 and 2; they are re-estimated when refined.
 | 1 | epic-01-project-foundation | 8 | 17 | ~2.5–3.5 h | High |
 | 2 | epic-02-data-layer | 10 | 28 | ~4–5.5 h | High |
 | 3 | epic-03-dashboard-core | 8 | 24 | ≈5–6.5 h | High (refined) |
-| 4 | epic-04-plant-and-scalar-charts | 6 | 14 | ≈2–3.5 h | Low (outline) |
+| 4 | epic-04-plant-and-scalar-charts | 6 | 15 | ~2.5–3.5 h | High (refined) |
 | 5 | epic-05-delivery-and-legacy-removal | 6 | 14 | ≈2–3.5 h | Low (outline) |
 
-Total: ≈ 13.5–21 h of agent time (approximate).
+Total: ≈ 16–22.5 h of agent time (approximate), up from the ≈ 13.5–21 h of the outline plan as
+Epics 3 and 4 were refined and re-estimated at High confidence.
 
 **Execution strategy: Continuous** (chosen 2026-09-10, `.implementation-state.json` →
 `execution_strategy: "continuous"`). The 38 tickets run straight through with no approval stop at

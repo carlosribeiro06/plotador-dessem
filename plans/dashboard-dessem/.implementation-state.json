@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T06:48:30Z",
+  "last_updated": "2026-09-11T06:59:38Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -719,38 +719,98 @@
     "ticket-027-render-hydro-plant-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 3,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-028-implement-name-and-code-filters.md": {
       "epic": "epic-04-plant-and-scalar-charts",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 3
+      "detail_level": "refined",
+      "points": 3,
+      "scores": {
+        "readiness": 0.98,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.8
+        }
+      }
     },
     "ticket-029-render-thermal-plant-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 1,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-030-render-cost-bar-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 4,
+      "scores": {
+        "readiness": 0.96,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 0.6
+        }
+      }
     },
     "ticket-031-render-computational-time-bar-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 2,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-032-enforce-output-size-strategy.md": {
       "epic": "epic-04-plant-and-scalar-charts",
       "status": "pending",
-      "detail_level": "outline",
-      "points": 2
+      "detail_level": "refined",
+      "points": 2,
+      "scores": {
+        "readiness": 1.0,
+        "readiness_breakdown": {
+          "structure": 1.0,
+          "testability": 1.0,
+          "boundary": 1.0,
+          "dependency_clarity": 1.0,
+          "atomicity": 1.0
+        }
+      }
     },
     "ticket-033-wire-end-to-end-pipeline.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
@@ -864,9 +924,23 @@
       }
     },
     "epic-04-plant-and-scalar-charts": {
-      "phase": "outline",
+      "phase": "executing",
       "learning_extracted": false,
-      "estimate": "~2-3.5 h (Low, outline)"
+      "estimate": "~2.5-3.5 h (High, refined; 15 points)",
+      "refined": true,
+      "readiness_scored": true,
+      "readiness_mean": 0.99,
+      "dispatch_notes": [
+        "DISPATCH STRICTLY SEQUENTIALLY: 027 -> 028 -> 029 -> 030 -> 031 -> 032. No pair in this epic may run in parallel. The graph in the overview shows 030 -> 031 as a branch independent of 027 -> 028 -> 029, and that is true of the DATA dependencies, but every ticket from 027 to 031 writes payload.py, builder.py or dashboard.js, so any parallel pair would collide on a file. Recorded in ticket-030 Dependencies as a dispatch-order constraint rather than a graph edge, which is the more precise placement.",
+        "Ticket-029 needs NO source change: it verifies that 027 and 028 already cover GTER_UTE. Its requirement 7 forbids touching a source file and requires stopping and reporting if one appears necessary. Its filename still says 'render' for cross-reference stability; the authoritative title is in the overview ticket table.",
+        "Ticket-030 dispatches whole at 7 files despite atomicity 0.60 (composite 0.96, above the 0.85 floor). Splitting would renumber later tickets across five documents. The seam is pre-identified: requirements 1-5 Python aggregation, 6-9 renderer.",
+        "Ticket-031 owns the live TEMPO axis defect recorded in section 7a of epic-03-learnings.md. Consolidation already sums repeated etapa rows; do not re-sum what it summed."
+      ],
+      "open_decisions_for_developer": [
+        "Cost scale: FUTURO is about 2.3e8 while PRESENTE is about 5.9e4, so a shared linear bar axis renders PRESENTE invisible. Ticket-030 ships the grouped bars as specified and logs the spread; a log axis or a split chart is out of scope and needs a developer ruling.",
+        "Plant labels carry the name without the code. Adding the code is a one-line label change if the developer wants it.",
+        "output.decimals is global, not per chart. Deferred; no ticket owns it."
+      ]
     },
     "epic-05-delivery-and-legacy-removal": {
       "phase": "outline",
