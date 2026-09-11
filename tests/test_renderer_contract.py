@@ -246,6 +246,32 @@ def test_dashboard_js_never_accesses_payload_outside_keys() -> None:
     assert re.search(r'payload\[\s*"', text) is None
 
 
+def test_dashboard_js_payload_access_resists_the_four_known_evasions() -> None:
+    """Close the four ways a payload read can dodge the two regexes above.
+
+    The KEYS contract is the only automated gate on payload access, because decision E3-1 means no
+    test executes this file. The original two patterns catch the naive violation but not a reworded
+    one, and tickets 023, 024 and 026 all extend this same asset. Each pattern below was found by
+    the ticket-022 boundary verification as a concrete evasion, not imagined:
+
+    1. optional chaining, `payload?.charts`, breaks the literal `payload.` the first regex needs;
+    2. destructuring, `const { charts } = payload`, uses neither dot nor bracket syntax;
+    3. a single-quoted or template-literal key, `payload['charts']`, dodges the double quote;
+    4. a key built by concatenation into a variable, `payload[k]`, puts an identifier after the
+       bracket rather than a quote.
+
+    Requiring every `payload[` to be followed by `KEYS.` closes 3 and 4 together, since neither a
+    quote of any kind nor an arbitrary identifier can satisfy it.
+    """
+    text = _read_js_asset()
+
+    assert re.search(r"payload\s*\?\s*\.", text) is None, "optional chaining on payload"
+    assert re.search(r"[}\]]\s*=\s*payload\b", text) is None, "destructuring of payload"
+    assert re.search(r"payload\[(?!\s*KEYS\.)", text) is None, (
+        "every payload[...] access must go through KEYS, whatever the quoting"
+    )
+
+
 # --- acceptance criterion 4: Plotly.react-only render path and step interpolation --------------
 
 
