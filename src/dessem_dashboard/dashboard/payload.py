@@ -20,6 +20,7 @@ import pandas as pd
 
 from dessem_dashboard.charts.registry import ChartKind, ChartSpec, enabled_specs
 from dessem_dashboard.config import Settings
+from dessem_dashboard.dashboard.scalars import aggregate as aggregate_scalars
 from dessem_dashboard.logging_setup import log_step
 from dessem_dashboard.models.store import DashboardData, TimeAxis
 
@@ -105,7 +106,9 @@ def _build_scalars(
     return result
 
 
-def _build_chart_entry(data: DashboardData, spec: ChartSpec, *, decimals: int) -> dict[str, object]:
+def _build_chart_entry(
+    data: DashboardData, spec: ChartSpec, *, decimals: int, settings: Settings
+) -> dict[str, object]:
     """Build spec's payload entry with the nine documented keys, present for every chart kind.
 
     title is always the curated spec.title (epic decision E3-2); subtitle is the registry long
@@ -117,6 +120,10 @@ def _build_chart_entry(data: DashboardData, spec: ChartSpec, *, decimals: int) -
     entities that survived in it, rather than the two being filtered independently -- an entity
     dropped from series but kept in entities would still render an <option> that init() could
     pick as the chart's default selection, opening on a blank chart with nothing explaining it.
+
+    ticket-030 requirement 6: a SCALAR_BY_DECK chart's scalars are routed through
+    scalars.aggregate before being stored, so the total and any parcel-level degradation are
+    settled here, once, rather than in the renderer.
     """
     registry_title = data.registries.title_for(spec.key)
     subtitle = registry_title if registry_title not in (None, spec.title) else None
@@ -152,7 +159,8 @@ def _build_chart_entry(data: DashboardData, spec: ChartSpec, *, decimals: int) -
     else:
         entities_payload = []
         series = {}
-        scalars = _build_scalars(data, spec.key, decimals=decimals)
+        raw_scalars = _build_scalars(data, spec.key, decimals=decimals)
+        scalars = aggregate_scalars(spec.key, raw_scalars, settings=settings)
 
     return {
         "group": spec.group.value,
@@ -205,7 +213,10 @@ def build_payload(
     catalogue_keys = frozenset(spec.key for spec in specs)
     _warn_omitted_charts(data, catalogue_keys)
 
-    charts = {spec.key: _build_chart_entry(data, spec, decimals=decimals) for spec in specs}
+    charts = {
+        spec.key: _build_chart_entry(data, spec, decimals=decimals, settings=settings)
+        for spec in specs
+    }
     payload: dict[str, object] = {
         "schema_version": _SCHEMA_VERSION,
         "scenarios": list(data.scenarios),

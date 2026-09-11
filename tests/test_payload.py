@@ -647,7 +647,13 @@ def test_build_payload_custos_and_tempo_scalars_shape_and_no_division_by_unit_di
     custos = payload["charts"]["CUSTOS"]["scalars"]
     tempo = payload["charts"]["TEMPO"]["scalars"]
 
-    assert len(custos) == 4
+    # ticket-030 requirement 6 routes CUSTOS through scalars.aggregate: with the default
+    # costs.total_parcels = ["PRESENTE", "FUTURO"], the fixture's four raw parcelas become the
+    # three displayed series {"PRESENTE", "FUTURO", "TOTAL"}, dropping VIOLACOES and PEQUENAS
+    # PENALIDADES from the bars. TEMPO stays untouched by that same requirement's pass-through
+    # branch until ticket-031 adds its own aggregation, which is what the unchanged len(tempo)
+    # below still proves.
+    assert len(custos) == 3
     assert len(tempo) == 5
     for scalars in (custos, tempo):
         for by_scenario in scalars.values():

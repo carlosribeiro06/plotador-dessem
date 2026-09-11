@@ -15,6 +15,7 @@
     ID: "id",
     SCENARIOS: "scenarios",
     SERIES: "series",
+    SCALARS: "scalars",
     AXES: "axes",
     STARTS: "starts",
     END: "end",
@@ -25,9 +26,20 @@
     FORMATS: "formats",
     DECIMALS: "decimals",
     UNIT: "unit",
+    KIND: "kind",
     LABELS: "labels",
     Y_AXIS_DIFFERENCE_SUFFIX: "y_axis_difference_suffix",
   });
+
+  // The chart[KEYS.KIND] value renderChart compares against to choose buildBarTraces over
+  // buildTraces (ticket-030 requirement 8a): a plain const, not a second Object.freeze block,
+  // since it names a ChartKind value rather than a payload key.
+  const SCALAR_CHART_KIND = "SCALAR_BY_DECK";
+
+  // Joins a deck key and a scalar series name into one flat category label, e.g.
+  // "03/03/2024 - <series name>": the only place this file builds a category-axis tick label,
+  // so buildBarTraces has one spelling of the separator to change.
+  const CATEGORY_SEPARATOR = " - ";
 
   let payload = null;
   let state = null;
@@ -147,12 +159,79 @@
     return traces;
   }
 
+  // The two SCALAR_BY_DECK charts' bar-trace builder (ticket-030), sharing valuesForMode's
+  // Diferenca arithmetic but never axisKey(): decision 5 makes the bars independent of both the
+  // view mode and the deck selector, so every category comes from payload[KEYS.DECK_DATES],
+  // never from the currently selected deck. Placed after buildTraces, not immediately before it,
+  // so buildTraces keeps the first occurrence of the quoted Diferenca mode check in the file and
+  // an unscoped text.index lookup on that literal still finds its own early-return branch.
+  function buildBarTraces(chartKey) {
+    const chart = payload[KEYS.CHARTS][chartKey];
+    const scalarsByName = chart[KEYS.SCALARS];
+    const seriesNames = Object.keys(scalarsByName);
+
+    // One (deckKey, name) cell per grid position, built once: the category list and every
+    // scenario's value list, including the reference's, read this same array in the same order,
+    // so the two stay aligned by construction rather than by a second, independently indexed
+    // loop.
+    const grid = [];
+    for (const deckKey of payload[KEYS.DECK_DATES]) {
+      for (const name of seriesNames) {
+        grid.push({ deckKey: deckKey, name: name });
+      }
+    }
+    const categories = grid.map(function (cell) {
+      return cell.deckKey + CATEGORY_SEPARATOR + cell.name;
+    });
+
+    function valueAt(scenario, cell) {
+      const bySeries = scalarsByName[cell.name];
+      const byScenario = bySeries === undefined ? undefined : bySeries[scenario];
+      const raw = byScenario === undefined ? undefined : byScenario[cell.deckKey];
+      return raw === undefined ? null : raw;
+    }
+
+    // Mirrors buildTraces' own early return: a reference scenario contributing no value at all
+    // over the grid means Diferenca has nothing to subtract from, so this returns [] rather than
+    // drawing every bar at a zero baseline.
+    let referenceValues = null;
+    if (state.valueMode === "diferenca") {
+      const referenceScenario = payload[KEYS.REFERENCE];
+      const referenceGrid = grid.map(function (cell) {
+        return valueAt(referenceScenario, cell);
+      });
+      const hasReferenceValue = referenceGrid.some(function (value) {
+        return value !== null;
+      });
+      if (!hasReferenceValue) {
+        return [];
+      }
+      referenceValues = referenceGrid;
+    }
+
+    const scenarioColors = payload[KEYS.THEME][KEYS.SCENARIO_COLORS];
+    const traces = [];
+    for (const scenario of payload[KEYS.SCENARIOS]) {
+      const values = grid.map(function (cell) {
+        return valueAt(scenario, cell);
+      });
+      traces.push({
+        type: "bar",
+        name: scenario,
+        x: categories,
+        y: valuesForMode(values, referenceValues),
+        marker: { color: scenarioColors[scenario] },
+      });
+    }
+    return traces;
+  }
+
   // The one per-chart part of the layout: the Y-axis title, carrying the chart's unit in
   // Absoluto mode and gaining the payload-supplied difference suffix in Diferenca mode. The
   // mode is read through an unquoted object key rather than a second quoted comparison against
-  // the Diferenca mode name, because buildTraces already spends this file's one allowed quoted
-  // occurrence of that mode name; a second quoted occurrence here would silently double the
-  // count a sibling ticket's test locks at one. A missing key (Absoluto, or any other mode)
+  // the Diferenca mode name, because buildTraces and buildBarTraces already spend this file's two
+  // allowed quoted occurrences of that mode name, one per function body; a quoted occurrence here
+  // would put a third in a function that is neither. A missing key (Absoluto, or any other mode)
   // resolves to undefined and contributes no suffix. A fresh deep copy per call, not a mutation
   // of a shared object: Plotly.react writes computed properties into the layout it receives,
   // and with several charts sharing one object one chart's axis range would leak into another.
@@ -164,12 +243,26 @@
     };
     const suffix = differenceSuffixByMode[state.valueMode];
     layout.yaxis.title = { text: chart[KEYS.UNIT] + (suffix === undefined ? "" : suffix) };
+
+    // SCALAR_BY_DECK's bars are keyed by a deck-and-series label, not a timestamp: the shared
+    // date axis's tickformat/hoverformat would otherwise reparse "04/03/2024" as 3 April under
+    // Plotly's month-first JavaScript date parsing. barmode is written explicitly rather than
+    // left to Plotly's default, because a stacked default would draw TOTAL on top of the parcels
+    // that already sum to it, misstating the cost by a factor of two.
+    if (chart[KEYS.KIND] === SCALAR_CHART_KIND) {
+      delete layout.xaxis.tickformat;
+      delete layout.xaxis.hoverformat;
+      layout.xaxis.type = "category";
+      layout.barmode = "group";
+    }
     return layout;
   }
 
   function renderChart(chartKey) {
     const container = document.getElementById("plot-" + chartKey);
-    const traces = buildTraces(chartKey);
+    const chart = payload[KEYS.CHARTS][chartKey];
+    const traces =
+      chart[KEYS.KIND] === SCALAR_CHART_KIND ? buildBarTraces(chartKey) : buildTraces(chartKey);
     const layout = buildLayout(chartKey);
     const config = {
       responsive: true,
@@ -357,6 +450,7 @@
       return state;
     },
     axisKey: axisKey,
+    buildBarTraces: buildBarTraces,
     buildTraces: buildTraces,
     buildLayout: buildLayout,
     renderChart: renderChart,

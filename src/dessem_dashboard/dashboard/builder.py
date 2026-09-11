@@ -261,7 +261,9 @@ def _chart_sections(specs: Sequence[ChartSpec], charts: Mapping[str, Mapping[str
     attribute nor `disabled` is ever set here: their initial control state belongs to
     tickets 023 and 024. A chart whose selector is in PLANT_SELECTORS additionally carries the
     name-and-code filter fragment, immediately after the entity selector and before the plot
-    `<div>` (ticket-028 requirement 1).
+    `<div>` (ticket-028 requirement 1). `data-kind` sits between `data-selector` and the optional
+    ` hidden` (ticket-030 requirement 7), so the two tests pinning a hidden section's opening tag
+    to end with ` hidden>` keep holding.
     """
     active_group = specs[0].group.value
     sections: list[str] = []
@@ -288,7 +290,8 @@ def _chart_sections(specs: Sequence[ChartSpec], charts: Mapping[str, Mapping[str
 
         sections.append(
             f'<section class="chart" id="chart-{spec.key}" data-chart="{spec.key}" '
-            f'data-group="{group}" data-selector="{selector}"{hidden_attribute}>'
+            f'data-group="{group}" data-selector="{selector}" '
+            f'data-kind="{spec.kind.value}"{hidden_attribute}>'
             f"<h2>{title}</h2>{subtitle_html}{selector_html}{filter_html}"
             f'<div class="plot" id="plot-{spec.key}"></div>'
             "</section>"

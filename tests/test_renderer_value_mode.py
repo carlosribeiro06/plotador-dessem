@@ -15,9 +15,11 @@ import importlib.resources
 import json
 import re
 import shutil
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 from conftest import build_scenario_tree
 from dessem_dashboard.config import Settings, load_settings
@@ -121,6 +123,56 @@ def _dessem_dashboard_assignment(text: str) -> str:
     return text[assignment_start:assignment_end]
 
 
+def _function_body(text: str, name: str) -> str:
+    """Return the full `function name(...) { ... }` slice, matching braces by depth.
+
+    Private copy per the plan's per-module convention (tests/test_charts_sin.py,
+    tests/test_charts_submarket.py, tests/test_charts_filters.py each keep their own). Depth
+    tracking, not a lazy regex up to the first `}`: both buildTraces and buildBarTraces nest
+    object literals inside their own body, and a naive match would stop at the first one.
+    """
+    match = re.search(r"function\s+" + re.escape(name) + r"\([^)]*\)\s*\{", text)
+    assert match is not None, f"function '{name}' not found in dashboard.js"
+    depth = 0
+    index = match.end() - 1
+    while True:
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                break
+        index += 1
+    return text[match.start() : index + 1]
+
+
+def _mutate_function_body(text: str, function_name: str, transform: Callable[[str], str]) -> str:
+    """Apply transform to function_name's own body slice, leaving the rest of text untouched."""
+    body = _function_body(text, function_name)
+    mutated_body = transform(body)
+    assert mutated_body != body, "transform did not change the function body"
+    return text.replace(body, mutated_body, 1)
+
+
+def _check_occurs_once_per_function_and_nowhere_else(
+    text: str, literal: str, function_names: Sequence[str]
+) -> None:
+    """Assert literal occurs exactly once inside each of function_names' own bodies, and not at
+    all anywhere else in text.
+
+    Requirement 10's narrowing of the two ticket-024 assertions this file pinned at "exactly once
+    in the whole file": ticket-030's buildBarTraces adds its own, legitimate second occurrence of
+    both '"diferenca"' and "KEYS.REFERENCE", so the blanket count is now over-broad rather than
+    wrong, in exactly the shape the epic-03 boundary review already prescribed the fix for.
+    """
+    remainder = text
+    for name in function_names:
+        body = _function_body(text, name)
+        assert body.count(literal) == 1, f"expected exactly one {literal!r} inside {name}"
+        remainder = remainder.replace(body, "", 1)
+    assert remainder.count(literal) == 0, f"{literal!r} found outside {function_names}"
+
+
 # --- acceptance criterion 1: builder.py's initial value-mode state --------------------------
 
 
@@ -170,7 +222,11 @@ def test_dashboard_js_reads_initial_value_from_document_and_diferenca_is_singula
     assert '"value-toggle"' in text
     assert "dataset.initialValue" in text
     assert text.count('"absoluto"') == 0
-    assert text.count('"diferenca"') == 1
+    # Narrowed by ticket-030 requirement 10: buildBarTraces adds its own legitimate occurrence
+    # of '"diferenca"', so "singular in the whole file" is now "singular per function body".
+    _check_occurs_once_per_function_and_nowhere_else(
+        text, '"diferenca"', ("buildTraces", "buildBarTraces")
+    )
     assert text.isascii() is True
 
 
@@ -180,13 +236,45 @@ def test_dashboard_js_reads_initial_value_from_document_and_diferenca_is_singula
 def test_dashboard_js_difference_branch_reads_reference_once_and_rounds_by_decimals() -> None:
     text = _read_js_asset()
 
-    assert text.count("KEYS.REFERENCE") == 1
+    # Narrowed by ticket-030 requirement 10, for the same reason as the sibling assertion above:
+    # buildBarTraces reads payload[KEYS.REFERENCE] once for its own Diferenca branch.
+    _check_occurs_once_per_function_and_nowhere_else(
+        text, "KEYS.REFERENCE", ("buildTraces", "buildBarTraces")
+    )
     assert "Math.pow(10, payload[KEYS.FORMATS][KEYS.DECIMALS])" in text
     assert "Math.pow(10, 2)" not in text
     assert "* 100" not in text
     assert "/ 100" not in text
     for token in ("annotations", "rangemode", "newPlot"):
         assert token not in text
+
+
+def test_narrowed_diferenca_and_keys_reference_checks_fail_on_a_third_occurrence() -> None:
+    """Suggested Approach step 11 (ticket-030): prove the narrowing above is not vacuous by
+    injecting a third quoted '"diferenca"' and a third "KEYS.REFERENCE" into setValueMode, a
+    function that is neither buildTraces nor buildBarTraces. The old, blanket
+    `text.count(...) == 1` this replaces would already fail here; the point of this test is that
+    the narrowed, per-function check fails too, rather than being satisfied by any two-per-file
+    total."""
+    text = _read_js_asset()
+    _check_occurs_once_per_function_and_nowhere_else(
+        text, '"diferenca"', ("buildTraces", "buildBarTraces")
+    )
+    _check_occurs_once_per_function_and_nowhere_else(
+        text, "KEYS.REFERENCE", ("buildTraces", "buildBarTraces")
+    )
+
+    injected = _mutate_function_body(
+        text, "setValueMode", lambda body: body + '\n    // "diferenca" KEYS.REFERENCE\n'
+    )
+    with pytest.raises(AssertionError):
+        _check_occurs_once_per_function_and_nowhere_else(
+            injected, '"diferenca"', ("buildTraces", "buildBarTraces")
+        )
+    with pytest.raises(AssertionError):
+        _check_occurs_once_per_function_and_nowhere_else(
+            injected, "KEYS.REFERENCE", ("buildTraces", "buildBarTraces")
+        )
 
 
 def test_dashboard_js_keys_object_declares_reference_formats_decimals_once_each() -> None:
