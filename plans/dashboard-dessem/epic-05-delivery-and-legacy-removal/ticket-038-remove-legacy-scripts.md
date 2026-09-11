@@ -26,10 +26,23 @@ one reader module with module-level mutable state.
 
 The removal is safe, and refinement measured why rather than assuming it:
 
-- **Nothing references them.** `grep -rn "Plotadores\|Leitura/\|main_custos\|main_tempo\|main_ghid\|
-  main_gter\|main_cmo\|leitor_arquivos" src/ tests/ docs/ README.md CLAUDE.md pyproject.toml`
-  returns **no match**. No import, no test, no documentation link, no packaging entry. The only
-  places that name them are the plan documents, which name them historically and must keep doing so.
+- **Nothing *imports* them, and the sixteen places that *name* them are all prose.** The sweep of
+  requirement 6 returns exactly sixteen matches, re-measured at dispatch time: fifteen in
+  `tests/test_parity.py` and one in `README.md`.
+  **Amendment, spec defect 25 (orchestrator, at dispatch):** this bullet originally claimed the
+  sweep "returns **no match**", which was true when epic 5 was refined and false by the time this
+  ticket ran. **ticket-035 falsified it** by creating `tests/test_parity.py`, whose legacy
+  constants are transcribed with a `file:line` provenance comment each, and **ticket-036** by
+  writing the README's Legacy scripts subsection. Both are deliberate and both must survive this
+  deletion: the provenance comments are the parity check's audit trail, and ticket-035's Definition
+  of Done already proved that module passes with `Leitura/` and `Plotadores/` moved aside, so the
+  comments are provably comments rather than references. What the sweep must establish is therefore
+  not *silence* but that **every match is prose about the deleted code rather than a live
+  dependency on it** — no `import`, no `subprocess`, no path opened, no packaging entry, no
+  documentation instruction to run them. Requirement 6 and acceptance criterion 3 carry the
+  corrected expectation. Note also that `grep -rn` without `-I` reports binary matches in
+  `tests/__pycache__/*.pyc`, which are untracked compiled copies of `test_parity.py`'s own
+  docstrings; pass `-I --exclude-dir=__pycache__` rather than treating them as findings.
 - **They do not run anyway.** Measured: `.venv/bin/python -c "import Leitura.leitor_arquivos"`
   raises `FileNotFoundError: [Errno 2] No such file or directory:
   'C:/Users/carlo/OneDrive/Documentos/git/plotador-dessem/exemplo'`, because
@@ -151,9 +164,20 @@ cannot touch it by accident through a staging command.
    already proved that module passes with `Plotadores/` moved aside, and this is the real event it
    was proved against.
 6. **Re-run the reference sweep after deleting**, with
-   `grep -rn "Plotadores\|Leitura/\|main_custos\|main_tempo\|main_ghid\|main_gter\|main_cmo\|leitor_arquivos" src/ tests/ docs/ README.md CLAUDE.md pyproject.toml`,
-   and require that the only matches are the README's new recovery example and nothing else. A match
-   anywhere else is a dangling reference and must be reported, not silently fixed.
+   `grep -rnI --exclude-dir=__pycache__ "Plotadores\|Leitura/\|main_custos\|main_tempo\|main_ghid\|main_gter\|main_cmo\|leitor_arquivos" src/ tests/ docs/ README.md CLAUDE.md pyproject.toml`,
+   and require that **every match is prose about the deleted code, never a live dependency on it**.
+   The expected set, measured immediately before the deletion, is **sixteen matches in exactly two
+   files**: fifteen in `tests/test_parity.py` (the `file:line` provenance comments and docstrings
+   recording where each legacy constant was transcribed from) and one in `README.md` (the Legacy
+   scripts subsection ticket-036 wrote), becoming seventeen once requirement 4 adds the recovery
+   sentence. A match in `src/`, `docs/`, `CLAUDE.md` or `pyproject.toml`, or any match anywhere that
+   is an `import`, a `subprocess` call, an opened path or a packaging entry rather than a comment,
+   docstring or documentation sentence, is a dangling reference and must be reported, not silently
+   fixed. Quote the sweep's full output in the completion report so the classification is auditable
+   rather than asserted. **Amendment, spec defect 25 (orchestrator, at dispatch):** requirement 6
+   originally demanded that the README's recovery example be the *only* match, which no state of
+   this repository can satisfy — see the amended Background bullet for why, and do not attempt to
+   reach the original wording by editing `tests/test_parity.py` or `README.md`.
 7. **Commit exactly this ticket's own change**, staged by explicit path: the thirteen deletions,
    `README.md`, `plans/dashboard-dessem/.implementation-state.json` and
    `plans/dashboard-dessem/README.md`. One conventional commit in Portuguese focused on the *why*,
@@ -214,10 +238,14 @@ edit a test.
       at least one `file:line` reference per Y-axis title and figure title — so the behaviour of the
       deleted code survives in the working tree as prose.
 - [ ] Given the repository after the deletion, when
-      `grep -rn "Plotadores\|Leitura/\|main_custos\|main_tempo\|main_ghid\|main_gter\|main_cmo\|leitor_arquivos"
-      src/ tests/ docs/ README.md CLAUDE.md pyproject.toml` is run, then the only match is the
-      README's recovery example; and `plano_dashboard_dessem.md`, `logo/`, `LICENSE` and
-      `settings.json` are all still tracked.
+      `grep -rnI --exclude-dir=__pycache__ "Plotadores\|Leitura/\|main_custos\|main_tempo\|main_ghid\|main_gter\|main_cmo\|leitor_arquivos"
+      src/ tests/ docs/ README.md CLAUDE.md pyproject.toml` is run, then every match is prose about
+      the deleted code and none is a live dependency on it: the matches fall in exactly two files,
+      `tests/test_parity.py` (provenance comments and docstrings) and `README.md` (the Legacy
+      scripts subsection plus requirement 4's recovery sentence), with none in `src/`, `docs/`,
+      `CLAUDE.md` or `pyproject.toml`, and the per-file count in `tests/test_parity.py` equal to the
+      count measured immediately before the deletion; and `plano_dashboard_dessem.md`, `logo/`,
+      `LICENSE` and `settings.json` are all still tracked.
 - [ ] Given the repository after the deletion, when `.venv/bin/ruff check src tests`,
       `.venv/bin/ruff format --check src tests`, `.venv/bin/mypy src`,
       `.venv/bin/pytest tests/test_parity.py -q` and
@@ -356,7 +384,9 @@ changes, the Background's measured claim that nothing references the legacy modu
       all exit 0, with total coverage at or above 85 percent and the collected count equal to the
       pre-deletion measurement, which the report quotes.
 - [ ] `.venv/bin/pytest tests/test_parity.py -q` exits 0 with `Plotadores/` gone.
-- [ ] The reference sweep returns only the README's recovery example.
+- [ ] The reference sweep returns only prose matches, in exactly the two files requirement 6
+      names, with the `tests/test_parity.py` count unchanged from the pre-deletion measurement;
+      its full output is quoted in the completion report.
 - [ ] One conventional Portuguese commit containing exactly the thirteen deletions plus `README.md`
       and the two plan state files, pushed to `origin main` without a force flag.
 - [ ] `plano_dashboard_dessem.md`, `logo/`, `LICENSE`, `settings.json` and every path under
