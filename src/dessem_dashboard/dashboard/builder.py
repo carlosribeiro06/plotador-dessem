@@ -69,6 +69,15 @@ SELECTOR_LABELS: Final[Mapping[str, str]] = {
     "THERMAL_PLANT": "Usina termelétrica",
 }
 
+# The two EntitySelector values that name a plant registry rather than a submarket or pair
+# (ticket-028 requirement 1). _chart_sections renders the name-and-code filter fragment for
+# exactly the charts whose selector is a member of this set, so a future plant level (E4-4 keeps
+# submarket/REE filtering out of scope, but a new plant level is not ruled out) joins by adding
+# one member here rather than by editing a condition.
+PLANT_SELECTORS: Final[frozenset[str]] = frozenset(
+    {EntitySelector.HYDRO_PLANT.value, EntitySelector.THERMAL_PLANT.value}
+)
+
 # View-mode and value-mode toggle labels (requirement 10), in the declared order the buttons
 # must render in.
 MODE_LABELS: Final[Mapping[str, str]] = {
@@ -221,13 +230,38 @@ def _entity_selector_fragment(spec: ChartSpec, entities: Sequence[Mapping[str, s
     )
 
 
+def _plant_filter_fragment(spec: ChartSpec) -> str:
+    """Build the name-and-code filter fragment for a chart whose selector is in PLANT_SELECTORS.
+
+    The fragment's text is entirely constant plus spec.key, never operator- or payload-derived,
+    so -- like `_entity_selector_fragment`'s own id and value attributes -- `html.escape` buys
+    nothing here; the f-string shape mirrors its sibling so the two read alike (requirement 1).
+    Both operator-visible strings this fragment carries, the two placeholders and the no-match
+    message, ship from here rather than from `dashboard.js` (requirement 2): that is what keeps
+    the asset pure ASCII.
+    """
+    return (
+        f'<div class="plant-filters">'
+        f'<label class="filter-label" for="filter-name-{spec.key}">Nome</label>'
+        f'<input type="text" class="plant-filter" data-filter="name" '
+        f'id="filter-name-{spec.key}" placeholder="Filtrar por nome">'
+        f'<label class="filter-label" for="filter-code-{spec.key}">Código</label>'
+        f'<input type="text" class="plant-filter" data-filter="code" '
+        f'id="filter-code-{spec.key}" placeholder="Filtrar por código">'
+        f'<p class="filter-empty" hidden>Nenhuma usina corresponde ao filtro</p>'
+        f"</div>"
+    )
+
+
 def _chart_sections(specs: Sequence[ChartSpec], charts: Mapping[str, Mapping[str, object]]) -> str:
     """Build one `<section class="chart">` per entry of specs, in that same order.
 
     A section carries the `hidden` attribute unless its group equals the group of the first
     entry of specs, the initially active level (requirement 9). Neither the pressed-state
     attribute nor `disabled` is ever set here: their initial control state belongs to
-    tickets 023 and 024.
+    tickets 023 and 024. A chart whose selector is in PLANT_SELECTORS additionally carries the
+    name-and-code filter fragment, immediately after the entity selector and before the plot
+    `<div>` (ticket-028 requirement 1).
     """
     active_group = specs[0].group.value
     sections: list[str] = []
@@ -250,10 +284,12 @@ def _chart_sections(specs: Sequence[ChartSpec], charts: Mapping[str, Mapping[str
             entities = cast(list[Mapping[str, str]], entry["entities"])
             selector_html = _entity_selector_fragment(spec, entities)
 
+        filter_html = _plant_filter_fragment(spec) if selector in PLANT_SELECTORS else ""
+
         sections.append(
             f'<section class="chart" id="chart-{spec.key}" data-chart="{spec.key}" '
             f'data-group="{group}" data-selector="{selector}"{hidden_attribute}>'
-            f"<h2>{title}</h2>{subtitle_html}{selector_html}"
+            f"<h2>{title}</h2>{subtitle_html}{selector_html}{filter_html}"
             f'<div class="plot" id="plot-{spec.key}"></div>'
             "</section>"
         )

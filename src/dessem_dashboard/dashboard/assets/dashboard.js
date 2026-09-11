@@ -248,6 +248,48 @@
     renderChart(chartKey);
   }
 
+  // Case- and accent-insensitive normalisation shared by both filter needles and both option
+  // fields applyPlantFilter matches them against (ticket-028 requirement 4). The NFD form
+  // decomposes an accented character into its base letter plus a combining mark; the escaped
+  // range below strips exactly that mark, written as the two ASCII escapes rather than as
+  // literal combining characters, which would put non-ASCII bytes in this file and break the
+  // four isascii assertions; the final call makes the comparison case-insensitive.
+  function normalizeText(text) {
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+  }
+
+  // Narrows chartKey's entity <select> to the options whose name and code both match the two
+  // plant-filter inputs of the same chart section, combining the two fields with AND
+  // (ticket-028 requirement 3). Options are hidden, never removed or rebuilt, so the current
+  // selection and the list's DOM position survive every keystroke. setEntity is called at most
+  // once, only when at least one option matches and the current selection is not among the
+  // matches; when nothing matches, the selection and the drawn figure are left untouched and the
+  // filter-empty message takes over (requirement 5). No RegExp is built from operator input:
+  // matching is indexOf over normalised strings, which cannot throw on a stray "(".
+  function applyPlantFilter(chartKey) {
+    const section = document.getElementById("chart-" + chartKey);
+    const nameNeedle = normalizeText(section.querySelector('[data-filter="name"]').value);
+    const codeNeedle = normalizeText(section.querySelector('[data-filter="code"]').value);
+    const select = document.getElementById("entity-" + chartKey);
+
+    const matchingValues = [];
+    for (const option of select.options) {
+      const isMatch =
+        normalizeText(option.textContent).indexOf(nameNeedle) !== -1 &&
+        normalizeText(option.value).indexOf(codeNeedle) !== -1;
+      option.hidden = !isMatch;
+      if (isMatch) {
+        matchingValues.push(option.value);
+      }
+    }
+
+    if (matchingValues.length > 0 && matchingValues.indexOf(select.value) === -1) {
+      select.value = matchingValues[0];
+      setEntity(chartKey, matchingValues[0]);
+    }
+    section.querySelector(".filter-empty").hidden = matchingValues.length > 0;
+  }
+
   document.getElementById("level-nav").addEventListener("click", function (event) {
     const group = event.target.dataset.group;
     if (group === undefined) {
@@ -290,6 +332,23 @@
     setEntity(section.dataset.chart, event.target.value);
   });
 
+  // One delegated listener for both filter inputs of every plant chart, not one per input: the
+  // nine plant charts hold eighteen inputs, the same scaling argument the entity-selector
+  // listener above already makes for its own 165-option lists (ticket-028 requirement 6). The
+  // cheap matches() guard runs before any closest() call, mirroring that same listener's shape.
+  // A one-word class selector is used for the closest() call here, deliberately not the
+  // two-word selector the entity-selector listener above already spends: a second literal copy
+  // of that exact quoted call would make tests/test_charts_submarket.py's own non-vacuity proof
+  // for it pass vacuously (it strips only the first of two occurrences and then finds the
+  // second still present). Both selectors resolve the same enclosing chart section element.
+  document.querySelector("#charts").addEventListener("input", function (event) {
+    if (!event.target.matches(".plant-filter")) {
+      return;
+    }
+    const section = event.target.closest(".chart");
+    applyPlantFilter(section.dataset.chart);
+  });
+
   window.DessemDashboard = {
     get payload() {
       return payload;
@@ -308,6 +367,7 @@
     setGroup: setGroup,
     setValueMode: setValueMode,
     setEntity: setEntity,
+    applyPlantFilter: applyPlantFilter,
   };
 
   document.addEventListener("DOMContentLoaded", init);

@@ -476,11 +476,39 @@ def test_checklist_covers_avisos_section_on_a_scenario_missing_a_deck() -> None:
     assert "Avisos" in text
 
 
-def test_checklist_ends_with_ticket_028_placeholder_for_plant_filters() -> None:
+def test_checklist_epic_4_section_replaces_the_ticket_028_placeholder() -> None:
+    """Names the checklist's state *after* ticket-028, not the precondition the deleted
+    ``test_checklist_ends_with_ticket_028_placeholder_for_plant_filters`` asserted.
+
+    Requirement 9 of ticket-028 deletes the ``## Epic 4 placeholder`` section that test named,
+    so that precondition and requirement 9 cannot both hold -- the ticket's own Definition of
+    Done originally demanded this module pass unchanged, which made the ticket
+    self-contradictory (spec defect 16, corrected 2026-09-11, same shape as the ticket-023
+    defect). Requirement 12 authorises replacing exactly this one test with this one, naming
+    what the checklist must carry once ticket-028 has run rather than before.
+
+    Proven to fail against the pre-ticket checklist content before this test was written: piping
+    ``git show HEAD:docs/checklist-manual-dashboard.md`` (the commit immediately before this
+    ticket's own) through this same check raises AssertionError on ``Not yet written`` still
+    being present, and passes once run against the checklist ticket-028 leaves behind.
+    """
     text = _read_checklist()
 
-    assert "ticket-028" in text
-    placeholder_index = text.rindex("ticket-028")
-    # ticket-028's owner section must be the last substantial thing in the file, not buried
-    # ahead of other Epic 3 content that a later edit might append after it by mistake.
-    assert placeholder_index > len(text) * 0.8
+    assert "Not yet written" not in text
+
+    heading = "## 8. Plant name and code filters"
+    assert heading in text
+    section_index = text.index(heading)
+    # No other top-level heading follows: this section is the last one in the file, exactly as
+    # the placeholder it replaces was required to be. A percentage-of-file threshold (the
+    # deleted test's own approach) does not scale to this section's length: at 26 numbered
+    # steps, its heading sits at 77 percent of the file despite being the file's last heading.
+    assert "\n## " not in text[section_index + len(heading) :]
+
+    section_text = text[section_index:]
+    assert "Usinas hidrelétricas" in section_text
+    assert "Filtrar por nome" in section_text
+    assert "Filtrar por código" in section_text
+    assert "Nenhuma usina corresponde ao filtro" in section_text
+    assert "Geração" in section_text
+    assert "Turbinamento" in section_text

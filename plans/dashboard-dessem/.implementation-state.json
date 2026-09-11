@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T08:00:01Z",
+  "last_updated": "2026-09-11T09:16:11Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -750,7 +750,7 @@
     },
     "ticket-028-implement-name-and-code-filters.md": {
       "epic": "epic-04-plant-and-scalar-charts",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 3,
       "scores": {
@@ -761,8 +761,26 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 0.8
-        }
-      }
+        },
+        "quality": 1.0
+      },
+      "agent": "python-task-automation-developer",
+      "workflow_step": "guardian_approved",
+      "quality_breakdown": {
+        "conformance": 1.0,
+        "scope_adherence": 1.0,
+        "lint_cleanliness": 1.0,
+        "type_safety": 1.0,
+        "test_delta": 1.0
+      },
+      "quality_scored": true,
+      "notes": [
+        "Spec defect 16, amended before dispatch: (a) the DoD demanded test_renderer_contract.py pass unchanged while requirement 9 deletes the section that test_checklist_ends_with_ticket_028_placeholder_for_plant_filters asserts is present - a test encoding the precondition that this very ticket had not run; (b) requirement 9 numbered the new checklist steps from 19 when the last step is 20, because the refinement read the file before the epic-03 boundary inserted steps 7 and 18.",
+        "CROSS-TICKET COLLISION 4, and a new subtype: the collision is with a NON-VACUITY test rather than with a behavioural assertion. tests/test_charts_submarket.py mutates the FIRST occurrence of a literal via _remove_first and then requires the checker to raise. A second copy of closest(\"section.chart\") or \".entity-selector\" in dashboard.js therefore disarms the mutation. Resolved in code, not in the test: applyPlantFilter resolves the select and section via getElementById, and the new listener uses closest(\".chart\"). The guardian confirmed the looser selector is PROVABLY equivalent - the only element in the codebase carrying class=\"chart\" is the <section> itself.",
+        "CORRECTION for the learnings: the specialist described that collision as the test 'passing vacuously'. It does not - it fails loudly with 'Failed: DID NOT RAISE AssertionError'. Verified by the orchestrator by appending a second literal to the asset and running the case, and confirmed independently by the guardian. The distinction matters: a test that breaks loudly is a far smaller risk class than one that silently stops discriminating, and recording one as the other would distort the lesson.",
+        "Two project-specific traps the specialist hit and fixed itself, both worth carrying forward: typing the Unicode combining range literally produced real combining characters in the asset (caught by isascii()); and a JS comment containing <section class=\"chart\"> created a spurious 24th section for dashboard_document.py's slicing regex, because the asset is embedded VERBATIM in the document - a comment in the JavaScript is searchable text of the final HTML.",
+        "OUTSTANDING by design: requirement 8's manual browser walk of checklist steps 21-26. E3-1 leaves this to the human operator; the specialist wrote the steps and explicitly did not claim to have walked them."
+      ]
     },
     "ticket-029-render-thermal-plant-charts.md": {
       "epic": "epic-04-plant-and-scalar-charts",
@@ -950,7 +968,9 @@
         "DISPATCH STRICTLY SEQUENTIALLY: 027 -> 028 -> 029 -> 030 -> 031 -> 032. No pair in this epic may run in parallel. The graph in the overview shows 030 -> 031 as a branch independent of 027 -> 028 -> 029, and that is true of the DATA dependencies, but every ticket from 027 to 031 writes payload.py, builder.py or dashboard.js, so any parallel pair would collide on a file. Recorded in ticket-030 Dependencies as a dispatch-order constraint rather than a graph edge, which is the more precise placement.",
         "Ticket-029 needs NO source change: it verifies that 027 and 028 already cover GTER_UTE. Its requirement 7 forbids touching a source file and requires stopping and reporting if one appears necessary. Its filename still says 'render' for cross-reference stability; the authoritative title is in the overview ticket table.",
         "Ticket-030 dispatches whole at 7 files despite atomicity 0.60 (composite 0.96, above the 0.85 floor). Splitting would renumber later tickets across five documents. The seam is pre-identified: requirements 1-5 Python aggregation, 6-9 renderer.",
-        "Ticket-031 owns the live TEMPO axis defect recorded in section 7a of epic-03-learnings.md. Consolidation already sums repeated etapa rows; do not re-sum what it summed."
+        "Ticket-031 owns the live TEMPO axis defect recorded in section 7a of epic-03-learnings.md. Consolidation already sums repeated etapa rows; do not re-sum what it summed.",
+        "PRE-DISPATCH AUDIT of tickets 030-032 done 2026-09-11, before 028 returned, because auditing a ticket's factual claims against the repository is what found spec defects 15 and 16. Result: clean. Verified present exactly as claimed - test_payload.py:650 `assert len(custos) == 4` (ticket-030 req 11), test_payload.py:651 `assert len(tempo) == 5` (ticket-031 req 7), test_payload.py:638 test_build_payload_custos_and_tempo_scalars_shape_and_no_division_by_unit_divisor (both tickets amend this one function, and 031 knows 030 may rename it), test_builder.py:264 `all(tag.endswith(\" hidden>\") for tag in other_tags)` (ticket-030), and test_builder.py:39-40 _MIN_DOCUMENT_LENGTH/_MAX_DOCUMENT_LENGTH = 4_300_000/5_242_880 (ticket-032). Tickets 030 and 031 also handle the pass-unchanged trap correctly on their own: both list test_payload.py as passing AS AMENDED, and 031 carries an explicit pitfall telling the implementer not to claim otherwise. That is the ticket-023 and ticket-028 defect shape already designed out.",
+        "AMENDED 2026-09-11 before dispatch, ticket-028, spec defect 16 with two faults in one requirement: (a) the DoD demanded tests/test_renderer_contract.py pass unchanged while requirement 9 deletes the section that test_checklist_ends_with_ticket_028_placeholder_for_plant_filters asserts is present - a test encoding the precondition that this very ticket has not run; resolved by new requirement 12, which authorises replacing that one test and requires proving the replacement fails against the pre-ticket checklist. (b) requirement 9 said the new checklist steps continue from 19, but the last step is 20: the refinement read the file before the epic-03 boundary inserted step 7 and step 18, which shifted the tail by two. Corrected to 21, with a note telling the implementer to verify the number in the file rather than trust any document."
       ],
       "open_decisions_for_developer": [
         "Cost scale: FUTURO is about 2.3e8 while PRESENTE is about 5.9e4, so a shared linear bar axis renders PRESENTE invisible. Ticket-030 ships the grouped bars as specified and logs the spread; a log axis or a split chart is out of scope and needs a developer ruling.",

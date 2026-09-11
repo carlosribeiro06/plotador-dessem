@@ -84,7 +84,7 @@ The count rose from the 94 of the original outline plan as Epics 3 and 4 were re
 | ticket-025 | Render the SIN level charts | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-026 | Render the submarket and interchange charts | epic-03 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-027 | Render the hydro plant charts | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
-| ticket-028 | Implement the name and code filters | epic-04 | pending | Refined | 0.98 | -- | -- |
+| ticket-028 | Implement the name and code filters | epic-04 | completed | Refined | 0.98 | 1.00 | EXCELLENT |
 | ticket-029 | Verify the thermal plant chart end to end | epic-04 | pending | Refined | 1.00 | -- | -- |
 | ticket-030 | Render the cost bar charts | epic-04 | pending | Refined | 0.96 | -- | -- |
 | ticket-031 | Render the computational time bar charts | epic-04 | pending | Refined | 1.00 | -- | -- |

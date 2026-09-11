@@ -9,10 +9,9 @@ the behavioural gate that stands in for a browser test. Walk it once per release
 dashboard HTML file built for that release, and record a pass or fail for every numbered step —
 none of them should require interpretation.
 
-Every step below covers the whole of Epic 3 (tickets 019–026): the offline shell, the renderer
-core, the view-mode and deck controls, the Absoluto/Diferença toggle, and the SIN, submarket and
-interchange charts. The Epic 4 plant-level filters are not in scope; see the placeholder section at
-the end of this file.
+Steps 1 to 20 cover the whole of Epic 3 (tickets 019–026): the offline shell, the renderer core,
+the view-mode and deck controls, the Absoluto/Diferença toggle, and the SIN, submarket and
+interchange charts. Steps 21 onward cover Epic 4's plant name and code filters (ticket-028).
 
 Interface strings are quoted exactly as they render, in Portuguese, because that is the language of
 every dashboard UI string (`CLAUDE.md`); the prose around them is English, per the Rigoroso mode
@@ -137,8 +136,48 @@ decision 8 puts the difference arithmetic in the browser. Verify it against this
     **Expected result:** the `Avisos` section is present only when there is at least one warning,
     and every listed message names the affected scenario and deck date.
 
-## Epic 4 placeholder — plant name and code filters (ticket-028)
+## 8. Plant name and code filters
 
-**Not yet written.** The plant-level (`UHE`/`UTE`) charts' name and code filter controls belong to
-Epic 4; ticket-028 owns adding the checklist steps that cover them. Do not fill in this section
-before ticket-028 lands.
+The plant-level (`UHE`/`UTE`) charts' entity `<select>` narrows as the operator types into either
+of two text inputs, by hiding the options that stop matching (ticket-028). Option hiding inside a
+native `<select>` element is browser-dependent behaviour that no Python assertion can observe,
+which is why -- like every other interactive check in this document -- it is verified here rather
+than in the automated suite (epic decision E3-1).
+
+21. Navigate to `Usinas hidrelétricas` and open one of its charts (for example `Geração`). Type a
+    partial plant name into the `Filtrar por nome` field.
+
+    **Expected result:** the entity dropdown narrows, as each character is typed, to only the
+    options whose name contains the typed text, matched case- and accent-insensitively; the chart
+    redraws to the first matching plant whenever the plant it was showing no longer matches, and
+    stays put otherwise.
+
+22. Clear the name field and type a partial plant code into the `Filtrar por código` field.
+
+    **Expected result:** the dropdown narrows the same way, this time to the options whose code
+    contains the typed digits.
+
+23. With the code field still holding text, also type a partial name into the `Filtrar por nome`
+    field, choosing a name and a code that both match at least one common plant.
+
+    **Expected result:** only the options matching both the name filter and the code filter
+    remain in the dropdown, proving the two fields combine with AND rather than widening the list.
+
+24. Type, in either field, text that matches no plant.
+
+    **Expected result:** the message `Nenhuma usina corresponde ao filtro` appears under the two
+    fields, every option stays hidden, and the chart keeps showing the curve it displayed before
+    the non-matching text was typed -- it must not blank or reset.
+
+25. Clear both fields.
+
+    **Expected result:** the full option list returns unfiltered, and the message from step 24 is
+    no longer shown.
+
+26. On two different charts of the `Usinas hidrelétricas` level (for example `Geração` and
+    `Turbinamento`), type a different filter into each and pick a different plant on each. Then
+    switch to another level and back.
+
+    **Expected result:** each chart keeps its own filter text and its own selected plant; the two
+    charts' filters and selections do not synchronise with each other, and both survive the level
+    round trip.

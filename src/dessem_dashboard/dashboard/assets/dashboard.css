@@ -93,6 +93,34 @@ h2 {
   max-width: 1400px;
 }
 
+.plant-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  margin-right: 8px;
+}
+
+input.plant-filter {
+  border: 1px solid var(--ons-gray);
+  border-radius: 4px;
+  padding: 6px 12px;
+}
+
+.filter-empty {
+  font-style: italic;
+}
+
+option[hidden] {
+  display: none;
+}
+
+.filter-empty[hidden] {
+  display: none;
+}
+
 #footer {
   border-top: 1px solid var(--ons-grid);
   padding: 16px 0;
