@@ -1,6 +1,6 @@
 {
   "plan": "dashboard-dessem",
-  "last_updated": "2026-09-11T17:56:22Z",
+  "last_updated": "2026-09-11T18:57:29Z",
   "rigor": "full",
   "mode": "Rigoroso",
   "scaffolded": true,
@@ -1036,7 +1036,7 @@
     },
     "ticket-036-write-user-documentation.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
-      "status": "pending",
+      "status": "completed",
       "detail_level": "refined",
       "points": 3,
       "scores": {
@@ -1047,9 +1047,28 @@
           "boundary": 1.0,
           "dependency_clarity": 1.0,
           "atomicity": 1.0
-        }
+        },
+        "quality": 1.0
       },
-      "points_outline": 2
+      "points_outline": 2,
+      "agent": "open-source-documentation-writer",
+      "workflow_step": "guardian_approved",
+      "quality_breakdown": {
+        "conformance": 1.0,
+        "scope_adherence": 1.0,
+        "lint_cleanliness": 1.0,
+        "type_safety": 1.0,
+        "test_delta": 1.0
+      },
+      "quality_scored": true,
+      "notes": [
+        "The README described the project as it stood at the END OF EPIC 1, five epics behind the code: four packages marked 'planned' and 'do not exist yet' that are implemented and several at 100 percent coverage, errors.py described as holding only ConfigError when it holds seven classes, and a pinned baseline of '47 passed, 95 percent' against 631 tests at 99 percent. All four corrected, every number re-measured rather than copied.",
+        "THE FOURTH FALSEHOOD WAS A DIFFERENT CLASS, and is documented rather than fixed. The README presented a coverage floor of 80 percent, raised to 85, as something the tooling enforces - and no fail_under exists in pyproject.toml, setup.cfg or any pytest invocation. The other three were staleness; this one was never true, the same shape as the dead --modo-inicial flag. It is now described as the convention it actually is: a threshold the reviewer and every specialist have checked by reading the number. Adding fail_under is a code change and was deliberately left to ticket-037 or a follow-up; pyproject.toml is confirmed untouched.",
+        "TWO NUMERIC CORRECTIONS THE SPECIALIST MADE AGAINST DOCUMENTS, AND ONE WAS AGAINST THE ORCHESTRATOR. (a) The manifest has TEN fields, not the ticket's 'eleven' - confirmed independently by the orchestrator writing a manifest and counting keys, and again by the guardian reading manifest.py. The specialist documented the measured ten and refused to write eleven, on the grounds that doing so would be the exact unmeasured-claim failure this plan keeps finding. (b) The chart-count pin sits in TWELVE files, not the SEVEN the orchestrator relayed. That seven came from a grep by one specialist and a re-grep by another. This one performed the actual two-edit extension in a scratch copy OUTSIDE the repository, ran the full suite before and after, and read every traceback - finding five more files that no grep surfaces because they break for derived reasons rather than naming the number. The guardian read all twelve and confirmed each mechanism is real.",
+        "THE PRACTICAL CONSEQUENCE OF THAT CORRECTION: whoever acts on the two open presentation decisions - splitting CUSTOS back into three charts or TEMPO into four - will touch TWELVE files, not seven. A grep before starting would have underestimated the work by nearly half.",
+        "SPEC DEFECT 24, found by the guardian: acceptance criterion 4 and the Background say the pinned-count list is 're-measured by grep', while the Suggested Approach step 6 and DoD bullet 4 mandate the scratch-copy-and-run method AND state that a plain grep undercounts 7 against 12. The ticket contradicts itself, an artefact of it evolving to demand the stricter method while the earlier wording stayed. The specialist followed the authoritative stricter standard. Same precedence the ticket-030 and ticket-031 specialists applied: a requirement beats a looser summary.",
+        "Three judgment calls the guardian assessed rather than accepted, all sound: the Roadmap section was dropped entirely, because any honest Roadmap naming tickets 037 and 038 as upcoming would assert non-completion - the exact cross-ticket shape that caused two collisions in epic 4; the ticket-038 clause is phrased as ownership rather than presence, so it stays true after that ticket runs; and the checklist has ZERO diff, which is the falsifiable prediction requirement 7 made."
+      ]
     },
     "ticket-037-polish-cli-usability-and-errors.md": {
       "epic": "epic-05-delivery-and-legacy-removal",
@@ -1261,7 +1280,9 @@
         "THE GATE FOR DEFECT 22, CORRECTED BY APPLYING IT. The orchestrator's first phrasing - enumerate acceptance criteria against the Testing Requirements list and confirm every criterion is referenced by number - was applied to tickets 034 to 038 immediately and produced TWO FALSE POSITIVES. Ticket-036 verifies through a Documentation Verification section of four content properties, because it writes no code; ticket-038 through a Regression section requiring the whole suite to pass with an identical collected count. Both are strong verification that names no criterion number. The usable gate asks whether every acceptance criterion has SOME NAMED VERIFICATION SOMEWHERE, not whether it is numbered in a list. Applied in that form, tickets 034 to 038 are clean: 034's AC5 is the section-9 checklist guard covered by its requirement 5, and 035's AC5 is a document-content criterion verified by reading the parity report. Recording the correction because shipping the crude version would have handed the next refinement a false-positive generator.",
         "THE FIRST GUARDIAN REJECTION OF THE PLAN, at ticket-034, and its classification is worth keeping for the plan-level summary. Thirty-four tickets passed before a guardian rejected one, and what it rejected on is informative: NOT wrong code. The four substantive acceptance criteria passed, with 8,136 checked triples on the real tree and every specialist figure reproduced independently down to the payload build time (0.508 s against a reported 0.507 s). It rejected on (a) one skip message out of three failing to name what AC1 requires it to name, and (b) a bookkeeping inconsistency the orchestrator created. THE DISTINCTION THAT MATTERS: across the whole plan, guardians have found spec defects and orchestrator errors in abundance, but this is the FIRST implementation gap - a specialist missing a requirement its ticket stated plainly. Twenty-three spec defects, three orchestrator errors, one implementation gap. That ratio says the tickets and the orchestrator have been the weak links, not the implementations, and it is an argument for spending more of the next plan's effort on specification review and less on per-ticket verification.",
         "README AUDIT FOR TICKET-036, done by the orchestrator 2026-09-11 while ticket-035 ran. Its premise holds - all three claims verified against the repository: (1) README lines 170 and 182-184 describe models/, data/, charts/ and dashboard/ as 'planned' and 'do not exist yet', and all four exist and are implemented, several at 100 percent coverage; (2) line 176 describes errors.py as 'ConfigError today' when it holds seven classes; (3) line 231 pins an epic-1 baseline of '47 passed, total coverage 95 percent' against the current 616 passed at 99 percent. The README currently describes the project as it stood at the end of epic 1, which is why ticket-036 was re-sized from 2 points to 3.",
-        "A FOURTH README FALSEHOOD TICKET-036 DOES NOT YET NAME, found by the same audit: line 233 states 'a required floor of 80 percent (raised to 85 percent in Epic 5)', and NOTHING ENFORCES IT - there is no fail_under in pyproject.toml, no setup.cfg, no --cov-fail-under anywhere. It is a documented intention with no mechanism, which is the same shape as the dead --modo-inicial flag ticket-033 just fixed: stated in one place, wired in none. Not a live risk, since the suite sits at 99 percent and every specialist and guardian has reported the number manually, so the gate has been human-executed rather than absent. But the README presents it as a requirement the tooling applies. Ticket-036 should either document it honestly as a convention the reviewer checks, or ticket-037 should add the fail_under that makes the sentence true. The orchestrator is not choosing between those - it is a scope question for the developer, and either resolution is cheap."
+        "A FOURTH README FALSEHOOD TICKET-036 DOES NOT YET NAME, found by the same audit: line 233 states 'a required floor of 80 percent (raised to 85 percent in Epic 5)', and NOTHING ENFORCES IT - there is no fail_under in pyproject.toml, no setup.cfg, no --cov-fail-under anywhere. It is a documented intention with no mechanism, which is the same shape as the dead --modo-inicial flag ticket-033 just fixed: stated in one place, wired in none. Not a live risk, since the suite sits at 99 percent and every specialist and guardian has reported the number manually, so the gate has been human-executed rather than absent. But the README presents it as a requirement the tooling applies. Ticket-036 should either document it honestly as a convention the reviewer checks, or ticket-037 should add the fail_under that makes the sentence true. The orchestrator is not choosing between those - it is a scope question for the developer, and either resolution is cheap.",
+        "TICKET-038 PRE-CHECK by the orchestrator, 2026-09-11: the 13 tracked legacy files are exactly what the ticket claims - Leitura/leitor_arquivos.py, seven Plotadores/*.py, and the five main_*.py drivers - and NOTHING in the main tree references any of them. Verified by grepping *.py, *.toml, *.md and *.json outside the legacy files themselves. The only in-repo references are tests/test_parity.py's file:line provenance comments, which ticket-035 already proved are comments and not imports by running that module with both directories moved aside.",
+        "HAZARD FOR TICKET-038, found by that pre-check and worth stating before dispatch: an ORPHANED DIRECTORY at .claude/worktrees/wf_c37dfcfb-538-6/ holds a full copy of the repository, including all 13 legacy files with their star-imports intact. It is left over from an earlier workflow run. Two facts make it harmless, and both must be told to the specialist so it does not draw the wrong conclusion: (1) `git worktree list` shows only ONE registered worktree, the main checkout, so that directory is orphaned files with no git linkage, not a live worktree; (2) it is excluded via .git/info/exclude line 9, so git status cannot see it and it cannot be committed by accident. THE RISK IS INTERPRETIVE, NOT MECHANICAL: ticket-038 will grep for references to the legacy modules to confirm the deletion is safe, and it WILL hit that copy. A specialist that does not know the directory is orphaned could conclude the deletion is unsafe and stop - or, far worse, try to delete inside .claude/. The standing git rules forbid git clean and any rm without --cached in this repository; that directory is to be left completely alone, and grep results pointing into it are to be treated as out of scope."
       ],
       "open_decisions_for_developer": [
         "BOTH PRESENTATION COLLAPSES, and the TEMPO half is new: the legacy tool emits three CUSTOS figures and four TEMPO figures where the dashboard ships one grouped bar chart each. Ticket-035 puts both on the desk with the evidence and two options (accept, or add three to four ChartSpec entries in a follow-up) and deliberately chooses neither.",
