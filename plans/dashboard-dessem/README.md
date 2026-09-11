@@ -93,7 +93,7 @@ five places rather than merely thin.
 | ticket-032 | Enforce the output size strategy | epic-04 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-033 | Wire the end-to-end pipeline | epic-05 | completed | Refined | 1.00 | 1.00 | EXCELLENT |
 | ticket-034 | Add the example-data integration test | epic-05 | completed | Refined | 1.00 | 0.95 | GOOD |
-| ticket-035 | Run the legacy parity check | epic-05 | pending | Refined | 0.97 | -- | -- |
+| ticket-035 | Run the legacy parity check | epic-05 | completed | Refined | 0.97 | 1.00 | EXCELLENT |
 | ticket-036 | Write the user documentation | epic-05 | pending | Refined | 0.97 | -- | -- |
 | ticket-037 | Polish the CLI usability and error messages | epic-05 | pending | Refined | 0.95 | -- | -- |
 | ticket-038 | Remove the legacy scripts | epic-05 | pending | Refined | 0.93 | -- | -- |

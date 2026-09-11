@@ -225,15 +225,30 @@ codes 1 and 2 are visible on that fixture** — asserting "submarkets 1 to 4" on
    Prove both can fail by asserting the same values against `unit_divisor = 1.0` and against a
    single-parcel `costs.total_parcels`, and confirming each mutation breaks them.
 
-   > **Take the figures from the dump's SAMPLE ROWS, never from its unique-value lists** — added
-   > 2026-09-11 after the orchestrator walked into this while auditing the ticket. The dump prints
-   > a `valor_esperado: N unique -> [...]` line before the sample rows, and those uniques are
-   > truncated to seven significant figures: `5.866757e+04` and `2.284204e+08`. Summing those gives
-   > `228479067.57`, which is wrong in the eighth digit and would fail the
-   > `== 228479057.91` assertion by about 10 R$. The sample rows carry full precision
-   > (`58667.5674`, `228420390.34615`) and are the only usable source for an absolute pin. The
-   > uniques appear *earlier* in the file than the sample rows, so they are what a reader greps
-   > first — which is exactly why this note exists.
+   > **Take the figures from the dump's `N unique -> [...]` LINE, never from its sample-rows
+   > table.** The `valor_esperado: 4 unique -> ['0.0', '228420390.34615', '40.42478',
+   > '58667.5674']` line carries **full precision**; the sample-rows table below it is what pandas
+   > truncates to seven significant figures, printing `5.866757e+04` and `2.284204e+08`. Summing
+   > those truncated values gives `228479067.57`, wrong in the eighth digit — about 10 R$ once the
+   > `10^3 R$` unit is applied.
+   >
+   > **Corrected 2026-09-11. The first version of this note said the exact opposite** — that the
+   > uniques were truncated and the sample rows carried full precision — and the ticket-035
+   > specialist caught it by measuring the dump instead of trusting the note. The orchestrator had
+   > genuinely hit the wrong total while auditing, then misattributed which half of the dump it
+   > came from: the same meta-shape as spec defect 17, where a real measurement was paired with a
+   > wrong explanation of its source. The figures the requirement pins were right either way.
+   >
+   > **And one further correction, this time to requirement 3's own arithmetic.** The pin reads
+   > `228479057.91`, which is `round(58667.5674 + 228420390.34615, 2)`. The shipped pipeline
+   > produces `228479057.92`, because `payload._build_scalars` rounds each parcel through
+   > `_round_value` *before* `scalars.aggregate_costs` sums them and rounds again:
+   > `round(58667.57 + 228420390.35, 2)`. **Pin the measured `228479057.92`, and understand that
+   > the double rounding is the CORRECT behaviour here rather than a slip to fix.** Checklist step
+   > 29 has the operator compare the `TOTAL` bar against the sum of the parcel bars on a unified
+   > hover; under single rounding the visible parcels would sum to `.92` while `TOTAL` displayed
+   > `.91`, and an operator adding them by hand would conclude the chart was wrong. The displayed
+   > total must be the sum of the displayed parts.
 4. **Group C, the deliberate divergences, always runs.** Assert each documented divergence is real,
    on the new side only:
    - the repeated-`etapa` divergence: build a synthesis directory with
