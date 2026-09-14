@@ -516,6 +516,43 @@ def test_dashboard_js_build_layout_sets_category_axis_and_group_barmode() -> Non
     _check_build_layout_scalar_branch(text)
 
 
+def _check_bar_traces_branch_on_mode(text: str) -> None:
+    """Assert buildBarTraces' own body chooses its decks by view mode (melhorias-dashboard
+    requirement 4): the selected deck alone in "deck" mode, every deck in "encadeado" mode.
+
+    The bars must respond to the deck selector rather than always drawing every deck, so the
+    body reads state.mode and, on the deck branch, the single state.deck; the encadeado branch
+    still reads the full payload[KEYS.DECK_DATES] list."""
+    body = _function_body(text, "buildBarTraces")
+    assert 'state.mode === "deck"' in body
+    assert "[state.deck]" in body
+    assert "payload[KEYS.DECK_DATES]" in body
+
+
+def test_dashboard_js_build_bar_traces_selects_decks_by_view_mode() -> None:
+    text = _read_js_asset()
+    _check_bar_traces_branch_on_mode(text)
+
+
+def test_build_bar_traces_mode_branch_check_is_not_vacuous_when_deck_branch_uses_all_decks() -> (
+    None
+):
+    text = _read_js_asset()
+    _check_bar_traces_branch_on_mode(text)
+
+    body = _function_body(text, "buildBarTraces")
+    mutated_body = body.replace(
+        'state.mode === "deck" ? [state.deck] : payload[KEYS.DECK_DATES]',
+        "payload[KEYS.DECK_DATES]",
+        1,
+    )
+    assert mutated_body != body, "transform did not change buildBarTraces' body"
+    mutated_text = text.replace(body, mutated_body, 1)
+
+    with pytest.raises(AssertionError):
+        _check_bar_traces_branch_on_mode(mutated_text)
+
+
 def test_dashboard_js_pinned_invariants_hold_after_the_bar_chart_additions() -> None:
     text = _read_js_asset()
 
