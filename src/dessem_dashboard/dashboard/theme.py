@@ -52,7 +52,7 @@ GRID_COLOR: Final[str] = tint(BRAND_GRAY, 0.2)
 FONT_FAMILY: Final[str] = "Arial, Helvetica, sans-serif"
 FONT_SIZE_PX: Final[int] = 12
 CHART_HEIGHT_PX: Final[int] = 450
-LOGO_MIN_WIDTH_PX: Final[int] = 393
+LOGO_MIN_WIDTH_PX: Final[int] = 220
 LOGO_PADDING_PX: Final[int] = 24
 
 SCENARIO_PALETTE: Final[tuple[str, ...]] = (

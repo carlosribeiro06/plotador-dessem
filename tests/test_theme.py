@@ -233,7 +233,7 @@ def test_css_root_block_contains_green_grid_and_logo_width_substrings() -> None:
     text = css_root_block()
     assert "--ons-green: #486018;" in text
     assert "--ons-grid: #DFDFDF;" in text
-    assert "--ons-logo-width: 393px;" in text
+    assert "--ons-logo-width: 220px;" in text
 
 
 # --- css_root_block <-> dashboard.css correspondence ------------------------------------------
