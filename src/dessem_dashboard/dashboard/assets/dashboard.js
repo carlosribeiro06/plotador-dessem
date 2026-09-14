@@ -156,10 +156,10 @@
         type: "scatter",
         mode: "lines",
         name: scenario,
-        connectgaps: false,
+        connectgaps: true,
         x: x,
         y: y,
-        line: { shape: "hv", color: scenarioColors[scenario], width: 2 },
+        line: { shape: "linear", color: scenarioColors[scenario], width: 2 },
       });
     }
 

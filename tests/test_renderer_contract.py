@@ -368,16 +368,16 @@ def test_dot_access_check_fires_on_injected_chart_unit_and_stays_silent_on_state
         _assert_no_dot_access_to_keys_values(mutated_text, keys.values())
 
 
-# --- acceptance criterion 4: Plotly.react-only render path and step interpolation --------------
+# --- acceptance criterion 4: Plotly.react-only render path and linear interpolation ------------
 
 
-def test_dashboard_js_renders_with_react_only_and_step_interpolation() -> None:
+def test_dashboard_js_renders_with_react_only_and_linear_interpolation() -> None:
     text = _read_js_asset()
 
     assert text.count("Plotly.react(") == 1
     assert "Plotly.newPlot(" not in text
-    assert 'shape: "hv"' in text
-    assert "connectgaps: false" in text
+    assert 'shape: "linear"' in text
+    assert "connectgaps: true" in text
 
 
 def test_build_html_scenario_tree_embeds_dashboard_js_asset_verbatim_exactly_once(
