@@ -58,6 +58,8 @@ def test_chart_group_members_equal_names() -> None:
     assert ChartGroup.SBP == "SBP"
     assert ChartGroup.UHE == "UHE"
     assert ChartGroup.UTE == "UTE"
+    assert ChartGroup.CUSTO == "CUSTO"
+    assert ChartGroup.TEMPO == "TEMPO"
     assert ChartGroup.EXECUCAO == "EXECUCAO"
 
 

@@ -29,7 +29,9 @@ _HYDRO_COUNT = 3
 _THERMAL_COUNT = 2
 _SUBMARKET_COUNT = 4
 _REE_COUNT = 3
-_ENABLED_CHART_KEY_COUNT = 23
+# One METADADOS_OPERACAO row per enabled chart key: 21 series plus the seven dedicated Custo/Tempo
+# bar charts (melhorias-dashboard design D7) that replaced the two former combined CUSTOS/TEMPO.
+_ENABLED_CHART_KEY_COUNT = 28
 
 _REGISTRIES_LOGGER_NAME = "dessem_dashboard.data.registries"
 _FIRST_STAGE_START = datetime(2024, 3, 3, tzinfo=UTC)

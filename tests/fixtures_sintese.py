@@ -19,7 +19,6 @@ import pandas as pd
 from dessem_dashboard.charts.registry import ChartKind, ChartSpec, enabled_specs
 from dessem_dashboard.data.schemas import (
     ENTITY_KEYS,
-    FALLBACK_UNITS,
     REGISTRY_COLUMNS,
     SCALAR_COLUMNS,
     SERIES_DTYPES,
@@ -236,7 +235,13 @@ def _ree_registry(uhe_registry: pd.DataFrame) -> pd.DataFrame:
 
 
 def _metadados_operacao(specs: Sequence[ChartSpec]) -> pd.DataFrame:
-    """Build METADADOS_OPERACAO.parquet with one row per enabled chart key."""
+    """Build METADADOS_OPERACAO.parquet with one row per enabled chart key.
+
+    The unit comes from chart_spec.unit rather than FALLBACK_UNITS[chart_spec.key]: a dedicated
+    cost/time chart's key (CUSTO_PRESENTE) is not itself a FALLBACK_UNITS entry, but its spec's
+    unit is already derived from its source_file (CUSTOS), so this seeds the right unit without a
+    per-key table lookup that would raise for the dedicated keys.
+    """
     rows = [
         {
             "chave": chart_spec.key,
@@ -244,7 +249,7 @@ def _metadados_operacao(specs: Sequence[ChartSpec]) -> pd.DataFrame:
             "nome_longo_variavel": chart_spec.title,
             "nome_curto_agregacao": chart_spec.group.value,
             "nome_longo_agregacao": chart_spec.group.value,
-            "unidade": FALLBACK_UNITS[chart_spec.key],
+            "unidade": chart_spec.unit,
             "calculado": False,
             "limitado": False,
         }
@@ -405,7 +410,10 @@ def make_sintese_dir(
     for chart_spec in specs:
         file_name = f"{chart_spec.source_file}.parquet"
         if chart_spec.kind is ChartKind.SCALAR_BY_DECK:
-            frame = _custos_frame(rng) if chart_spec.key == "CUSTOS" else _tempo_frame(rng)
+            # Choose the frame by source_file, not key: melhorias-dashboard design D7 gives every
+            # dedicated cost chart the key CUSTO_* (never "CUSTOS"), so keying on the chart key
+            # would write the TEMPO frame into CUSTOS.parquet.
+            frame = _custos_frame(rng) if chart_spec.source_file == "CUSTOS" else _tempo_frame(rng)
         else:
             entity_rows = _entity_rows_for_spec(
                 chart_spec,

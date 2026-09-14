@@ -218,7 +218,7 @@ def test_build_html_level_nav_aria_pressed_matches_the_single_unhidden_group(
 
         pressed_by_group = dict(_NAV_BUTTON_PATTERN.findall(_nav_slice(document)))
         assert pressed_by_group["SIN"] == "true"
-        for other_group in ("SBM", "SBP", "UHE", "UTE", "EXECUCAO"):
+        for other_group in ("SBM", "SBP", "UHE", "UTE", "CUSTO", "TEMPO"):
             assert pressed_by_group[other_group] == "false"
 
         active_groups = {group for group, pressed in pressed_by_group.items() if pressed == "true"}

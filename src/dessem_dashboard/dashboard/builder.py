@@ -60,7 +60,8 @@ GROUP_LABELS: Final[Mapping[str, str]] = {
     "SBP": "Intercâmbio",
     "UHE": "Usinas hidrelétricas",
     "UTE": "Usinas termelétricas",
-    "EXECUCAO": "Execução",
+    "CUSTO": "Custo",
+    "TEMPO": "Tempo",
 }
 
 # Entity selector labels (requirement 9), keyed by EntitySelector's string values. EntitySelector

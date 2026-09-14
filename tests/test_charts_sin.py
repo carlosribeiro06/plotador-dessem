@@ -81,8 +81,13 @@ _ALL_ENABLED_CHART_KEYS: tuple[str, ...] = (
     "QAFL_UHE",
     "QINC_UHE",
     "GTER_UTE",
-    "CUSTOS",
-    "TEMPO",
+    "CUSTO_PRESENTE",
+    "CUSTO_FUTURO",
+    "CUSTO_TOTAL",
+    "TEMPO_MILP",
+    "TEMPO_PL",
+    "TEMPO_LEITURA",
+    "TEMPO_TOTAL",
 )
 
 # Measured on the scenario_tree fixture (ticket-025 context), in enabled_specs order.
@@ -480,7 +485,7 @@ def test_build_html_with_every_enabled_chart_disabled_raises_config_error_naming
     enabled_specs() empty, and _level_nav/_chart_sections both index specs[0] unguarded. build_html
     must fail fast with a Portuguese ConfigError naming 'charts.disabled', never a bare IndexError
     that names neither the offending settings key nor its value."""
-    assert len(_ALL_ENABLED_CHART_KEYS) == 23
+    assert len(_ALL_ENABLED_CHART_KEYS) == 28
 
     with pytest.raises(ConfigError, match=r"charts\.disabled"):
         _build_document(scenario_tree, tmp_path, disabled=_ALL_ENABLED_CHART_KEYS)

@@ -41,8 +41,10 @@ _REPO_LOGO = (
 )
 
 # Measured on tests.conftest.scenario_tree consolidated with settings matching the repository's
-# own settings.json and reference="caso_a": matches tests/test_builder.py's own count.
-_ENABLED_CHART_COUNT = 23
+# own settings.json and reference="caso_a": matches tests/test_builder.py's own count. The 28 are
+# the 21 series charts plus the seven dedicated Custo/Tempo bar charts (melhorias-dashboard design
+# D7) that replaced the two former combined CUSTOS/TEMPO charts.
+_ENABLED_CHART_COUNT = 28
 
 # Measured on the same build: bytes_html - bytes_plotly is 238_059 bytes -- about 72_600 the
 # base64 logo, about 135_000 the payload's embedded values, the rest the CSS, renderer and

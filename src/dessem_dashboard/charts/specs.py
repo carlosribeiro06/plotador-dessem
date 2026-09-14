@@ -1,9 +1,11 @@
-"""Default chart catalogue: the 42 ChartSpec entries and their registration.
+"""Default chart catalogue: the 47 ChartSpec entries and their registration.
 
-Declares SPECS, the literal catalogue fixed by Appendix A.6 of the master plan: the 23 charts
-enabled by default (the spec minimum list plus TEMPO), followed by 19 further specs shipped
-disabled to demonstrate the registry's extensibility. register_default_specs loads SPECS into a
-ChartRegistry, defaulting to the REGISTRY singleton.
+Declares SPECS, the literal catalogue fixed by Appendix A.6 of the master plan, amended by the
+melhorias-dashboard spec (design D7): the 28 charts enabled by default (the spec minimum list of
+21 series plus the seven dedicated Custo/Tempo bar charts that replace the two former combined
+CUSTOS/TEMPO charts), followed by 19 further specs shipped disabled to demonstrate the registry's
+extensibility. register_default_specs loads SPECS into a ChartRegistry, defaulting to the REGISTRY
+singleton.
 """
 
 from __future__ import annotations
@@ -44,18 +46,29 @@ def _series(
     )
 
 
-def _scalar(key: str, title: str, *, notes: str = "") -> ChartSpec:
-    """Build a SCALAR_BY_DECK ChartSpec in the EXECUCAO group with no aggregation level."""
+def _scalar_series(
+    key: str,
+    group: ChartGroup,
+    source_file: str,
+    scalar_series: str,
+    title: str,
+) -> ChartSpec:
+    """Build a SCALAR_BY_DECK ChartSpec that displays one aggregated series of source_file.
+
+    Its key is distinct from source_file (the two combined charts split into one dedicated chart
+    per series), so unit is derived from source_file rather than key: every dedicated cost chart
+    carries CUSTOS' unit, every dedicated time chart TEMPO's.
+    """
     return ChartSpec(
         key=key,
-        source_file=key,
+        source_file=source_file,
         level=None,
-        group=ChartGroup.EXECUCAO,
+        group=group,
         kind=ChartKind.SCALAR_BY_DECK,
         selector=EntitySelector.NONE,
         title=title,
-        unit=FALLBACK_UNITS[key],
-        notes=notes,
+        unit=FALLBACK_UNITS[source_file],
+        scalar_series=scalar_series,
     )
 
 
@@ -180,8 +193,19 @@ SPECS: tuple[ChartSpec, ...] = (
     _series(
         "GTER_UTE", ChartGroup.UTE, AggregationLevel.UTE, EntitySelector.THERMAL_PLANT, "Geração"
     ),
-    _scalar("CUSTOS", "Custo Presente, Futuro e Total"),
-    _scalar("TEMPO", "Tempo Computacional"),
+    _scalar_series("CUSTO_PRESENTE", ChartGroup.CUSTO, "CUSTOS", "PRESENTE", "Custo Presente"),
+    _scalar_series("CUSTO_FUTURO", ChartGroup.CUSTO, "CUSTOS", "FUTURO", "Custo Futuro"),
+    _scalar_series("CUSTO_TOTAL", ChartGroup.CUSTO, "CUSTOS", "TOTAL", "Custo Total"),
+    _scalar_series("TEMPO_MILP", ChartGroup.TEMPO, "TEMPO", "MILP", "Tempo MILP"),
+    _scalar_series("TEMPO_PL", ChartGroup.TEMPO, "TEMPO", "PL", "Tempo PL"),
+    _scalar_series(
+        "TEMPO_LEITURA",
+        ChartGroup.TEMPO,
+        "TEMPO",
+        "Leitura",
+        "Tempo de Leitura de Dados e Impressão",
+    ),
+    _scalar_series("TEMPO_TOTAL", ChartGroup.TEMPO, "TEMPO", "TOTAL", "Tempo Total"),
     _series(
         "MER_SIN",
         ChartGroup.SIN,

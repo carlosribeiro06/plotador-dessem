@@ -30,7 +30,7 @@ _PAYLOAD_LOGGER_NAME = "dessem_dashboard.dashboard.payload"
 _DECK_AXIS_LENGTH = 50
 _CHAINED_AXIS_LENGTH = 96
 _VALUE_COUNT = 16_892
-_ENABLED_CHART_COUNT = 23
+_ENABLED_CHART_COUNT = 28
 _DECK_KEYS: tuple[str, str] = ("03/03/2024", "04/03/2024")
 _CHAINED_KEY = "encadeado"
 _HAND_BUILT_DATE = date(2024, 3, 3)
@@ -260,10 +260,12 @@ def test_build_payload_scenario_tree_charts_shape_and_representative_values(
     assert charts["CMO_SBM"]["unit"] == "R$/MWh"
     assert charts["INT_SBP"]["entities"][0]["label"] == "SE (SUDESTE) para S (SUL)"
 
-    tempo = charts["TEMPO"]
-    assert tempo["series"] == {}
-    assert tempo["entities"] == []
-    assert len(tempo["scalars"]) == 4
+    # A dedicated time chart (design D7) carries no series or entities and emits exactly its own
+    # aggregated group in scalars.
+    tempo_milp = charts["TEMPO_MILP"]
+    assert tempo_milp["series"] == {}
+    assert tempo_milp["entities"] == []
+    assert set(tempo_milp["scalars"]) == {"MILP"}
 
 
 def test_build_payload_uniform_keys_are_empty_for_the_kind_that_does_not_apply(
@@ -278,8 +280,8 @@ def test_build_payload_uniform_keys_are_empty_for_the_kind_that_does_not_apply(
     charts = payload["charts"]
 
     assert charts["GHID_SIN"]["scalars"] == {}
-    assert charts["CUSTOS"]["entities"] == []
-    assert charts["CUSTOS"]["series"] == {}
+    assert charts["CUSTO_PRESENTE"]["entities"] == []
+    assert charts["CUSTO_PRESENTE"]["series"] == {}
 
 
 # --- acceptance criterion 4: subtitle from E3-2 -------------------------------------------------
@@ -645,10 +647,10 @@ def test_payload_json_escapes_less_than_in_entity_label_and_round_trips(tmp_path
     assert decoded["charts"]["GHID_SIN"]["entities"][0]["label"] == "A < B"
 
 
-# --- scalars shape: CUSTOS and TEMPO, and no division by time.unit_divisor ---------------------
+# --- dedicated scalar charts: one series each, and no division by time.unit_divisor ------------
 
 
-def test_build_payload_custos_and_tempo_scalars_shape(
+def test_build_payload_dedicated_scalar_charts_each_carry_one_series(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     settings = _build_settings(tmp_path, decimals=2)
@@ -657,18 +659,25 @@ def test_build_payload_custos_and_tempo_scalars_shape(
     )
 
     payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
-    custos = payload["charts"]["CUSTOS"]["scalars"]
-    tempo = payload["charts"]["TEMPO"]["scalars"]
+    charts = payload["charts"]
 
-    # ticket-030 requirement 6 routes CUSTOS through scalars.aggregate: with the default
-    # costs.total_parcels = ["PRESENTE", "FUTURO"], the fixture's four raw parcelas become the
-    # three displayed series {"PRESENTE", "FUTURO", "TOTAL"}, dropping VIOLACOES and PEQUENAS
-    # PENALIDADES from the bars. ticket-031 requirement 1 routes TEMPO through its own
-    # aggregate_times: the fixture's five raw etapas become the four displayed series
-    # {"MILP", "PL", "Leitura", "TOTAL"} the shipped three-group time.stage_groups names.
-    assert len(custos) == 3
-    assert len(tempo) == 4
-    for scalars in (custos, tempo):
+    # Design D7 splits the two combined scalar charts into seven dedicated ones, each slicing one
+    # series out of its source_file's single aggregation. With the default costs.total_parcels =
+    # ["PRESENTE", "FUTURO"], CUSTOS aggregates to {PRESENTE, FUTURO, TOTAL} (dropping VIOLACOES
+    # and PEQUENAS PENALIDADES), and with the shipped three-group time.stage_groups TEMPO
+    # aggregates to {MILP, PL, Leitura, TOTAL}; each dedicated chart then emits exactly its own.
+    dedicated = {
+        "CUSTO_PRESENTE": "PRESENTE",
+        "CUSTO_FUTURO": "FUTURO",
+        "CUSTO_TOTAL": "TOTAL",
+        "TEMPO_MILP": "MILP",
+        "TEMPO_PL": "PL",
+        "TEMPO_LEITURA": "Leitura",
+        "TEMPO_TOTAL": "TOTAL",
+    }
+    for chart_key, series_name in dedicated.items():
+        scalars = charts[chart_key]["scalars"]
+        assert set(scalars) == {series_name}
         for by_scenario in scalars.values():
             assert set(by_scenario) == {"caso_a", "caso_b"}
             for by_deck in by_scenario.values():
@@ -681,13 +690,11 @@ def test_build_payload_custos_and_tempo_scalars_shape(
         raw.loc[raw["etapa"].isin(["PL", "PL.Int.Fix", "PL.CalcCMO"]), "tempo"].sum()
     )
     expected_pl_minutes = round(raw_pl_seconds / 60.0, 2)
-    assert tempo["PL"]["caso_a"]["03/03/2024"] == expected_pl_minutes
-    # The assertion this ticket replaces pinned the raw-second figure and asserted it exceeded
-    # 60 -- proving the payload carried seconds while the Y axis already claimed minutes (epic-03
-    # learnings section 7a). This companion assertion proves the opposite now holds: the payload
-    # value is the converted minutes figure, not the raw seconds one, so the division is proven
-    # rather than assumed.
-    assert tempo["PL"]["caso_a"]["03/03/2024"] != round(raw_pl_seconds, 2)
+    pl_value = charts["TEMPO_PL"]["scalars"]["PL"]["caso_a"]["03/03/2024"]
+    assert pl_value == expected_pl_minutes
+    # Proves the payload carries the converted minutes figure, not the raw seconds one: the Y axis
+    # claims minutes (FALLBACK_UNITS["TEMPO"] = "min"), so the division must have happened.
+    assert pl_value != round(raw_pl_seconds, 2)
 
 
 # --- caplog: the two INFO log lines and their volume fields ------------------------------------

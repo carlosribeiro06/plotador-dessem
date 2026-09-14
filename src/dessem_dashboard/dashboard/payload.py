@@ -105,8 +105,34 @@ def _build_scalars(data: DashboardData, chart_key: str, *, decimals: int) -> Sca
     return result
 
 
+def _aggregated_scalars(
+    data: DashboardData,
+    source_file: str,
+    *,
+    decimals: int,
+    settings: Settings,
+    cache: dict[str, ScalarsByName],
+) -> ScalarsByName:
+    """Return source_file's aggregated scalar series, computing it at most once per build.
+
+    A source_file feeds several dedicated charts (CUSTOS feeds three, TEMPO four), so its
+    aggregation -- which also emits the degradation warnings for a missing parcel or group -- is
+    memoized in cache: reprocessing it once per dedicated chart would repeat both the work and
+    every warning it logs.
+    """
+    if source_file not in cache:
+        raw_scalars = _build_scalars(data, source_file, decimals=decimals)
+        cache[source_file] = aggregate_scalars(source_file, raw_scalars, settings=settings)
+    return cache[source_file]
+
+
 def _build_chart_entry(
-    data: DashboardData, spec: ChartSpec, *, decimals: int, settings: Settings
+    data: DashboardData,
+    spec: ChartSpec,
+    *,
+    decimals: int,
+    settings: Settings,
+    scalar_cache: dict[str, ScalarsByName],
 ) -> dict[str, object]:
     """Build spec's payload entry with the nine documented keys, present for every chart kind.
 
@@ -122,11 +148,16 @@ def _build_chart_entry(
 
     ticket-030 requirement 6: a SCALAR_BY_DECK chart's scalars are routed through
     scalars.aggregate before being stored, so the total and any parcel-level degradation are
-    settled here, once, rather than in the renderer.
+    settled here, once, rather than in the renderer. melhorias-dashboard design D7: a dedicated
+    scalar chart (scalar_series set) aggregates its source_file once, shared through scalar_cache,
+    then emits only its own series -- so its title and subtitle, unit, entities and series all read
+    source_file rather than key, and a series absent after degradation leaves scalars empty rather
+    than raising.
     """
-    registry_title = data.registries.title_for(spec.key)
+    metadata_key = spec.source_file if spec.kind is ChartKind.SCALAR_BY_DECK else spec.key
+    registry_title = data.registries.title_for(metadata_key)
     subtitle = registry_title if registry_title not in (None, spec.title) else None
-    unit = data.registries.unit_for(spec.key)
+    unit = data.registries.unit_for(metadata_key)
 
     scalars: ScalarsByName
     series: dict[str, dict[str, dict[str, list[float | None]]]]
@@ -158,8 +189,14 @@ def _build_chart_entry(
     else:
         entities_payload = []
         series = {}
-        raw_scalars = _build_scalars(data, spec.key, decimals=decimals)
-        scalars = aggregate_scalars(spec.key, raw_scalars, settings=settings)
+        aggregated = _aggregated_scalars(
+            data, spec.source_file, decimals=decimals, settings=settings, cache=scalar_cache
+        )
+        if spec.scalar_series is None:
+            scalars = aggregated
+        else:
+            requested = aggregated.get(spec.scalar_series)
+            scalars = {} if requested is None else {spec.scalar_series: requested}
 
     return {
         "group": spec.group.value,
@@ -209,11 +246,18 @@ def build_payload(
     start = time.perf_counter()
     decimals = settings.output.decimals
     specs = enabled_specs(disabled=settings.charts.disabled)
-    catalogue_keys = frozenset(spec.key for spec in specs)
+    # A dedicated scalar chart's key (CUSTO_PRESENTE) differs from the source_file its data is
+    # stored under (CUSTOS), so the omitted-charts guard reads source_file: keying it on spec.key
+    # would report every enabled CUSTOS/TEMPO source as "stored but absent from the catalogue"
+    # even though several dedicated charts consume it.
+    catalogue_keys = frozenset(spec.source_file for spec in specs)
     _warn_omitted_charts(data, catalogue_keys)
 
+    scalar_cache: dict[str, ScalarsByName] = {}
     charts = {
-        spec.key: _build_chart_entry(data, spec, decimals=decimals, settings=settings)
+        spec.key: _build_chart_entry(
+            data, spec, decimals=decimals, settings=settings, scalar_cache=scalar_cache
+        )
         for spec in specs
     }
     payload: dict[str, object] = {

@@ -44,11 +44,13 @@ decision E3-1 means no test parses this file, so a syntax error would otherwise 
 
 ## 3. Level navigation
 
-6. Confirm the level navigation bar (`#level-nav`) shows exactly six buttons, in this order:
-   `SIN`, `Submercado`, `Intercâmbio`, `Usinas hidrelétricas`, `Usinas termelétricas`, `Execução`.
+6. Confirm the level navigation bar (`#level-nav`) shows exactly seven buttons, in this order:
+   `SIN`, `Submercado`, `Intercâmbio`, `Usinas hidrelétricas`, `Usinas termelétricas`, `Custo`,
+   `Tempo`.
 
-   **Expected result:** six buttons, in that order, each with the exact Portuguese label quoted
-   above.
+   **Expected result:** seven buttons, in that order, each with the exact Portuguese label quoted
+   above. The former single `Execução` button is replaced by the two dedicated `Custo` and `Tempo`
+   buttons (melhorias-dashboard design D7).
 
 7. Click `Submercado`.
 
@@ -57,11 +59,12 @@ decision E3-1 means no test parses this file, so a syntax error would otherwise 
    back to `SIN` and confirm the reverse. Level switching is a re-render, not a page reload, so the
    browser must not navigate.
 
-   **Note on the three plant-level and scalar headings:** clicking `Usinas hidrelétricas`,
-   `Usinas termelétricas` or `Execução` must switch — the nav button becomes pressed and the
-   previous level's charts disappear — and each of those three levels now renders its own charts
-   (Epic 4, tickets 027–031; verified by steps 21 to 32 below). An empty plot area under any of
-   those three headings is a **defect**, exactly like a nav button that does not respond.
+   **Note on the plant-level and scalar headings:** clicking `Usinas hidrelétricas`,
+   `Usinas termelétricas`, `Custo` or `Tempo` must switch — the nav button becomes pressed and the
+   previous level's charts disappear — and each of those levels renders its own charts (Epic 4,
+   tickets 027–031, amended by melhorias-dashboard design D7; verified by steps 21 to 32 below). An
+   empty plot area under any of those headings is a **defect**, exactly like a nav button that does
+   not respond.
 
 ## 4. Por deck and Encadeado modes
 
@@ -185,66 +188,72 @@ than in the automated suite (epic decision E3-1).
 
 ## 9. Cost and time bar charts
 
-`Custo Presente, Futuro e Total` and `Tempo Computacional` (tickets 030 and 031) are the
-dashboard's only two grouped-bar charts; every other step above verifies a line chart. Both render
-through the same kind-driven bar path, so this one section covers them together.
+The dashboard's grouped-bar charts (tickets 030 and 031, amended by melhorias-dashboard design
+D7); every other step above verifies a line chart. The former single `Execução` tab that combined
+`Custo Presente, Futuro e Total` and `Tempo Computacional` is now split into two dedicated tabs:
+the `Custo` tab holds one chart per cost parcel (`Custo Presente`, `Custo Futuro`, `Custo Total`)
+and the `Tempo` tab one chart per time group (`Tempo MILP`, `Tempo PL`, `Tempo de Leitura de Dados
+e Impressão`, `Tempo Total`). All of them render through the same kind-driven bar path, so this one
+section covers them together.
 
-27. Navigate to `Execução`.
+27. Navigate to `Custo`.
 
-    **Expected result:** two charts appear, `Custo Presente, Futuro e Total` and `Tempo
-    Computacional`, each drawing vertical bars rather than lines.
+    **Expected result:** three charts appear, `Custo Presente`, `Custo Futuro` and `Custo Total`,
+    each drawing vertical bars rather than lines. Navigate to `Tempo` and confirm four charts
+    appear: `Tempo MILP`, `Tempo PL`, `Tempo de Leitura de Dados e Impressão` and `Tempo Total`.
 
-28. On `Custo Presente, Futuro e Total`, hover any bar and read its category label on the X axis.
+28. On `Custo Presente`, hover any bar and read its category label on the X axis.
 
-    **Expected result:** each category label combines a deck date and a parcel name (for example
+    **Expected result:** each category label combines a deck date and the parcel name (for example
     `03/03/2024 - PRESENTE`) -- never a raw timestamp and never a date the browser has reparsed,
     since the label is the same deck key shown elsewhere in the dashboard. One bar per scenario
     appears at each category, in the scenario's own colour.
 
-29. Still on the cost chart, hover over one category (the unified hover shows every bar at that
-    category at once) and compare the `TOTAL` bar's value against the sum of the parcel bars
-    beside it.
+29. Compare the three cost charts across the `Custo` tab: hover the same category on `Custo
+    Presente`, `Custo Futuro` and `Custo Total`.
 
-    **Expected result:** at every category, `TOTAL` equals the sum of the parcel bars beside it,
-    to the number of decimals configured in `output.decimals`.
+    **Expected result:** at every category, the value on `Custo Total` equals the sum of the
+    matching bars on `Custo Presente` and `Custo Futuro`, to the number of decimals configured in
+    `output.decimals`.
 
-    As a known and accepted caveat: `PRESENTE` and `FUTURO` are expected to differ by orders of
-    magnitude, so the `PRESENTE` bar may be invisible at the default zoom next to `FUTURO` and
-    `TOTAL`. Read it through the unified hover instead, or a box zoom on the Y axis around the
-    smaller bars. A log axis was rejected for this chart because it cannot render the signed
-    Diferença view of step 31 below -- a log scale has no representation for a negative or zero
-    difference. **Read and record** the two magnitudes shown for `PRESENTE` and `FUTURO` at one
-    category on this build: that measurement, not an assumption, is what settles whether the scale
-    gap is large enough to warrant a further ticket.
+    As a known and accepted caveat: `Custo Presente` and `Custo Futuro` are expected to differ by
+    orders of magnitude. Splitting them into dedicated charts (design D7) is exactly what lets each
+    be read on its own Y-axis scale, rather than the smaller one vanishing beside the larger as it
+    did on the former combined chart. **Read and record** the two magnitudes shown for `Custo
+    Presente` and `Custo Futuro` at one category on this build: that measurement, not an
+    assumption, is what confirms each dedicated chart carries the right parcel.
 
     As a reference order of magnitude -- a value read from the committed
-    `reference/parquet-schemas.txt` dump, not a promise about this build's own data -- `PRESENTE`
-    is about `5.87e4` and `FUTURO` is about `2.28e8`, both in `10^3 R$`, on that reference deck. If
-    this build's own `PRESENTE`/`FUTURO` pair differs from that pair by a further factor of about
-    1000 in either direction, suspect a unit regression on the Y-axis label (epic-04 boundary
-    review finding 1) rather than accepting the chart at face value.
+    `reference/parquet-schemas.txt` dump, not a promise about this build's own data -- the present
+    cost is about `5.87e4` and the future cost is about `2.28e8`, both in `10^3 R$`, on that
+    reference deck. If this build's own present/future pair differs from that pair by a further
+    factor of about 1000 in either direction, suspect a unit regression on the Y-axis label
+    (epic-04 boundary review finding 1) rather than accepting the chart at face value.
 
-30. On `Tempo Computacional`, repeat steps 28 and 29 for the `MILP`, `PL`, `Leitura` and `TOTAL`
-    bars.
+30. On the `Tempo` tab, repeat steps 28 and 29 across `Tempo MILP`, `Tempo PL`, `Tempo de Leitura
+    de Dados e Impressão` and `Tempo Total`.
 
-    **Expected result:** the Y axis reads `min`. Record the four values shown for `MILP`, `PL`,
-    `Leitura` and `TOTAL` at one category rather than judging them against a plausibility band --
-    a single etapa can legitimately run from under a minute to close to two hours, so no fixed
-    band is a valid pass/fail criterion. The one relation that must hold exactly, to the configured
-    decimals, is `TOTAL == MILP + PL + Leitura`. As a reference value -- read from the committed
-    `reference/parquet-schemas.txt` dump, not a promise about this build's own data -- `TOTAL` on
+    **Expected result:** on each of the four charts the Y axis reads `min`. Record the value shown
+    on each chart at one category rather than judging them against a plausibility band -- a single
+    etapa can legitimately run from under a minute to close to two hours, so no fixed band is a
+    valid pass/fail criterion. The one relation that must hold exactly, to the configured decimals,
+    is that `Tempo Total` equals the sum of `Tempo MILP`, `Tempo PL` and `Tempo de Leitura de Dados
+    e Impressão` at the same category. As a reference value -- read from the committed
+    `reference/parquet-schemas.txt` dump, not a promise about this build's own data -- the total on
     the reference deck is the sum of every row of `TEMPO.tempo` divided by 60, about `198.1` min.
 
-31. Switch the value toggle (`#value-toggle`) from `Absoluto` to `Diferença` while `Execução` is
-    the active level.
+31. Switch the value toggle (`#value-toggle`) from `Absoluto` to `Diferença` while `Custo` (then
+    `Tempo`) is the active level.
 
-    **Expected result:** on both charts, the reference scenario's bars fall to exactly zero at
-    every category, every other scenario's bar becomes `scenario - referência`, and each chart's
-    Y-axis title gains the suffix ` (diferença)`.
+    **Expected result:** on every cost and time chart, the reference scenario's bars fall to
+    exactly zero at every category, every other scenario's bar becomes `scenario - referência`, and
+    each chart's Y-axis title gains the suffix ` (diferença)`.
 
 32. Switch back to `Absoluto`, then exercise the mode toggle (`Por deck` / `Encadeado`) and the
-    deck selector while `Execução` stays active.
+    deck selector while `Custo` or `Tempo` stays active.
 
-    **Expected result:** neither bar chart changes at all -- the bars, their categories and their
-    values are identical across every combination of view mode and deck (`planning-context.md`
-    decision 5), since both charts already show every deck at once.
+    **Expected result:** in `Encadeado` mode every bar chart shows every deck at once and does not
+    change as the (disabled) deck selector is left alone; in `Por deck` mode each bar chart shows
+    only the selected deck's bars and re-renders when the deck selector changes (melhorias-dashboard
+    requirement 4). The values themselves never change with the view mode, only which decks' bars
+    are drawn.

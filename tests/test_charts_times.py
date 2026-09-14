@@ -1,6 +1,6 @@
-"""End-to-end tests for the time bar chart (ticket-031): scalars.aggregate_times directly, the
-TEMPO payload it produces through the real repository settings.json, and the EXECUCAO document
-section.
+"""End-to-end tests for the time bar charts (ticket-031, amended by melhorias-dashboard design
+D7): scalars.aggregate_times directly, the dedicated TEMPO_* payload entries it produces through
+the real repository settings.json, and the Tempo group's document sections.
 
 Suggested Approach step 8 asks for three non-vacuity mutations proving criterion 1's division and
 criterion 2's warning and strict-inequality assertions can fail. They live in the "non-vacuity
@@ -20,7 +20,12 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from dashboard_document import opening_tag, section_heading, sections_by_chart_key
+from dashboard_document import (
+    opening_tag,
+    section_heading,
+    sections_by_chart_key,
+    sections_by_group,
+)
 from dessem_dashboard.config import Settings, load_settings
 from dessem_dashboard.dashboard.builder import build_html
 from dessem_dashboard.dashboard.payload import build_payload
@@ -294,29 +299,38 @@ def test_aggregate_times_total_named_as_a_group_raises_config_error() -> None:
 # --- acceptance criterion 4: the fixture payload, built through the real settings.json ----------
 
 
-def test_payload_tempo_scalars_has_four_groups_via_the_repository_settings_json(
+def test_payload_dedicated_time_charts_each_emit_one_group_via_the_repository_settings_json(
     scenario_tree: dict[str, Path],
 ) -> None:
+    """melhorias-dashboard design D7: the former combined TEMPO chart is replaced by four
+    dedicated charts, each emitting exactly one aggregated group (MILP, PL, Leitura or TOTAL) in
+    its own scalars. Under the shipped three-group settings.json all four series exist, so each
+    dedicated chart carries its own; all four still carry TEMPO's unit (min)."""
     settings = load_settings(_REPO_SETTINGS)
     payload = _build_payload_dict(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], settings=settings, reference="caso_a"
     )
-    tempo = payload["charts"]["TEMPO"]  # type: ignore[index]
+    charts = payload["charts"]  # type: ignore[index]
 
-    assert set(tempo["scalars"]) == {"MILP", "PL", "Leitura", "TOTAL"}  # type: ignore[index]
-    for by_scenario in tempo["scalars"].values():  # type: ignore[union-attr]
+    for chart_key, series_name in (
+        ("TEMPO_MILP", "MILP"),
+        ("TEMPO_PL", "PL"),
+        ("TEMPO_LEITURA", "Leitura"),
+        ("TEMPO_TOTAL", "TOTAL"),
+    ):
+        chart = charts[chart_key]  # type: ignore[index]
+        assert set(chart["scalars"]) == {series_name}
+        by_scenario = chart["scalars"][series_name]
         assert set(by_scenario) == {"caso_a", "caso_b"}
         for by_deck in by_scenario.values():
             assert set(by_deck) == {"03/03/2024", "04/03/2024"}
-    assert tempo["unit"] == "min"  # type: ignore[index]
-    assert tempo["entities"] == []  # type: ignore[index]
+        assert chart["unit"] == "min"
+        assert chart["entities"] == []
 
-    # This ticket must not have disturbed the other scalar chart ticket-030 produced.
-    assert set(payload["charts"]["CUSTOS"]["scalars"]) == {  # type: ignore[index]
-        "PRESENTE",
-        "FUTURO",
-        "TOTAL",
-    }
+    # The dedicated cost charts, built in the same payload, are not disturbed by the time path.
+    assert set(charts["CUSTO_PRESENTE"]["scalars"]) == {"PRESENTE"}  # type: ignore[index]
+    assert set(charts["CUSTO_FUTURO"]["scalars"]) == {"FUTURO"}  # type: ignore[index]
+    assert set(charts["CUSTO_TOTAL"]["scalars"]) == {"TOTAL"}  # type: ignore[index]
 
 
 def test_payload_tempo_milp_recomputed_from_the_parquet_file_with_pandas(
@@ -333,31 +347,42 @@ def test_payload_tempo_milp_recomputed_from_the_parquet_file_with_pandas(
     )
     expected_milp = round(float(raw.loc[raw["etapa"] == "MILP", "tempo"].sum()) / 60.0, 2)
 
-    assert payload["charts"]["TEMPO"]["scalars"]["MILP"]["caso_a"]["03/03/2024"] == (  # type: ignore[index]
+    assert payload["charts"]["TEMPO_MILP"]["scalars"]["MILP"]["caso_a"]["03/03/2024"] == (  # type: ignore[index]
         expected_milp
     )
 
 
-# --- acceptance criterion 5: the EXECUCAO group's TEMPO document section -----------------------
+# --- acceptance criterion 5: the dedicated Tempo group's document sections ---------------------
+
+_TIME_SECTION_KEYS_AND_HEADINGS: tuple[tuple[str, str], ...] = (
+    ("TEMPO_MILP", "Tempo MILP"),
+    ("TEMPO_PL", "Tempo PL"),
+    ("TEMPO_LEITURA", "Tempo de Leitura de Dados e Impressão"),
+    ("TEMPO_TOTAL", "Tempo Total"),
+)
 
 
-def test_document_tempo_section_is_a_hidden_scalar_chart_with_no_selector(
+def test_document_tempo_group_has_four_dedicated_hidden_scalar_sections_with_no_selector(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     document = _build_document(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
-    section = sections_by_chart_key(document)["TEMPO"]
-    opening = opening_tag(section)
+    sections = sections_by_group(document, "TEMPO")
+    assert len(sections) == 4
 
-    assert 'data-group="EXECUCAO"' in opening
-    assert 'data-kind="SCALAR_BY_DECK"' in opening
-    assert 'data-selector="NONE"' in opening
-    assert opening.endswith(" hidden>")
-    assert section.count("<h2>") == 1
-    assert section_heading(section) == "Tempo Computacional"
-    assert "<select" not in section
-    assert "plant-filter" not in section
+    by_key = sections_by_chart_key(document)
+    for key, heading in _TIME_SECTION_KEYS_AND_HEADINGS:
+        section = by_key[key]
+        opening = opening_tag(section)
+        assert 'data-group="TEMPO"' in opening
+        assert 'data-kind="SCALAR_BY_DECK"' in opening
+        assert 'data-selector="NONE"' in opening
+        assert opening.endswith(" hidden>")
+        assert section.count("<h2>") == 1
+        assert section_heading(section) == heading
+        assert "<select" not in section
+        assert "plant-filter" not in section
 
 
 # --- Testing Requirements: a group whose members exist but whose cells are all None for one -----
