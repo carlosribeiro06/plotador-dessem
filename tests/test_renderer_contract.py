@@ -478,10 +478,11 @@ def test_checklist_covers_submarket_and_interchange_pair_selectors() -> None:
     assert "Par de submercados" in text
 
 
-def test_checklist_covers_avisos_section_on_a_scenario_missing_a_deck() -> None:
+def test_checklist_verifies_warnings_stay_out_of_the_dashboard() -> None:
     text = _read_checklist()
 
-    assert "Avisos" in text
+    assert 'id="warnings"' in text
+    assert "run_manifest.json" in text
 
 
 def test_checklist_epic_4_section_replaces_the_ticket_028_placeholder() -> None:

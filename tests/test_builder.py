@@ -57,7 +57,6 @@ _EXPECTED_TEMPLATE_IDENTIFIERS = frozenset(
         "deck_selector",
         "value_toggle",
         "reference",
-        "warnings_section",
         "chart_sections",
         "footer",
         "plotly_js",
@@ -319,7 +318,7 @@ def test_build_html_scenario_tree_header_footer_reference_and_level_nav_without_
     assert '<section id="warnings"' not in document
 
 
-def test_build_html_scenario_tree_with_added_warning_renders_one_warning_item(
+def test_build_html_omits_warnings_section_even_when_warnings_exist(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     settings = _build_settings(tmp_path)
@@ -332,10 +331,12 @@ def test_build_html_scenario_tree_with_added_warning_renders_one_warning_item(
 
     document = build_html(data, settings=settings)
 
-    warnings_match = re.search(r'<section id="warnings">.*?</section>', document, re.DOTALL)
-    assert warnings_match is not None
-    assert warnings_match.group(0).count("<li>") == 1
-    assert "04/03/2024" in warnings_match.group(0)
+    # A seção de avisos não é renderizada mesmo havendo um aviso registrado. O texto do
+    # próprio aviso ("caso_b", a data 04/03/2024) não deve aparecer como conteúdo de avisos;
+    # a data ainda aparece legitimamente no <select> de decks, então checamos a mensagem.
+    assert '<section id="warnings"' not in document
+    assert "Avisos" not in document
+    assert "não possui deck para a data" not in document
 
 
 # --- acceptance criterion 5: the assets themselves, as static text -----------------------------

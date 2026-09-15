@@ -130,15 +130,16 @@ decision 8 puts the difference arithmetic in the browser. Verify it against this
     picking on one does not redraw the other, and both choices survive the level round trip. Entity
     selection is per chart by design (ticket-026 requirement 5), so a shared selection is a defect.
 
-## 7. Avisos section
+## 7. Warnings stay out of the dashboard
 
 19. Build (or reuse a build of) a scenario tree where one scenario is missing a deck date that
     another scenario has, so `DashboardData.add_warning` records the gap.
-20. Confirm a section headed `Avisos` renders below the controls and above the charts, listing one
-    Portuguese warning message per missing combination.
+20. Confirm the dashboard HTML has **no** `Avisos` section: there is no element headed `Avisos`
+    below the controls, and searching the document for `id="warnings"` finds nothing.
 
-    **Expected result:** the `Avisos` section is present only when there is at least one warning,
-    and every listed message names the affected scenario and deck date.
+    **Expected result:** the dashboard never renders a warnings section, regardless of how many
+    warnings the run produced. The warnings still appear in the console (as `WARNING` log lines)
+    and in `run_manifest.json`, which remain the only places that carry them.
 
 ## 8. Plant name and code filters
 
