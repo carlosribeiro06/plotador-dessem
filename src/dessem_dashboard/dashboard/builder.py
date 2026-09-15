@@ -209,18 +209,6 @@ def _deck_selector(deck_dates: Sequence[str], *, disabled: bool) -> str:
     return f'<select id="deck-selector"{disabled_attribute}>{options}</select>'
 
 
-def _warnings_section(warnings: Sequence[str]) -> str:
-    """Build the warnings section, or the empty string when warnings is empty.
-
-    An empty result means the section is absent from the document rather than an empty box
-    (requirement 11): $warnings_section sits alone on its own line in the template.
-    """
-    if not warnings:
-        return ""
-    items = "".join(f"<li>{html.escape(message)}</li>" for message in warnings)
-    return f'<section id="warnings"><h2>Avisos</h2><ul>{items}</ul></section>'
-
-
 def _entity_selector_fragment(spec: ChartSpec, entities: Sequence[Mapping[str, str]]) -> str:
     """Build the `<label>` + `<select>` fragment for a chart with a non-NONE entity selector."""
     label = html.escape(SELECTOR_LABELS[spec.selector.value])
@@ -346,7 +334,6 @@ def build_html(data: DashboardData, *, settings: Settings, initial_mode: str = "
         deck_selector=_deck_selector(deck_dates, disabled=initial_mode == "encadeado"),
         value_toggle=_value_toggle(),
         reference=html.escape(data.reference),
-        warnings_section=_warnings_section(data.warnings()),
         chart_sections=_chart_sections(specs, charts),
         footer=html.escape(settings.dashboard.footer_text),
         plotly_js=plotly.offline.get_plotlyjs(),
