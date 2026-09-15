@@ -36,3 +36,6 @@ exemplo/
 
 # Keep placeholder files that mark empty runtime directories as tracked
 !**/.gitkeep
+
+# Kiro workspace files (specs, steering, hooks): machine-local, never versioned
+.kiro/

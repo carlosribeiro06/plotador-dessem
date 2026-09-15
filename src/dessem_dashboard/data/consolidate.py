@@ -588,10 +588,18 @@ def _load_scalars(
     (decision 18).
     """
     start = time.perf_counter()
-    scalar_specs = tuple(
-        spec
-        for spec in enabled_specs(disabled=settings.charts.disabled)
-        if spec.kind is ChartKind.SCALAR_BY_DECK
+    # A SCALAR_BY_DECK chart's raw data lives in one file per source_file (CUSTOS, TEMPO) and is
+    # stored once under that source_file key; the store is read back by source_file too (payload
+    # slices per chart from there). melhorias-dashboard design D7 gives several dedicated charts
+    # (CUSTO_PRESENTE, ...) the same source_file, so iterating chart keys would read and store the
+    # same file several times and, worse, look up _SCALAR_VALUE_COLUMNS by a key it does not
+    # carry. Deduplicate to the distinct enabled source_files, preserving first-seen order.
+    source_files = tuple(
+        dict.fromkeys(
+            spec.source_file
+            for spec in enabled_specs(disabled=settings.charts.disabled)
+            if spec.kind is ChartKind.SCALAR_BY_DECK
+        )
     )
 
     files_read = 0
@@ -599,24 +607,24 @@ def _load_scalars(
 
     for scenario_label in scenario_order:
         for timeline in ordered_by_scenario[scenario_label]:
-            for chart_spec in scalar_specs:
-                source_path = timeline.deck.sintese_dir / f"{chart_spec.source_file}.parquet"
+            for source_file in source_files:
+                source_path = timeline.deck.sintese_dir / f"{source_file}.parquet"
                 try:
-                    frame = _read_scalar_frame(chart_spec.key, source_path)
+                    frame = _read_scalar_frame(source_file, source_path)
                 except DataFileError:
                     data.add_warning(
-                        f"Arquivo do gráfico '{chart_spec.key}' não encontrado no cenário "
+                        f"Arquivo do gráfico '{source_file}' não encontrado no cenário "
                         f"'{scenario_label}', deck de "
                         f"{timeline.deck_date.strftime(_DATE_FORMAT)}: valores não armazenados"
                     )
                     continue
 
                 files_read += 1
-                series_column, value_column = _SCALAR_VALUE_COLUMNS[chart_spec.key]
+                series_column, value_column = _SCALAR_VALUE_COLUMNS[source_file]
                 summed = frame.groupby(series_column)[value_column].sum(min_count=1)
                 for series_name, value in summed.items():
                     data.add_scalar(
-                        chart_key=chart_spec.key,
+                        chart_key=source_file,
                         series_name=str(series_name),
                         scenario=scenario_label,
                         deck_date=timeline.deck_date,
@@ -627,7 +635,7 @@ def _load_scalars(
     log_step(
         logger,
         "Fase 5/5: escalares consolidados",
-        graficos=len(scalar_specs),
+        graficos=len(source_files),
         arquivos_lidos=files_read,
         valores_armazenados=scalars_stored,
         elapsed_s=time.perf_counter() - start,

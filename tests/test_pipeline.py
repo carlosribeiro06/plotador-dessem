@@ -35,7 +35,9 @@ _REPO_LOGO = (
 
 # Measured on tests.conftest.scenario_tree consolidated with settings matching the repository's
 # own settings.json: matches tests/test_output_size.py's and tests/test_builder.py's own count.
-_ENABLED_CHART_COUNT = 23
+# The 28 are the 21 series charts plus the seven dedicated Custo/Tempo bar charts (melhorias-
+# dashboard design D7) that replaced the two former combined CUSTOS/TEMPO charts.
+_ENABLED_CHART_COUNT = 28
 
 _FOOTER_TEXT = "Gerência de Ferramentas Energéticas - FEN"
 

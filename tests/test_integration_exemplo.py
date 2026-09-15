@@ -35,9 +35,10 @@ _REPO_LOGO = _REPO_ROOT / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
 _DEFAULT_ROOT = _REPO_ROOT / "exemplo"
 
 # Measured via enabled_specs() against the repository's own settings.json (charts.disabled ==
-# []): 23 of the 42 declared chart specs are enabled by default, matching
+# []): 28 of the 47 declared chart specs are enabled by default (21 series plus the seven
+# dedicated Custo/Tempo bar charts of melhorias-dashboard design D7), matching
 # tests/test_pipeline.py's, tests/test_builder.py's and tests/test_output_size.py's own count.
-_ENABLED_CHART_COUNT = 23
+_ENABLED_CHART_COUNT = 28
 
 _FOOTER_TEXT = "Gerência de Ferramentas Energéticas - FEN"
 _LOGO_DATA_URI_PREFIX = "data:image/png;base64,"
@@ -336,23 +337,35 @@ def test_exemplo_documented_tree_pinned_volumes(tmp_path: Path) -> None:
     assert len(charts["CMO_SBM"]["entities"]) == 4
     assert len(charts["INT_SBP"]["entities"]) == 12
 
-    assert set(charts["CUSTOS"]["scalars"]) == {"PRESENTE", "FUTURO", "TOTAL"}
-    assert set(charts["TEMPO"]["scalars"]) == {"MILP", "PL", "Leitura", "TOTAL"}
-    assert charts["CUSTOS"]["unit"] == FALLBACK_UNITS["CUSTOS"]
-    assert charts["TEMPO"]["unit"] == FALLBACK_UNITS["TEMPO"]
+    # melhorias-dashboard design D7: the seven dedicated cost/time charts each emit exactly their
+    # own aggregated series, all carrying their source_file's unit (CUSTOS / TEMPO).
+    assert set(charts["CUSTO_PRESENTE"]["scalars"]) == {"PRESENTE"}
+    assert set(charts["CUSTO_FUTURO"]["scalars"]) == {"FUTURO"}
+    assert set(charts["CUSTO_TOTAL"]["scalars"]) == {"TOTAL"}
+    assert set(charts["TEMPO_MILP"]["scalars"]) == {"MILP"}
+    assert set(charts["TEMPO_PL"]["scalars"]) == {"PL"}
+    assert set(charts["TEMPO_LEITURA"]["scalars"]) == {"Leitura"}
+    assert set(charts["TEMPO_TOTAL"]["scalars"]) == {"TOTAL"}
+    for cost_key in ("CUSTO_PRESENTE", "CUSTO_FUTURO", "CUSTO_TOTAL"):
+        assert charts[cost_key]["unit"] == FALLBACK_UNITS["CUSTOS"]
+    for time_key in ("TEMPO_MILP", "TEMPO_PL", "TEMPO_LEITURA", "TEMPO_TOTAL"):
+        assert charts[time_key]["unit"] == FALLBACK_UNITS["TEMPO"]
 
     # Suggested Approach step 8: TOTAL == MILP + PL + Leitura, a real check on
-    # scalars.aggregate_times at real scale that needs no external figure.
-    tempo_scalars = charts["TEMPO"]["scalars"]
+    # scalars.aggregate_times at real scale that needs no external figure. The four groups now live
+    # in four dedicated charts, each holding its one series.
+    milp = charts["TEMPO_MILP"]["scalars"]["MILP"]
+    pl = charts["TEMPO_PL"]["scalars"]["PL"]
+    leitura = charts["TEMPO_LEITURA"]["scalars"]["Leitura"]
+    total = charts["TEMPO_TOTAL"]["scalars"]["TOTAL"]
     tolerance = 10**-settings.output.decimals
     checked_pairs = 0
     for scenario in payload["scenarios"]:
         for deck_key in payload["deck_dates"]:
             group_values = [
-                tempo_scalars[group].get(scenario, {}).get(deck_key)
-                for group in ("MILP", "PL", "Leitura")
+                by_series.get(scenario, {}).get(deck_key) for by_series in (milp, pl, leitura)
             ]
-            total_value = tempo_scalars["TOTAL"].get(scenario, {}).get(deck_key)
+            total_value = total.get(scenario, {}).get(deck_key)
             if total_value is None or any(value is None for value in group_values):
                 continue
             assert total_value == pytest.approx(sum(group_values), abs=tolerance)

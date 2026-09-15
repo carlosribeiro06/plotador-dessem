@@ -32,10 +32,13 @@ _REPO_LOGO = (
 )
 
 # Measured on tests.conftest.scenario_tree consolidated with settings matching the repository's
-# own settings.json and reference="caso_a": 23 enabled charts, of which 5 are in group SIN.
-_ENABLED_CHART_COUNT = 23
+# own settings.json and reference="caso_a": 28 enabled charts, of which 5 are in group SIN. The
+# 28 are the 21 series charts plus the seven dedicated Custo/Tempo bar charts (design D7) that
+# replaced the two former combined CUSTOS/TEMPO charts; the nav therefore lists seven groups
+# (SIN, SBM, SBP, UHE, UTE, Custo, Tempo).
+_ENABLED_CHART_COUNT = 28
 _SIN_CHART_COUNT = 5
-_LEVEL_NAV_GROUP_COUNT = 6
+_LEVEL_NAV_GROUP_COUNT = 7
 _MIN_DOCUMENT_LENGTH = 4_300_000
 _MAX_DOCUMENT_LENGTH = 5_242_880
 
@@ -310,7 +313,8 @@ def test_build_html_scenario_tree_header_footer_reference_and_level_nav_without_
     nav_slice = nav_match.group(1)
     assert nav_slice.count("data-group=") == _LEVEL_NAV_GROUP_COUNT
     assert ">Usinas hidrelétricas<" in nav_slice
-    assert ">Execução<" in nav_slice
+    assert ">Custo<" in nav_slice
+    assert ">Tempo<" in nav_slice
 
     assert '<section id="warnings"' not in document
 
@@ -434,7 +438,7 @@ def test_build_html_logo_file_svg_produces_svg_data_uri(tmp_path: Path) -> None:
 # --- charts.disabled: fewer sections, but the level navigation is unaffected -------------------
 
 
-def test_build_html_charts_disabled_omits_sections_but_keeps_six_level_nav_groups(
+def test_build_html_charts_disabled_omits_sections_but_keeps_seven_level_nav_groups(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     settings = _build_settings(tmp_path, disabled=["GHID_SIN", "CMO_SBM"])

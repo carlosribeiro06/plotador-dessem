@@ -156,10 +156,10 @@
         type: "scatter",
         mode: "lines",
         name: scenario,
-        connectgaps: false,
+        connectgaps: true,
         x: x,
         y: y,
-        line: { shape: "hv", color: scenarioColors[scenario], width: 2 },
+        line: { shape: "linear", color: scenarioColors[scenario], width: 2 },
       });
     }
 
@@ -177,12 +177,19 @@
     const scalarsByName = chart[KEYS.SCALARS];
     const seriesNames = Object.keys(scalarsByName);
 
+    // The decks whose bars this chart draws depend on the view mode (melhorias-dashboard
+    // requirement 4): "deck" mode shows only the selected deck (one bar per scenario for this
+    // chart's single series), while "encadeado" mode shows every deck at once, the aggregate
+    // behaviour. setMode/setDeck already re-render, so switching either re-runs this branch; the
+    // deck selector is inert in encadeado mode, matching the other control groups.
+    const deckKeys = state.mode === "deck" ? [state.deck] : payload[KEYS.DECK_DATES];
+
     // One (deckKey, name) cell per grid position, built once: the category list and every
     // scenario's value list, including the reference's, read this same array in the same order,
     // so the two stay aligned by construction rather than by a second, independently indexed
     // loop.
     const grid = [];
-    for (const deckKey of payload[KEYS.DECK_DATES]) {
+    for (const deckKey of deckKeys) {
       for (const name of seriesNames) {
         grid.push({ deckKey: deckKey, name: name });
       }

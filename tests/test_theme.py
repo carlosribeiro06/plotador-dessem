@@ -153,13 +153,22 @@ def test_plotly_layout_template_hovermode_is_x_unified() -> None:
     assert layout["hovermode"] == "x unified"
 
 
-def test_plotly_layout_template_showlegend_true_and_horizontal_legend_below_plot() -> None:
+def test_plotly_layout_template_showlegend_true_and_vertical_legend_right_of_plot() -> None:
     layout = plotly_layout_template(date_format=_DATE_FORMAT)
     assert layout["showlegend"] is True
     legend = layout["legend"]
     assert isinstance(legend, dict)
-    assert legend["orientation"] == "h"
-    assert legend["y"] < 0
+    assert legend["orientation"] == "v"
+    assert legend["xanchor"] == "left"
+    assert legend["x"] > 1
+
+
+def test_plotly_layout_template_right_margin_accommodates_vertical_legend() -> None:
+    layout = plotly_layout_template(date_format=_DATE_FORMAT)
+    margin = layout["margin"]
+    assert isinstance(margin, dict)
+    assert margin["r"] == 160
+    assert margin["b"] == 40
 
 
 def test_plotly_layout_template_autosize_true_and_height_matches_constant() -> None:
@@ -175,6 +184,17 @@ def test_plotly_layout_template_xaxis_type_date_and_tick_hover_format() -> None:
     assert xaxis["type"] == "date"
     assert xaxis["tickformat"] == _DATE_FORMAT
     assert xaxis["hoverformat"] == _DATE_FORMAT
+
+
+def test_plotly_layout_template_xaxis_line_and_ticklabels_always_visible() -> None:
+    layout = plotly_layout_template(date_format=_DATE_FORMAT)
+    xaxis = layout["xaxis"]
+    assert isinstance(xaxis, dict)
+    assert xaxis["showline"] is True
+    assert xaxis["showticklabels"] is True
+    assert xaxis["ticks"] == "outside"
+    assert xaxis["automargin"] is True
+    assert xaxis["nticks"] == 12
 
 
 def test_plotly_layout_template_xaxis_gridcolor_matches_grid_color() -> None:
@@ -233,7 +253,7 @@ def test_css_root_block_contains_green_grid_and_logo_width_substrings() -> None:
     text = css_root_block()
     assert "--ons-green: #486018;" in text
     assert "--ons-grid: #DFDFDF;" in text
-    assert "--ons-logo-width: 393px;" in text
+    assert "--ons-logo-width: 220px;" in text
 
 
 # --- css_root_block <-> dashboard.css correspondence ------------------------------------------

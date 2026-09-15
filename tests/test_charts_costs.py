@@ -1,6 +1,6 @@
-"""End-to-end tests for the cost bar chart (ticket-030): scalars.aggregate_costs directly, the
-CUSTOS payload it produces, the dashboard.js bar-trace machinery as static text, and the EXECUCAO
-document sections.
+"""End-to-end tests for the cost bar charts (ticket-030, amended by melhorias-dashboard design
+D7): scalars.aggregate_costs directly, the dedicated CUSTO_* payload entries it produces, the
+dashboard.js bar-trace machinery as static text, and the Custo group's document sections.
 
 Suggested Approach step 11 asks for four non-vacuity mutations. The third-quoted-"diferenca"/
 third-KEYS.REFERENCE injection lives in tests/test_renderer_value_mode.py instead of here, because
@@ -415,50 +415,56 @@ def test_aggregate_costs_total_never_emits_negative_zero() -> None:
 # --- acceptance criterion 3: the fixture payload's CUSTOS scalars, and TEMPO's pass-through ------
 
 
-def test_payload_custos_scalars_has_exactly_presente_futuro_total_with_full_coverage(
+def test_payload_dedicated_cost_charts_each_emit_only_their_own_series_with_full_coverage(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
+    """melhorias-dashboard design D7: the former combined CUSTOS chart is replaced by three
+    dedicated charts, each emitting exactly one aggregated series (PRESENTE, FUTURO or TOTAL) in
+    its own scalars, so a reader analyses one cost component per chart. All three still carry
+    CUSTOS' unit, since their raw data is the same CUSTOS.parquet aggregated once."""
     payload = _build_payload_dict(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
-    custos = payload["charts"]["CUSTOS"]  # type: ignore[index]
+    charts = payload["charts"]  # type: ignore[index]
 
-    assert set(custos["scalars"]) == {"PRESENTE", "FUTURO", "TOTAL"}  # type: ignore[index]
-    for by_scenario in custos["scalars"].values():  # type: ignore[union-attr]
+    for chart_key, series_name in (
+        ("CUSTO_PRESENTE", "PRESENTE"),
+        ("CUSTO_FUTURO", "FUTURO"),
+        ("CUSTO_TOTAL", "TOTAL"),
+    ):
+        chart = charts[chart_key]  # type: ignore[index]
+        assert set(chart["scalars"]) == {series_name}
+        by_scenario = chart["scalars"][series_name]
         assert set(by_scenario) == {"caso_a", "caso_b"}
         for by_deck in by_scenario.values():
             assert set(by_deck) == {"03/03/2024", "04/03/2024"}
-    assert custos["entities"] == []  # type: ignore[index]
-    assert custos["series"] == {}  # type: ignore[index]
-    # CUSTOS shares COP_SIN/CFU_SIN's unit, not R$: CUSTOS.PRESENTE (58667.5674 raw) tracks
-    # COP_SIN's 144 h sum (406.6581 R$/h x 144 h = 58558.77, ratio 1.0019 to PRESENTE); CUSTOS.
-    # FUTURO (228420390.34615 raw) tracks CFU_SIN (228917.0446721 at 10^6 R$, i.e. 2.28917e11
-    # R$) at ratio 0.9978 when read as 10^3 R$, versus 1000x too small when read as plain R$
-    # (epic-04 boundary review finding 1; schemas.py's FALLBACK_UNITS comment has the full figures).
-    assert custos["unit"] == "10^3 R$"  # type: ignore[index]
+        assert chart["entities"] == []
+        assert chart["series"] == {}
+        # Every dedicated cost chart shares COP_SIN/CFU_SIN's unit, not R$, derived from its
+        # source_file CUSTOS: PRESENTE (58667.5674 raw) tracks COP_SIN's 144 h sum (ratio 1.0019)
+        # and FUTURO (228420390.34615 raw) tracks CFU_SIN at 10^3 R$ (ratio 0.9978), not plain R$
+        # (epic-04 boundary review finding 1; schemas.py's FALLBACK_UNITS comment has the figures).
+        assert chart["unit"] == "10^3 R$"
 
 
-def test_payload_tempo_scalars_is_no_longer_pass_through_under_this_modules_narrow_stage_groups(
+def test_payload_dedicated_time_charts_slice_the_aggregated_series_under_narrow_stage_groups(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
-    """Replaces ...proving_the_pass_through_branch (cross-ticket collision 7): ticket-030 wrote
-    that test to prove its own aggregate dispatch left TEMPO untouched, and ticket-031's
-    requirement 1 routes TEMPO through aggregate_times unconditionally, which makes the old
-    test's own name false regardless of how that routing is implemented (measured: assert 2 ==
-    5). A bare length, as the old test asserted, names no key and cannot tell "TEMPO now has two
-    other series" apart from "TEMPO still has five, just renamed" -- exactly the vacuous-length
-    shape this plan has recorded twice before. Asserting the key set instead carries three
-    properties the length could not: TEMPO is no longer pass-through; building CUSTOS in the same
-    payload does not disturb it; and the time path honours this module's own settings
-    (time.stage_groups = {"PL": ["PL"]}) rather than some other default -- {"PL", "TOTAL"} is
-    reachable only if the "PL" group is read from these settings and no other group is invented.
-    """
+    """Design D7 splits the former combined TEMPO chart into four dedicated charts, each slicing
+    one series out of the same aggregated TEMPO. Under this module's own narrow settings
+    (time.stage_groups = {"PL": ["PL"]}) the aggregation yields only PL and TOTAL, so the PL and
+    TOTAL charts each carry their one series while the MILP and Leitura charts degrade by omission
+    to an empty scalars -- proving the time path honours these settings (no other group is
+    invented) and that building CUSTOS in the same payload does not disturb it."""
     payload = _build_payload_dict(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
-    tempo = payload["charts"]["TEMPO"]["scalars"]  # type: ignore[index]
+    charts = payload["charts"]  # type: ignore[index]
 
-    assert set(tempo) == {"PL", "TOTAL"}  # type: ignore[arg-type]
+    assert set(charts["TEMPO_PL"]["scalars"]) == {"PL"}  # type: ignore[index]
+    assert set(charts["TEMPO_TOTAL"]["scalars"]) == {"TOTAL"}  # type: ignore[index]
+    assert charts["TEMPO_MILP"]["scalars"] == {}  # type: ignore[index]
+    assert charts["TEMPO_LEITURA"]["scalars"] == {}  # type: ignore[index]
 
 
 def test_payload_custos_total_for_caso_a_recomputed_from_the_parquet_file_with_pandas(
@@ -476,7 +482,7 @@ def test_payload_custos_total_for_caso_a_recomputed_from_the_parquet_file_with_p
     futuro = round(float(raw.loc[raw["parcela"] == "FUTURO", "valor_esperado"].sum()), 2)
     expected_total = round(presente + futuro, 2)
 
-    assert payload["charts"]["CUSTOS"]["scalars"]["TOTAL"]["caso_a"]["03/03/2024"] == (  # type: ignore[index]
+    assert payload["charts"]["CUSTO_TOTAL"]["scalars"]["TOTAL"]["caso_a"]["03/03/2024"] == (  # type: ignore[index]
         expected_total
     )
 
@@ -510,6 +516,43 @@ def test_dashboard_js_build_layout_sets_category_axis_and_group_barmode() -> Non
     _check_build_layout_scalar_branch(text)
 
 
+def _check_bar_traces_branch_on_mode(text: str) -> None:
+    """Assert buildBarTraces' own body chooses its decks by view mode (melhorias-dashboard
+    requirement 4): the selected deck alone in "deck" mode, every deck in "encadeado" mode.
+
+    The bars must respond to the deck selector rather than always drawing every deck, so the
+    body reads state.mode and, on the deck branch, the single state.deck; the encadeado branch
+    still reads the full payload[KEYS.DECK_DATES] list."""
+    body = _function_body(text, "buildBarTraces")
+    assert 'state.mode === "deck"' in body
+    assert "[state.deck]" in body
+    assert "payload[KEYS.DECK_DATES]" in body
+
+
+def test_dashboard_js_build_bar_traces_selects_decks_by_view_mode() -> None:
+    text = _read_js_asset()
+    _check_bar_traces_branch_on_mode(text)
+
+
+def test_build_bar_traces_mode_branch_check_is_not_vacuous_when_deck_branch_uses_all_decks() -> (
+    None
+):
+    text = _read_js_asset()
+    _check_bar_traces_branch_on_mode(text)
+
+    body = _function_body(text, "buildBarTraces")
+    mutated_body = body.replace(
+        'state.mode === "deck" ? [state.deck] : payload[KEYS.DECK_DATES]',
+        "payload[KEYS.DECK_DATES]",
+        1,
+    )
+    assert mutated_body != body, "transform did not change buildBarTraces' body"
+    mutated_text = text.replace(body, mutated_body, 1)
+
+    with pytest.raises(AssertionError):
+        _check_bar_traces_branch_on_mode(mutated_text)
+
+
 def test_dashboard_js_pinned_invariants_hold_after_the_bar_chart_additions() -> None:
     text = _read_js_asset()
 
@@ -523,41 +566,61 @@ def test_dashboard_js_pinned_invariants_hold_after_the_bar_chart_additions() -> 
     assert text.isascii() is True
 
 
-# --- acceptance criterion 5: the EXECUCAO group's document sections ----------------------------
+# --- acceptance criterion 5: the dedicated Custo group's document sections ---------------------
+
+_COST_SECTION_KEYS_AND_HEADINGS: tuple[tuple[str, str], ...] = (
+    ("CUSTO_PRESENTE", "Custo Presente"),
+    ("CUSTO_FUTURO", "Custo Futuro"),
+    ("CUSTO_TOTAL", "Custo Total"),
+)
+_SCALAR_SECTION_KEYS = frozenset(
+    {
+        "CUSTO_PRESENTE",
+        "CUSTO_FUTURO",
+        "CUSTO_TOTAL",
+        "TEMPO_MILP",
+        "TEMPO_PL",
+        "TEMPO_LEITURA",
+        "TEMPO_TOTAL",
+    }
+)
 
 
-def _check_execucao_document_facts(document: str) -> None:
-    """Assert acceptance criterion 5, factored out so the non-vacuity proof below can call it
-    against a deliberately mutated copy of a real document."""
-    sections = sections_by_group(document, "EXECUCAO")
-    assert len(sections) == 2
+def _check_custo_document_facts(document: str) -> None:
+    """Assert the dedicated Custo group's document sections, factored out so the non-vacuity
+    proof below can call it against a deliberately mutated copy of a real document.
+
+    melhorias-dashboard design D7: the former single combined CUSTOS section is now three
+    dedicated CUSTO-group sections (Custo Presente, Futuro, Total), each a hidden SCALAR_BY_DECK
+    with no entity selector and no plant filter; every non-scalar section stays a SERIES."""
+    sections = sections_by_group(document, "CUSTO")
+    assert len(sections) == 3
 
     by_key = sections_by_chart_key(document)
-    for key in ("CUSTOS", "TEMPO"):
-        opening = opening_tag(by_key[key])
+    for key, heading in _COST_SECTION_KEYS_AND_HEADINGS:
+        section = by_key[key]
+        opening = opening_tag(section)
         assert 'data-kind="SCALAR_BY_DECK"' in opening
         assert 'data-selector="NONE"' in opening
         assert opening.endswith(" hidden>")
-
-    custos_section = by_key["CUSTOS"]
-    assert custos_section.count("<h2>") == 1
-    assert section_heading(custos_section) == "Custo Presente, Futuro e Total"
-    assert "<select" not in custos_section
-    assert "plant-filter" not in custos_section
+        assert section.count("<h2>") == 1
+        assert section_heading(section) == heading
+        assert "<select" not in section
+        assert "plant-filter" not in section
 
     for chart_key, section in by_key.items():
-        if chart_key in ("CUSTOS", "TEMPO"):
+        if chart_key in _SCALAR_SECTION_KEYS:
             continue
         assert 'data-kind="SERIES"' in opening_tag(section)
 
 
-def test_document_execucao_group_has_two_scalar_sections_and_every_other_section_is_series(
+def test_document_custo_group_has_three_dedicated_scalar_sections_named_per_component(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     document = _build_document(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
-    _check_execucao_document_facts(document)
+    _check_custo_document_facts(document)
 
 
 def test_document_data_kind_appears_exactly_once_per_enabled_chart_section(
@@ -567,7 +630,7 @@ def test_document_data_kind_appears_exactly_once_per_enabled_chart_section(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
     sections = chart_section_slices(document)
-    assert len(sections) == 23
+    assert len(sections) == 28
     for section in sections:
         assert opening_tag(section).count("data-kind=") == 1
 
@@ -597,16 +660,16 @@ def test_acceptance_criterion_1_check_is_not_vacuous_when_total_emission_is_drop
         _check_default_parcels_total_is_partial_sum_and_less_than_all_four(dropped)
 
 
-def test_document_execucao_check_is_not_vacuous_when_data_kind_is_appended_after_hidden(
+def test_document_custo_check_is_not_vacuous_when_data_kind_is_appended_after_hidden(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     document = _build_document(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
-    _check_execucao_document_facts(document)
+    _check_custo_document_facts(document)
 
-    custos_section = sections_by_chart_key(document)["CUSTOS"]
-    opening = opening_tag(custos_section)
+    custo_section = sections_by_chart_key(document)["CUSTO_PRESENTE"]
+    opening = opening_tag(custo_section)
     original_suffix = ' data-kind="SCALAR_BY_DECK" hidden>'
     assert opening.endswith(original_suffix)
     mutated_opening = opening[: -len(original_suffix)] + ' hidden data-kind="SCALAR_BY_DECK">'
@@ -614,4 +677,4 @@ def test_document_execucao_check_is_not_vacuous_when_data_kind_is_appended_after
 
     mutated_document = document.replace(opening, mutated_opening, 1)
     with pytest.raises(AssertionError):
-        _check_execucao_document_facts(mutated_document)
+        _check_custo_document_facts(mutated_document)

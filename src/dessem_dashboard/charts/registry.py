@@ -40,6 +40,8 @@ class ChartGroup(StrEnum):
     SBP = "SBP"
     UHE = "UHE"
     UTE = "UTE"
+    CUSTO = "CUSTO"
+    TEMPO = "TEMPO"
     EXECUCAO = "EXECUCAO"
 
 
@@ -57,6 +59,11 @@ class ChartSpec:
     unit: str
     enabled: bool = True
     notes: str = ""
+    scalar_series: str | None = None
+    """For a SCALAR_BY_DECK chart, the single aggregated series name this chart displays (e.g.
+    "PRESENTE", "MILP"); its raw data lives under source_file, aggregated once and sliced to this
+    series by the payload builder. None for every SERIES chart and for any scalar chart that
+    displays its source_file's full set of series."""
 
 
 class ChartRegistry:

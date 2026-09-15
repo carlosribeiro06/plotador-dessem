@@ -139,7 +139,7 @@ _REPO_SETTINGS_PATH = _REPO_ROOT / "settings.json"
 _REPO_LOGO = _REPO_ROOT / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
 _DEFAULT_ROOT = _REPO_ROOT / "exemplo"
 
-_ENABLED_CHART_COUNT = 23  # enabled_specs(), measured; matches every other test module's own pin.
+_ENABLED_CHART_COUNT = 28  # enabled_specs(), measured; matches every other test module's own pin.
 
 _SCRIPT_PLOTLY_OPEN_TAG = '<script id="plotly-js">'
 _SCRIPT_CLOSE_TAG = "</script>"
@@ -329,15 +329,18 @@ def _assert_custos_scalars_match(
 def _check_custos_scalars_match_legacy(context: _ParityContext) -> int:
     """Run _assert_custos_scalars_match over every (scenario, deck) pair context stores CUSTOS
     for. Returns the number of pairs visited."""
-    scalars = context.payload["charts"]["CUSTOS"]["scalars"]  # type: ignore[index]
+    charts = context.payload["charts"]  # type: ignore[index]
+    presente_scalars = charts["CUSTO_PRESENTE"]["scalars"]  # type: ignore[index]
+    futuro_scalars = charts["CUSTO_FUTURO"]["scalars"]  # type: ignore[index]
+    total_scalars = charts["CUSTO_TOTAL"]["scalars"]  # type: ignore[index]
     decimals = context.settings.output.decimals
     visited = 0
     for scenario in context.scenarios:
         for sintese_dir in context.dirs_by_scenario[scenario]:
             deck_key = _deck_date(sintese_dir).strftime(_DECK_KEY_DATE_FORMAT)
-            stored_presente = scalars["PRESENTE"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
-            stored_futuro = scalars["FUTURO"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
-            stored_total = scalars["TOTAL"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
+            stored_presente = presente_scalars["PRESENTE"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
+            stored_futuro = futuro_scalars["FUTURO"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
+            stored_total = total_scalars["TOTAL"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
             if None in (stored_presente, stored_futuro, stored_total):
                 continue
             _assert_custos_scalars_match(
@@ -415,17 +418,21 @@ def _assert_tempo_scalars_match(
 def _check_tempo_scalars_match_legacy(context: _ParityContext) -> int:
     """Run _assert_tempo_scalars_match over every (scenario, deck) pair context stores TEMPO
     for. Returns the number of pairs visited."""
-    scalars = context.payload["charts"]["TEMPO"]["scalars"]  # type: ignore[index]
+    charts = context.payload["charts"]  # type: ignore[index]
+    leitura_scalars = charts["TEMPO_LEITURA"]["scalars"]  # type: ignore[index]
+    milp_scalars = charts["TEMPO_MILP"]["scalars"]  # type: ignore[index]
+    pl_scalars = charts["TEMPO_PL"]["scalars"]  # type: ignore[index]
+    total_scalars = charts["TEMPO_TOTAL"]["scalars"]  # type: ignore[index]
     decimals = context.settings.output.decimals
     unit_divisor = context.settings.time.unit_divisor
     visited = 0
     for scenario in context.scenarios:
         for sintese_dir in context.dirs_by_scenario[scenario]:
             deck_key = _deck_date(sintese_dir).strftime(_DECK_KEY_DATE_FORMAT)
-            stored_leitura = scalars["Leitura"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
-            stored_milp = scalars["MILP"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
-            stored_pl = scalars["PL"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
-            stored_total = scalars["TOTAL"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
+            stored_leitura = leitura_scalars["Leitura"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
+            stored_milp = milp_scalars["MILP"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
+            stored_pl = pl_scalars["PL"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
+            stored_total = total_scalars["TOTAL"].get(scenario, {}).get(deck_key)  # type: ignore[union-attr]
             if None in (stored_leitura, stored_milp, stored_pl, stored_total):
                 continue
             leitura_raw, milp_raw, pl_raw = _legacy_tempo_raw_seconds(sintese_dir)
@@ -645,7 +652,7 @@ def test_group_b_reference_deck_custos_pins_match_committed_dump(tmp_path: Path)
     settings = _build_settings(tmp_path)
     data = _build_parity_data([official], settings=settings, reference=official.name)
     payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
-    total = payload["charts"]["CUSTOS"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
+    total = payload["charts"]["CUSTO_TOTAL"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
         _REFERENCE_DECK_KEY
     )
     assert total is not None
@@ -664,7 +671,7 @@ def test_group_b_reference_deck_custos_total_pin_is_not_vacuous_under_single_par
     settings = _build_settings(tmp_path, total_parcels=["PRESENTE"])
     data = _build_parity_data([official], settings=settings, reference=official.name)
     payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
-    total = payload["charts"]["CUSTOS"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
+    total = payload["charts"]["CUSTO_TOTAL"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
         _REFERENCE_DECK_KEY
     )
     assert total is not None
@@ -691,7 +698,7 @@ def test_group_b_reference_deck_tempo_pins_match_committed_dump(tmp_path: Path) 
     settings = _build_settings(tmp_path)
     data = _build_parity_data([official], settings=settings, reference=official.name)
     payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
-    total = payload["charts"]["TEMPO"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
+    total = payload["charts"]["TEMPO_TOTAL"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
         _REFERENCE_DECK_KEY
     )
     assert total is not None
@@ -710,7 +717,7 @@ def test_group_b_reference_deck_tempo_total_pin_is_not_vacuous_under_unit_diviso
     settings = _build_settings(tmp_path, unit_divisor=1.0)
     data = _build_parity_data([official], settings=settings, reference=official.name)
     payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
-    total = payload["charts"]["TEMPO"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
+    total = payload["charts"]["TEMPO_TOTAL"]["scalars"]["TOTAL"][official.name].get(  # type: ignore[index]
         _REFERENCE_DECK_KEY
     )
     assert total is not None
@@ -783,7 +790,7 @@ def test_group_c_repeated_etapa_milp_is_summed_not_first_row_only(tmp_path: Path
     payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
 
     deck_key = _deck_date(deck_dir).strftime(_DECK_KEY_DATE_FORMAT)
-    milp_stored = payload["charts"]["TEMPO"]["scalars"]["MILP"][scenario_dir.name][deck_key]  # type: ignore[index]
+    milp_stored = payload["charts"]["TEMPO_MILP"]["scalars"]["MILP"][scenario_dir.name][deck_key]  # type: ignore[index]
 
     summed, first_row_only = _repeated_etapa_minutes(
         _REPEATED_MILP_ROW_A,
@@ -826,7 +833,15 @@ def test_group_c_new_dashboard_diverges_from_legacy_axis_type_and_output_file_co
         for key, chart in payload["charts"].items()  # type: ignore[union-attr]
         if chart["kind"] == "SCALAR_BY_DECK"  # type: ignore[index]
     }
-    assert scalar_by_deck_keys == {"CUSTOS", "TEMPO"}
+    assert scalar_by_deck_keys == {
+        "CUSTO_PRESENTE",
+        "CUSTO_FUTURO",
+        "CUSTO_TOTAL",
+        "TEMPO_MILP",
+        "TEMPO_PL",
+        "TEMPO_LEITURA",
+        "TEMPO_TOTAL",
+    }
 
     output_dir = tmp_path / "out"
     output_file = output_dir / "dashboard.html"

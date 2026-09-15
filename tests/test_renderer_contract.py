@@ -368,16 +368,16 @@ def test_dot_access_check_fires_on_injected_chart_unit_and_stays_silent_on_state
         _assert_no_dot_access_to_keys_values(mutated_text, keys.values())
 
 
-# --- acceptance criterion 4: Plotly.react-only render path and step interpolation --------------
+# --- acceptance criterion 4: Plotly.react-only render path and linear interpolation ------------
 
 
-def test_dashboard_js_renders_with_react_only_and_step_interpolation() -> None:
+def test_dashboard_js_renders_with_react_only_and_linear_interpolation() -> None:
     text = _read_js_asset()
 
     assert text.count("Plotly.react(") == 1
     assert "Plotly.newPlot(" not in text
-    assert 'shape: "hv"' in text
-    assert "connectgaps: false" in text
+    assert 'shape: "linear"' in text
+    assert "connectgaps: true" in text
 
 
 def test_build_html_scenario_tree_embeds_dashboard_js_asset_verbatim_exactly_once(
@@ -425,7 +425,7 @@ def test_checklist_covers_ons_identity_with_exact_footer_text() -> None:
     assert "Gerência de Ferramentas Energéticas - FEN" in text
 
 
-def test_checklist_covers_level_navigation_over_six_groups() -> None:
+def test_checklist_covers_level_navigation_over_seven_groups() -> None:
     text = _read_checklist()
 
     for group_label in (
@@ -434,7 +434,8 @@ def test_checklist_covers_level_navigation_over_six_groups() -> None:
         "Intercâmbio",
         "Usinas hidrelétricas",
         "Usinas termelétricas",
-        "Execução",
+        "Custo",
+        "Tempo",
     ):
         assert group_label in text
 
@@ -563,8 +564,11 @@ def test_checklist_section_9_covers_cost_and_time_bar_charts() -> None:
     section_end = len(text) if next_heading_start == -1 else next_heading_start
     section_text = text[section_start:section_end]
 
-    assert "Custo Presente, Futuro e Total" in section_text
-    assert "Tempo Computacional" in section_text
+    assert "Custo Presente" in section_text
+    assert "Custo Futuro" in section_text
+    assert "Custo Total" in section_text
+    assert "Tempo MILP" in section_text
+    assert "Tempo Total" in section_text
     assert "03/03/2024 - PRESENTE" in section_text
     assert "Read and record" in section_text
     assert "the Y axis reads `min`" in section_text

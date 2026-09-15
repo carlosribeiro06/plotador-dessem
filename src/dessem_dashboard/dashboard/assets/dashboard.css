@@ -1,19 +1,26 @@
 body {
-  margin: 0;
+  margin: 0 auto;
+  max-width: 1400px;
+  padding: 0 24px;
   font-family: var(--ons-font-family);
   font-size: var(--ons-font-size);
   color: var(--ons-gray);
   background-color: var(--ons-white);
 }
 
-h1,
+h1 {
+  text-align: center;
+  color: var(--ons-green);
+}
+
 h2 {
-  text-align: left;
+  text-align: center;
   color: var(--ons-green);
 }
 
 #header {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 16px;
   border-bottom: 1px solid var(--ons-grid);
@@ -29,6 +36,7 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   padding: 12px 0;
   border-bottom: 1px solid var(--ons-grid);
@@ -39,7 +47,12 @@ h2 {
 #value-toggle {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
+}
+
+#level-nav {
+  padding: 12px 0;
 }
 
 #level-nav button,
@@ -91,6 +104,7 @@ h2 {
 .plot {
   width: 100%;
   max-width: 1400px;
+  margin: 0 auto;
 }
 
 .plant-filters {
@@ -124,4 +138,6 @@ option[hidden] {
 #footer {
   border-top: 1px solid var(--ons-grid);
   padding: 16px 0;
+  font-weight: 700;
+  text-align: center;
 }

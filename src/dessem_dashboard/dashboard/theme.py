@@ -52,7 +52,7 @@ GRID_COLOR: Final[str] = tint(BRAND_GRAY, 0.2)
 FONT_FAMILY: Final[str] = "Arial, Helvetica, sans-serif"
 FONT_SIZE_PX: Final[int] = 12
 CHART_HEIGHT_PX: Final[int] = 450
-LOGO_MIN_WIDTH_PX: Final[int] = 393
+LOGO_MIN_WIDTH_PX: Final[int] = 220
 LOGO_PADDING_PX: Final[int] = 24
 
 SCENARIO_PALETTE: Final[tuple[str, ...]] = (
@@ -107,20 +107,25 @@ def plotly_layout_template(*, date_format: str) -> dict[str, object]:
         "hovermode": "x unified",
         "showlegend": True,
         "legend": {
-            "orientation": "h",
+            "orientation": "v",
             "yanchor": "top",
-            "y": -0.2,
-            "xanchor": "center",
-            "x": 0.5,
+            "y": 1,
+            "xanchor": "left",
+            "x": 1.02,
         },
         "autosize": True,
         "height": CHART_HEIGHT_PX,
-        "margin": {"l": 60, "r": 20, "t": 30, "b": 80},
+        "margin": {"l": 60, "r": 160, "t": 30, "b": 40},
         "xaxis": {
             "type": "date",
             "tickformat": date_format,
             "hoverformat": date_format,
             "gridcolor": GRID_COLOR,
+            "showline": True,
+            "showticklabels": True,
+            "ticks": "outside",
+            "automargin": True,
+            "nticks": 12,
         },
         "yaxis": {
             "gridcolor": GRID_COLOR,
