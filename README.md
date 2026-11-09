@@ -10,11 +10,7 @@ passed via `--casos`; each of its immediate subdirectories that contains a `sint
 The dashboard offers two view modes — **Por deck** (each deck's full original horizon) and
 **Encadeado** (the first *N* stages of each deck chained end to end, default 48 half-hour stages,
 `chaining.stages_per_deck`) — because that mirrors how the legacy scripts and the developer already
-analyse chained results. See
-[`plans/dashboard-dessem/00-master-plan.md`](plans/dashboard-dessem/00-master-plan.md) for the full
-architecture, rationale and decision log, and
-[`plans/dashboard-dessem/planning-context.md`](plans/dashboard-dessem/planning-context.md) for the
-binding user decisions.
+analyse chained results.
 
 ## Requirements
 
@@ -210,8 +206,7 @@ dessem-dashboard --casos caso_oficial caso_gurobi
 
 ### Command-line flags
 
-All flags and help text are Portuguese, by binding decision (see `CLAUDE.md`). `dessem-dashboard
---help` prints:
+All flags and help text are Portuguese, by binding decision. `dessem-dashboard --help` prints:
 
 ```text
 usage: dessem-dashboard [-h] --casos DIRETORIO [DIRETORIO ...]
@@ -341,7 +336,7 @@ concatenates the first `chaining.stages_per_deck` stages of every deck, in deck-
 one continuous axis, and the `Deck` selector carries the `disabled` attribute while this mode is
 active — present but inert, not hidden, since the chained axis does not read from a single deck.
 Every line chart's X axis is a true datetime axis with step interpolation (`line_shape: "hv"`),
-not one evenly-spaced tick per stage (master plan decision 14; see
+not one evenly-spaced tick per stage (see
 [Intentional divergences](#intentional-divergences-from-the-original-specification) below): a
 6-hour stage therefore renders six times wider than a 30-minute stage of the same deck.
 
@@ -361,8 +356,7 @@ named next to the toggle as `Referência: <name>`. A point is `null` whenever ei
 A chart whose selector is not `NONE` carries a `<select>` labelled `Submercado`,
 `Par de submercados`, `Usina hidrelétrica` or `Usina termelétrica`
 (`dashboard.builder.SELECTOR_LABELS`), populated from that chart's own source file (each chart
-derives its own entity list; coverage is not uniform across the catalogue — see Appendix A.2 of
-the master plan). The two plant levels (`Usinas hidrelétricas`, `Usinas termelétricas`)
+derives its own entity list; coverage is not uniform across the catalogue). The two plant levels (`Usinas hidrelétricas`, `Usinas termelétricas`)
 additionally carry two independent, combinable text filters immediately below the selector: `Nome`
 with placeholder `Filtrar por nome`, and `Código` with placeholder `Filtrar por código`. Both
 filters narrow the same `<select>` as the operator types, matched case- and accent-insensitively;
@@ -380,13 +374,12 @@ axis built from every deck date crossed with every displayed series name, with l
 form `<deck date> - <series name>` — for example `03/03/2024 - PRESENTE` — never a raw or
 re-parsed timestamp, and independent of the active view mode and `Deck` selector: both charts
 always show every deck at once. **`CUSTOS` is reported in `10^3 R$`, not plain `R$`** — a unit the
-Y-axis label states explicitly. This matters because the epic-04 boundary review found the legacy
+Y-axis label states explicitly. This matters because a review during development found the legacy
 scripts had mislabelled the same values `(R$)`, a 1000x error caught by cross-checking `CUSTOS`
-against `COP_SIN`/`CFU_SIN` on the committed reference dump
-(`plans/dashboard-dessem/reference/parquet-schemas.txt`): `CUSTOS.PRESENTE`'s raw value tracks
+against `COP_SIN`/`CFU_SIN` on a reference deck: `CUSTOS.PRESENTE`'s raw value tracks
 `COP_SIN`'s reference-deck sum at ratio 1.0019, and `CUSTOS.FUTURO`'s raw value tracks `CFU_SIN` at
 ratio 0.9978 when read as `10^3 R$` — versus 1000x too small when read as plain `R$` (see the
-comment above `FALLBACK_UNITS["CUSTOS"]` in `data/schemas.py`, and master plan Appendix A.5). A
+comment above `FALLBACK_UNITS["CUSTOS"]` in `data/schemas.py`). A
 reader comparing this dashboard against a raw DESSEM report should multiply `CUSTOS` values by
 1000 to reach plain reais.
 
@@ -396,8 +389,8 @@ The optional `Avisos` section appears only when there is at least one warning, l
 distinct message from `DashboardData.warnings()` (`dashboard.builder._warnings_section`) — the same
 list `run_manifest.json`'s `warnings` field carries; the log file separately records these same
 events as part of a much larger operational log (see [Logging and auditing](#logging-and-auditing)
-below). Every warning degrades the affected chart or deck rather than aborting the run (master plan
-decision 18), and there are exactly eight distinct shapes, all measured directly from
+below). Every warning degrades the affected chart or deck rather than aborting the run, and there
+are exactly eight distinct shapes, all measured directly from
 `data/consolidate.py` and `data/timeline.py`:
 
 1. **Short chaining window** (`data.timeline.validate_chaining`) — a deck has fewer stages than
@@ -547,9 +540,8 @@ src/dessem_dashboard/
 `Leitura/leitor_arquivos.py`, the seven `Plotadores/*.py` chart modules and the five `main_*.py`
 driver scripts at the repository root are the tool this project replaces. Their exact behaviour —
 what each one plotted, which unit and axis convention it used, and where this project intentionally
-diverges from it — is transcribed and checked in
-[`plans/dashboard-dessem/epic-05-parity-report.md`](plans/dashboard-dessem/epic-05-parity-report.md);
-consult that report rather than the scripts themselves for what they did. The commit that removed
+diverges from it — is recomputed independently and checked by `tests/test_parity.py`, without
+importing or running the scripts. The commit that removed
 these thirteen files is the one whose message names the legacy removal, findable with
 `git log --oneline -- Plotadores`; any single file can still be recovered from history, for example
 `git show <sha>^:Plotadores/Custos.py`, with `<sha>` replaced by that commit's hash.
@@ -658,14 +650,14 @@ single configuration anchor for the program itself, and this variable only ever 
 
 ### Intentional divergences from the original specification
 
-Two behaviours deliberately depart from the original spec, each recorded as a planner decision:
+Two behaviours deliberately depart from the original spec:
 
-- **`.gitignore` keeps `logo/` and `*.md` versioned** (`planning-context.md` decision 11), where
-  the original spec suggested ignoring both; `.gitignore` itself is the evidence, since it excludes
-  neither path.
+- **`.gitignore` keeps `logo/` and the documentation (`README.md`, `docs/`) versioned**, where the
+  original spec suggested ignoring `logo/` and `*.md`; only the local planning material (`plans/`,
+  `plano_dashboard_dessem.md`) and `CLAUDE.md` are excluded, and `.gitignore` itself is the
+  evidence.
 - **The line-chart X axis is a true datetime axis with `line_shape: "hv"` step interpolation**, not
-  the legacy scripts' `type='category'` axis (master plan decision 14): in `Por deck` mode stage
+  the legacy scripts' `type='category'` axis: in `Por deck` mode stage
   durations vary (0.5, 2, 6 and 8 hours), and a categorical axis would give a 30-minute stage and an
   8-hour stage the same width, visually misrepresenting the horizon. This is a deliberate,
-  documented improvement, checked against the legacy behaviour in
-  [`plans/dashboard-dessem/epic-05-parity-report.md`](plans/dashboard-dessem/epic-05-parity-report.md).
+  documented improvement, checked against the legacy behaviour by `tests/test_parity.py`.

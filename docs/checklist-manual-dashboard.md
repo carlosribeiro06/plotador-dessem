@@ -15,8 +15,7 @@ interchange charts. Steps 21 to 26 cover Epic 4's plant name and code filters (t
 27 to 32 cover Epic 4's cost and time bar charts (tickets 030–031).
 
 Interface strings are quoted exactly as they render, in Portuguese, because that is the language of
-every dashboard UI string (`CLAUDE.md`); the prose around them is English, per the Rigoroso mode
-policy.
+every dashboard UI string; the prose around them is English, per the Rigoroso mode policy.
 
 ## 1. Offline load and console check
 
