@@ -1,7 +1,9 @@
 """Load and validate settings.json into typed, frozen dataclasses.
 
-Every path-valued key resolves to an absolute Path relative to the directory
-of the settings file itself, never to the current working directory.
+Every path-valued key resolves to an absolute Path, never against the current working
+directory. Run artifacts (`paths.output_dir`, `paths.log_dir`, `logging.file`) resolve against
+the directory of the settings file itself; the versioned logo (`paths.logo_file`) resolves
+against the repository root. An absolute path in settings.json is kept as-is.
 """
 
 from __future__ import annotations
@@ -14,6 +16,12 @@ from pathlib import Path
 from dessem_dashboard.errors import ConfigError
 
 _VALID_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
+
+# The logo is a versioned asset of the repository (its `logo/` folder), not an artifact of a run,
+# so a settings.json kept anywhere else must still find it. The root is derived from this module's
+# place in the src layout (<root>/src/dessem_dashboard/config.py), which holds for the documented
+# editable install from a checkout.
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 @dataclass(frozen=True)
@@ -219,7 +227,7 @@ def _load_paths(raw: Mapping[str, object], *, base: Path) -> Paths:
     return Paths(
         output_dir=_resolve_path(base, group, "output_dir", prefix="paths"),
         log_dir=_resolve_path(base, group, "log_dir", prefix="paths"),
-        logo_file=_resolve_path(base, group, "logo_file", prefix="paths"),
+        logo_file=_resolve_path(_REPOSITORY_ROOT, group, "logo_file", prefix="paths"),
     )
 
 
@@ -297,7 +305,7 @@ def _load_charts(raw: Mapping[str, object]) -> ChartsConfig:
 
 
 def load_settings(path: str | Path = "settings.json") -> Settings:
-    """Load and validate settings.json, resolving paths against its own directory."""
+    """Load and validate settings.json, resolving its paths as the module docstring describes."""
     settings_path = Path(path)
     if not settings_path.is_file():
         raise ConfigError(f"settings.json não encontrado em: {settings_path.resolve()}")

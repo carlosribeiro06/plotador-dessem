@@ -44,10 +44,6 @@ _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 _SCALARS_LOGGER_NAME = "dessem_dashboard.dashboard.scalars"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # window.DessemDashboard's members immediately before this ticket: the thirteen ticket-026 left,
 # plus applyPlantFilter, which ticket-028 added afterward (tests/test_charts_filters.py's own
 # _THIRTEEN_MEMBERS_AFTER_TICKET_026 checks applyPlantFilter separately). Ticket-030's own
@@ -113,7 +109,7 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

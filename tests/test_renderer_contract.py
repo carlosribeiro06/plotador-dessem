@@ -28,9 +28,6 @@ from dessem_dashboard.models.store import DashboardData
 _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
 _DOCS_CHECKLIST = Path(__file__).resolve().parent.parent / "docs" / "checklist-manual-dashboard.md"
 
 # The ticket-021 placeholder this file replaces, verbatim; requirement 9's "longer than the stub"
@@ -148,7 +145,7 @@ def _settings_dict() -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

@@ -136,7 +136,6 @@ _SINTESE_DIRNAME = "sintese"
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _REPO_SETTINGS_PATH = _REPO_ROOT / "settings.json"
-_REPO_LOGO = _REPO_ROOT / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
 _DEFAULT_ROOT = _REPO_ROOT / "exemplo"
 
 _ENABLED_CHART_COUNT = 28  # enabled_specs(), measured; matches every other test module's own pin.
@@ -168,15 +167,16 @@ class _ParityContext:
 def _settings_dict(
     *, unit_divisor: float | None = None, total_parcels: Sequence[str] | None = None
 ) -> dict[str, Any]:
-    """Read the repository's own settings.json and override only paths.logo_file (to the
-    repository logo's absolute path) plus, optionally, one knob under test.
+    """Read the repository's own settings.json and override, optionally, one knob under test.
+
+    Its relative `paths.logo_file` resolves against the repository root, so the copy written
+    under tmp_path still embeds the repository's own logo.
 
     Reading the shipped file rather than hand-transcribing it is what keeps this module immune to
     epic-04 spec defect 20's shape: a hand-copied, reduced settings dict that still claimed to
     match the repository's own values.
     """
     raw: dict[str, Any] = json.loads(_REPO_SETTINGS_PATH.read_text(encoding="utf-8"))
-    raw["paths"] = {**raw["paths"], "logo_file": str(_REPO_LOGO)}
     if unit_divisor is not None:
         raw["time"] = {**raw["time"], "unit_divisor": unit_divisor}
     if total_parcels is not None:

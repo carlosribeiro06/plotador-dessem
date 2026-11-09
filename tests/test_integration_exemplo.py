@@ -31,7 +31,6 @@ from exemplo_tree import ENV_VAR, documented_pair, exemplo_root, qualifying_scen
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _REPO_SETTINGS_PATH = _REPO_ROOT / "settings.json"
-_REPO_LOGO = _REPO_ROOT / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
 _DEFAULT_ROOT = _REPO_ROOT / "exemplo"
 
 # Measured via enabled_specs() against the repository's own settings.json (charts.disabled ==
@@ -82,13 +81,14 @@ _WARNING_SHAPES: tuple[str, ...] = (
 )
 
 
-# --- settings builder, following tests/test_output_size.py's _REPO_LOGO / _settings_dict pattern -
+# --- settings builder ---------------------------------------------------------------------------
 
 
 def _settings_dict() -> dict[str, Any]:
-    """Build a settings.json-shaped dict identical to the repository's own file, except that
-    `paths.logo_file` points at the repository logo's absolute path (the
-    tests/test_output_size.py::_REPO_LOGO pattern).
+    """Build a settings.json-shaped dict identical to the repository's own file.
+
+    Its relative `paths.logo_file` resolves against the repository root, so the copy written
+    under tmp_path still embeds the repository's own logo.
 
     Reads the repository's committed settings.json from disk rather than hand-transcribing its
     values, so this module's copy of `time.stage_groups` can never silently diverge from the
@@ -98,7 +98,6 @@ def _settings_dict() -> dict[str, Any]:
     MILP/PL/Leitura grouping, not the single-group reduction other test modules deliberately use.
     """
     raw: dict[str, Any] = json.loads(_REPO_SETTINGS_PATH.read_text(encoding="utf-8"))
-    raw["paths"] = {**raw["paths"], "logo_file": str(_REPO_LOGO)}
     return raw
 
 

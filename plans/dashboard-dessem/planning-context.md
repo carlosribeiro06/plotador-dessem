@@ -272,3 +272,18 @@ and 5 and settle how the plan is handed over.
     before `.gitignore` exists; never commit `exemplo/` data, generated HTML, logs, `.venv`,
     `.claude/settings.local.json` or secrets. The first commit of the session lands the plan itself
     (`plans/`, `plano_dashboard_dessem.md`, `logo/`, added by explicit path).
+
+## Post-delivery decisions (2026-11-09)
+
+Taken by the developer after the plan was fully delivered; they amend the path-resolution rule of
+the `/new-project` template summary above and of master plan Appendix B.
+
+18. **The logo resolves against the repository root, not against the settings file.** Running the
+    tool from a study folder forced copying both `settings.json` and `logo/` into it, because every
+    relative path resolved against the settings file's directory. The logo is a versioned asset of
+    the repository, not an artifact of a run, so a relative `paths.logo_file` now resolves against
+    the repository root, derived from the package location in the src layout (valid for the
+    documented editable install). `paths.output_dir`, `paths.log_dir` and `logging.file` keep
+    resolving against the settings file's directory; absolute paths are used as-is; nothing ever
+    resolves against the current working directory. Bundling the logo as package data was rejected
+    because `logo/` must stay at the repository root.

@@ -39,10 +39,6 @@ from fixtures_sintese import make_sintese_dir
 _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # window.DessemDashboard's twelve members after ticket-025; this ticket adds a thirteenth,
 # setEntity, verified separately so a later ticket adding a fourteenth cannot break this list.
 _TWELVE_MEMBERS_AFTER_TICKET_025 = (
@@ -249,7 +245,7 @@ def _settings_dict(
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

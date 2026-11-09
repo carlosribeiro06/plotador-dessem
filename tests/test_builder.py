@@ -27,9 +27,7 @@ from dessem_dashboard.errors import ConfigError
 from dessem_dashboard.models.store import DashboardData, EntityRef, TimeAxis
 
 _BUILDER_LOGGER_NAME = "dessem_dashboard.dashboard.builder"
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
+_SHIPPED_LOGO_FILE = "logo/MarcasONS_Secundarias_verticais_Verde.png"
 
 # Measured on tests.conftest.scenario_tree consolidated with settings matching the repository's
 # own settings.json and reference="caso_a": 28 enabled charts, of which 5 are in group SIN. The
@@ -71,9 +69,9 @@ def _settings_dict(
 ) -> dict[str, Any]:
     """Build a settings.json-shaped dict matching the repository's own values, with knobs.
 
-    logo_file defaults to the real repository logo's absolute path, so every test that does not
-    exercise the logo error paths gets a document that actually embeds a valid image, exactly as
-    the first acceptance criterion requires.
+    logo_file defaults to the shipped relative path, which resolves against the repository root,
+    so every test that does not exercise the logo error paths gets a document that actually
+    embeds a valid image, exactly as the first acceptance criterion requires.
 
     One deliberate divergence: `time.stage_groups` is reduced to the single `PL` group,
     so these tests do not depend on the shipped three-group default. Correct this sentence
@@ -84,7 +82,7 @@ def _settings_dict(
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": logo_file if logo_file is not None else str(_REPO_LOGO),
+            "logo_file": logo_file if logo_file is not None else _SHIPPED_LOGO_FILE,
         },
         "logging": {
             "level": "INFO",

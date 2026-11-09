@@ -36,9 +36,6 @@ from dessem_dashboard.manifest import write_run_manifest
 from dessem_dashboard.models.store import DashboardData, EntityRef
 
 _BUILDER_LOGGER_NAME = "dessem_dashboard.dashboard.builder"
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
 
 # Measured on tests.conftest.scenario_tree consolidated with settings matching the repository's
 # own settings.json and reference="caso_a": matches tests/test_builder.py's own count. The 28 are
@@ -81,7 +78,7 @@ def _settings_dict(*, size_warning_mb: float = 50, disabled: Sequence[str] = ())
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

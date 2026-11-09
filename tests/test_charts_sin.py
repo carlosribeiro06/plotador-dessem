@@ -33,10 +33,6 @@ from dessem_dashboard.models.store import DashboardData
 _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # window.DessemDashboard's eleven members after ticket-024; this ticket adds a twelfth,
 # buildLayout, verified separately so a later ticket adding a thirteenth cannot break this list.
 _ELEVEN_MEMBERS_AFTER_TICKET_024 = (
@@ -212,7 +208,7 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

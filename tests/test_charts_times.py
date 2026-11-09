@@ -40,10 +40,6 @@ _SCALARS_LOGGER_NAME = "dessem_dashboard.dashboard.scalars"
 
 _REPO_SETTINGS = Path(__file__).resolve().parent.parent / "settings.json"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # The shipped settings.json's own time.stage_groups, repeated here as a literal so the tests
 # that mutate it (dropping Leitura, naming a non-existent etapa) can be written as small diffs
 # against something readable, per tests/test_charts_costs.py's own convention for costs.
@@ -121,7 +117,7 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",
