@@ -30,17 +30,24 @@ binding user decisions.
 ## Configuration
 
 Every path, filename and tunable parameter is read from `settings.json` at the repository root
-(`dessem_dashboard.config.load_settings`); nothing is hard-coded. Relative paths inside
-`settings.json` never resolve against the current working directory, so the project stays
-portable across machines. The run artifacts (`paths.output_dir`, `paths.log_dir`,
-`logging.file`) resolve against **the settings file's own directory**; `paths.logo_file`
-resolves against **the repository root**, because the logo is a versioned asset of the repository
-and not an output of a run. A `settings.json` copied to another folder therefore still embeds the
-repository's `logo/` without copying it. Absolute paths are used as-is. Loading fails fast with a
-Portuguese `ConfigError` message when a required key is missing or has the wrong JSON type. The
-tables below list every one of the 23 leaf keys with its shipped default and meaning, grouped
-exactly as `settings.json` groups them; a short paragraph follows the table for the four keys an
-operator is actually expected to change.
+(`dessem_dashboard.config.load_settings`); nothing is hard-coded. The tool always reads that file
+(`dessem_dashboard.config.DEFAULT_SETTINGS_FILE`), whatever folder it runs from, so neither
+`settings.json` nor `logo/` is ever copied into a study folder; `--settings` overrides it
+explicitly. Relative paths inside `settings.json` resolve as follows:
+
+- `paths.output_dir` against **the working directory**, so each study folder the tool runs from
+  receives its own dashboard and `run_manifest.json`;
+- `paths.log_dir` and `logging.file` against **the settings file's own directory**, so the logs of
+  every run land together in the repository's `logs/`;
+- `paths.logo_file` against **the repository root**, because the logo is a versioned asset of the
+  repository and not an output of a run.
+
+The repository root is derived from the installed package's location
+(`<root>/src/dessem_dashboard/`), so it requires the documented editable install from a checkout.
+Absolute paths are used as-is. Loading fails fast with a Portuguese `ConfigError` message when a
+required key is missing or has the wrong JSON type. The tables below list every one of the 23 leaf
+keys with its shipped default and meaning, grouped exactly as `settings.json` groups them; a short
+paragraph follows the table for the four keys an operator is actually expected to change.
 
 ### General
 
@@ -52,9 +59,9 @@ operator is actually expected to change.
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `paths.output_dir` | `"output"` | Destination of the dashboard HTML and of `run_manifest.json`. |
+| `paths.output_dir` | `"output"` | Destination of the dashboard HTML and of `run_manifest.json`. A relative value resolves against the **working directory** the tool runs from, not against the settings file's directory. |
 | `paths.log_dir` | `"logs"` | Validated at load time (must resolve to a path), but **read by no module**: no consumer of this key exists under `src/` (`grep -rn "log_dir" src/` matches only the `Paths` dataclass field and the loader in `config.py`). The rotating log file's actual location is `logging.file`, which already carries a full path and whose parent directory `logging_setup.setup_logging` creates itself. Changing `paths.log_dir` alone has no observable effect; change `logging.file` instead. |
-| `paths.logo_file` | `"logo/MarcasONS_Secundarias_verticais_Verde.png"` | ONS logo file, embedded as a base64 `data:` URI in the dashboard header. A relative value resolves against the **repository root**, not against the settings file's directory; the root is derived from the installed package's location (`<root>/src/dessem_dashboard/`), so it requires the documented editable install from a checkout. This is a **hard requirement**: `dashboard.builder._logo_data_uri` raises `ConfigError` naming `paths.logo_file` and the resolved absolute path when the file is missing, or when its suffix is not one of `.png`, `.jpg`, `.jpeg` or `.svg`. A missing *data* file (a scenario's Parquet) degrades to a warning; a missing logo does not, because the ONS visual identity is a project goal. |
+| `paths.logo_file` | `"logo/MarcasONS_Secundarias_verticais_Verde.png"` | ONS logo file, embedded as a base64 `data:` URI in the dashboard header. A relative value resolves against the **repository root**, not against the settings file's directory. This is a **hard requirement**: `dashboard.builder._logo_data_uri` raises `ConfigError` naming `paths.logo_file` and the resolved absolute path when the file is missing, or when its suffix is not one of `.png`, `.jpg`, `.jpeg` or `.svg`. A missing *data* file (a scenario's Parquet) degrades to a warning; a missing logo does not, because the ONS visual identity is a project goal. |
 
 ### Logging
 
@@ -168,7 +175,8 @@ of the 19 charts shipped disabled by editing the catalogue instead.
 
 ## How to run
 
-The commands below run inside WSL Ubuntu (or a Linux server), from the repository root.
+The commands below run inside WSL Ubuntu (or a Linux server). Set up the environment once, from
+the repository root.
 
 Create the virtual environment and activate it:
 
@@ -188,6 +196,16 @@ subdirectory with its own `sintese/` folder):
 
 ```bash
 dessem-dashboard --casos exemplo/caso_oficial exemplo/caso_gurobi
+```
+
+The tool runs from any folder: it always reads the repository's `settings.json` and `logo/`, and
+writes the dashboard to `output/` inside the folder it runs from. From a study folder holding
+only its scenario directories:
+
+```bash
+cd ~/estudos/semana-45
+dessem-dashboard --casos caso_oficial caso_gurobi
+# -> ~/estudos/semana-45/output/dashboard_dessem.html
 ```
 
 ### Command-line flags
@@ -211,12 +229,14 @@ options:
                         cenário na legenda é o nome do diretório.
   --saida ARQUIVO       Arquivo HTML de saída. Padrão:
                         paths.output_dir/output.default_filename definidos em
-                        settings.json.
+                        settings.json, com paths.output_dir relativo ao
+                        diretório de execução.
   --referencia NOME     Nome do cenário de referência usado na visão de
                         diferença. Padrão: nome do primeiro diretório
                         informado em --casos.
   --settings ARQUIVO    Arquivo de configuração do projeto. Padrão:
-                        settings.json.
+                        settings.json na raiz do repositório, qualquer que
+                        seja o diretório de execução.
   --modo-inicial {deck,encadeado}
                         Modo de visão pré-selecionado no dashboard. Padrão:
                         encadeado.
@@ -237,9 +257,9 @@ programa.
 | Flag | Required | Default | Meaning |
 | --- | --- | --- | --- |
 | `--casos` | yes | — | Scenario directories; legend label is each directory's basename. Two directories sharing a basename is a fatal error naming the duplicate. |
-| `--saida` | no | `paths.output_dir/output.default_filename` | Output HTML file path. |
+| `--saida` | no | `paths.output_dir/output.default_filename` | Output HTML file path; by default under `output/` in the folder the tool runs from. |
 | `--referencia` | no | First `--casos` basename | Reference scenario for the `Diferença` view; must name one of the `--casos` labels. |
-| `--settings` | no | `settings.json` | Path to the project configuration file. |
+| `--settings` | no | Repository's `settings.json` | Path to the project configuration file; the default ignores the working directory. |
 | `--modo-inicial` | no | `encadeado` | Dashboard view mode pre-selected on load: `deck` or `encadeado`. Also decides whether the `Deck` selector starts `disabled` (it does, exactly when the initial mode is `encadeado`). |
 | `--nivel-log` | no | `logging.level` | Overrides the log level for this run only; never written back to `settings.json`. |
 

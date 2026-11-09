@@ -12,11 +12,13 @@ from typing import Any
 
 import pytest
 
-from dessem_dashboard import pipeline
+from dessem_dashboard import cli, pipeline
 from dessem_dashboard.cli import _MAX_LOGGED_WARNINGS, build_parser, main
 from dessem_dashboard.config import load_settings
 from dessem_dashboard.errors import DashboardError
 from fixtures_sintese import make_sintese_dir
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Chaining window shared by every deck this module builds directly through make_sintese_dir,
 # matching tests.conftest.build_scenario_tree so a missing-deck tree differs from scenario_tree
@@ -43,11 +45,22 @@ def _isolated_root_logger() -> Iterator[None]:
     root.setLevel(original_level)
 
 
+@pytest.fixture(autouse=True)
+def _run_from_tmp_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run every test from its tmp_path, as an operator runs the tool from a study folder.
+
+    A relative `paths.output_dir` resolves against the working directory, so without this no
+    test could keep its dashboard and run_manifest.json out of the repository's own output/.
+    """
+    monkeypatch.chdir(tmp_path)
+
+
 def _settings_dict() -> dict[str, Any]:
     """Return a settings.json payload identical in shape to the repository's own file.
 
-    `output_dir` and `log_dir` are relative, so writing this next to a temporary directory
-    resolves them inside that same temporary directory. `paths.logo_file` keeps the shipped
+    `output_dir` and `log_dir` are relative: `log_dir` resolves beside the settings file and
+    `output_dir` against the working directory, which `_run_from_tmp_path` sets to the same
+    temporary directory the settings file is written to. `paths.logo_file` keeps the shipped
     relative path, which resolves against the repository root: a settings.json written outside
     the repository still finds the repository's own logo.
 
@@ -98,9 +111,9 @@ def _settings_dict() -> dict[str, Any]:
     }
 
 
-def _write_settings(tmp_path: Path) -> Path:
-    """Write a temporary settings.json inside tmp_path so no test touches repository artifacts."""
-    settings_path = tmp_path / "settings.json"
+def _write_settings(directory: Path) -> Path:
+    """Write a temporary settings.json inside directory so no test touches repository artifacts."""
+    settings_path = directory / "settings.json"
     settings_path.write_text(json.dumps(_settings_dict(), ensure_ascii=False), encoding="utf-8")
     return settings_path
 
@@ -172,6 +185,32 @@ def test_build_parser_help_contains_all_flags_and_cenario_word() -> None:
     ):
         assert flag in help_text
     assert "cenário" in help_text
+
+
+def test_build_parser_settings_default_is_repository_settings_json() -> None:
+    args = build_parser().parse_args(["--casos", "caso_a"])
+
+    assert args.settings == _REPO_ROOT / "settings.json"
+
+
+def test_main_without_settings_flag_writes_output_to_working_directory_and_logs_beside_settings(
+    tmp_path: Path, scenario_tree: dict[str, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository_dir = tmp_path / "repositorio"
+    repository_dir.mkdir()
+    study_dir = tmp_path / "estudo"
+    study_dir.mkdir()
+    monkeypatch.setattr(cli, "DEFAULT_SETTINGS_FILE", _write_settings(repository_dir))
+    monkeypatch.chdir(study_dir)
+    caso_a, caso_b = scenario_tree["caso_a"], scenario_tree["caso_b"]
+
+    exit_code = main(["--casos", str(caso_a), str(caso_b)])
+
+    assert exit_code == 0
+    assert (study_dir / "output" / "dashboard_dessem.html").is_file()
+    assert (study_dir / "output" / "run_manifest.json").is_file()
+    assert (repository_dir / "logs" / "dashboard.log").is_file()
+    assert not (repository_dir / "output").exists()
 
 
 def test_main_successful_run_writes_manifest_and_log_with_first_basename_as_reference(
@@ -608,7 +647,7 @@ def test_pipeline_run_returns_data_volumes_matching_number_of_casos(
 
 
 def test_console_script_help_exits_0_and_lists_casos() -> None:
-    script = Path(".venv/bin/dessem-dashboard")
+    script = _REPO_ROOT / ".venv" / "bin" / "dessem-dashboard"
     if not script.is_file():
         pytest.skip("dessem-dashboard console script não está instalado neste ambiente")
 

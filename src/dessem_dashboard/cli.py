@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from dessem_dashboard import pipeline
-from dessem_dashboard.config import load_settings
+from dessem_dashboard.config import DEFAULT_SETTINGS_FILE, load_settings
 from dessem_dashboard.errors import ConfigError, DashboardError
 from dessem_dashboard.logging_setup import log_step, setup_logging
 from dessem_dashboard.manifest import write_run_manifest
@@ -71,7 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="ARQUIVO",
         help=(
             "Arquivo HTML de saída. Padrão: paths.output_dir/output.default_filename "
-            "definidos em settings.json."
+            "definidos em settings.json, com paths.output_dir relativo ao diretório de execução."
         ),
     )
     parser.add_argument(
@@ -87,9 +87,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--settings",
         type=Path,
-        default=Path("settings.json"),
+        default=DEFAULT_SETTINGS_FILE,
         metavar="ARQUIVO",
-        help="Arquivo de configuração do projeto. Padrão: settings.json.",
+        help=(
+            "Arquivo de configuração do projeto. Padrão: settings.json na raiz do repositório, "
+            "qualquer que seja o diretório de execução."
+        ),
     )
     parser.add_argument(
         "--modo-inicial",

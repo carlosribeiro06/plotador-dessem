@@ -1,9 +1,10 @@
 """Load and validate settings.json into typed, frozen dataclasses.
 
-Every path-valued key resolves to an absolute Path, never against the current working
-directory. Run artifacts (`paths.output_dir`, `paths.log_dir`, `logging.file`) resolve against
-the directory of the settings file itself; the versioned logo (`paths.logo_file`) resolves
-against the repository root. An absolute path in settings.json is kept as-is.
+The settings file lives at the repository root (`DEFAULT_SETTINGS_FILE`), whatever folder the
+tool runs from. Every path-valued key resolves to an absolute Path: `paths.output_dir` against
+the working directory, so each study folder receives its own dashboard; `paths.log_dir` and
+`logging.file` against the directory of the settings file itself; the versioned logo
+(`paths.logo_file`) against the repository root. An absolute path in settings.json is kept as-is.
 """
 
 from __future__ import annotations
@@ -17,11 +18,12 @@ from dessem_dashboard.errors import ConfigError
 
 _VALID_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
 
-# The logo is a versioned asset of the repository (its `logo/` folder), not an artifact of a run,
-# so a settings.json kept anywhere else must still find it. The root is derived from this module's
+# The settings file and the logo are versioned assets of the repository, not artifacts of a run,
+# so the tool must find them from any working directory. The root is derived from this module's
 # place in the src layout (<root>/src/dessem_dashboard/config.py), which holds for the documented
 # editable install from a checkout.
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_SETTINGS_FILE = _REPOSITORY_ROOT / "settings.json"
 
 
 @dataclass(frozen=True)
@@ -222,10 +224,10 @@ def _resolve_path(base: Path, mapping: Mapping[str, object], key: str, *, prefix
     return base / value
 
 
-def _load_paths(raw: Mapping[str, object], *, base: Path) -> Paths:
+def _load_paths(raw: Mapping[str, object], *, base: Path, working_dir: Path) -> Paths:
     group = _require_group(raw, "paths", prefix="")
     return Paths(
-        output_dir=_resolve_path(base, group, "output_dir", prefix="paths"),
+        output_dir=_resolve_path(working_dir, group, "output_dir", prefix="paths"),
         log_dir=_resolve_path(base, group, "log_dir", prefix="paths"),
         logo_file=_resolve_path(_REPOSITORY_ROOT, group, "logo_file", prefix="paths"),
     )
@@ -304,7 +306,7 @@ def _load_charts(raw: Mapping[str, object]) -> ChartsConfig:
     )
 
 
-def load_settings(path: str | Path = "settings.json") -> Settings:
+def load_settings(path: str | Path = DEFAULT_SETTINGS_FILE) -> Settings:
     """Load and validate settings.json, resolving its paths as the module docstring describes."""
     settings_path = Path(path)
     if not settings_path.is_file():
@@ -320,7 +322,7 @@ def load_settings(path: str | Path = "settings.json") -> Settings:
     base = settings_path.resolve().parent
     return Settings(
         project=_require(raw, "project", str, prefix=""),
-        paths=_load_paths(raw, base=base),
+        paths=_load_paths(raw, base=base, working_dir=Path.cwd()),
         logging=_load_logging(raw, base=base),
         discovery=_load_discovery(raw),
         chaining=_load_chaining(raw),

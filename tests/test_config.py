@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from dessem_dashboard.config import load_settings
+from dessem_dashboard.config import DEFAULT_SETTINGS_FILE, load_settings
 from dessem_dashboard.errors import ConfigError
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -64,7 +64,7 @@ def _write(tmp_path: Path, data: dict[str, Any]) -> Path:
 
 def test_load_settings_valid_settings_spot_checks_all_groups(tmp_path: Path) -> None:
     settings = load_settings(_write(tmp_path, _valid()))
-    assert settings.paths.output_dir == tmp_path / "output"
+    assert settings.paths.log_dir == tmp_path / "logs"
     assert settings.logging.level == "INFO"
     assert settings.discovery.sintese_dirname == "sintese"
     assert settings.chaining.stages_per_deck == 48
@@ -76,7 +76,7 @@ def test_load_settings_valid_settings_spot_checks_all_groups(tmp_path: Path) -> 
     assert settings.charts.disabled == []
 
 
-def test_load_settings_relative_paths_resolve_against_settings_file_directory(
+def test_load_settings_relative_log_paths_resolve_against_settings_file_directory(
     tmp_path: Path,
     tmp_path_factory: pytest.TempPathFactory,
     monkeypatch: pytest.MonkeyPatch,
@@ -85,9 +85,47 @@ def test_load_settings_relative_paths_resolve_against_settings_file_directory(
     elsewhere = tmp_path_factory.mktemp("elsewhere")
     monkeypatch.chdir(elsewhere)
     settings = load_settings(settings_path)
-    assert settings.paths.output_dir == tmp_path / "output"
     assert settings.paths.log_dir == tmp_path / "logs"
     assert settings.logging.file == tmp_path / "logs" / "dashboard.log"
+
+
+def test_load_settings_relative_output_dir_resolves_against_working_directory(
+    tmp_path: Path,
+    tmp_path_factory: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings_path = _write(tmp_path, _valid())
+    study_dir = tmp_path_factory.mktemp("study")
+    monkeypatch.chdir(study_dir)
+    settings = load_settings(settings_path)
+    assert settings.paths.output_dir == study_dir / "output"
+
+
+def test_load_settings_absolute_output_dir_is_kept_as_is(
+    tmp_path: Path,
+    tmp_path_factory: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixed_output = tmp_path / "dashboards"
+    data = _valid()
+    data["paths"]["output_dir"] = str(fixed_output)
+    settings_path = _write(tmp_path, data)
+    monkeypatch.chdir(tmp_path_factory.mktemp("study"))
+    settings = load_settings(settings_path)
+    assert settings.paths.output_dir == fixed_output
+
+
+def test_default_settings_file_is_repository_settings_json() -> None:
+    assert _REPO_ROOT / "settings.json" == DEFAULT_SETTINGS_FILE
+
+
+def test_load_settings_without_path_reads_repository_settings_from_any_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    settings = load_settings()
+    assert settings.logging.file == _REPO_ROOT / "logs" / "dashboard.log"
+    assert settings.paths.output_dir == tmp_path / "output"
 
 
 def test_load_settings_relative_logo_file_resolves_against_repository_root(
