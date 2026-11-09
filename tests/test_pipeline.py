@@ -221,7 +221,7 @@ def test_pipeline_run_writes_document_and_returns_six_key_volumes(
 
 
 def test_main_writes_manifest_with_real_data_volumes_and_warnings_matching_data(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Regression for spec defect 22: an acceptance criterion with no assigned test.
 
@@ -237,6 +237,9 @@ def test_main_writes_manifest_with_real_data_volumes_and_warnings_matching_data(
     """
     tree = _build_tree_missing_caso_b_second_deck(tmp_path / "tree")
     settings_path = _write_settings_file(tmp_path)
+    # A relative paths.output_dir resolves against the working directory: run from tmp_path so
+    # the dashboard and run_manifest.json land there rather than in the repository's output/.
+    monkeypatch.chdir(tmp_path)
 
     exit_code = main(
         ["--casos", str(tree["caso_a"]), str(tree["caso_b"]), "--settings", str(settings_path)]

@@ -403,14 +403,16 @@ Never read: `ESTATISTICAS_OPERACAO_{SIN,SBM,SBP,UHE,UTE}`, which repeat the same
 
 ## Appendix B: `settings.json` contract
 
-Single configuration anchor. Relative paths resolve against the directory of the settings file
-itself, except `paths.logo_file`, which resolves against the repository root (amended 2026-11-09,
-`planning-context.md` decision 18).
+Single configuration anchor, always read from the repository root whatever the working directory
+(amended 2026-11-09, `planning-context.md` decision 19). Relative paths resolve against the
+directory of the settings file itself, except `paths.logo_file`, which resolves against the
+repository root (decision 18), and `paths.output_dir`, which resolves against the working
+directory (decision 19).
 
 | Key | Default | Meaning |
 | --- | ------- | ------- |
 | `project` | `"dessem-dashboard"` | project label used in logs and in the manifest |
-| `paths.output_dir` | `"output"` | destination of the HTML and of `run_manifest.json` |
+| `paths.output_dir` | `"output"` | destination of the HTML and of `run_manifest.json`, relative to the working directory |
 | `paths.log_dir` | `"logs"` | log directory |
 | `paths.logo_file` | `"logo/MarcasONS_Secundarias_verticais_Verde.png"` | ONS signature embedded in the header |
 | `logging.level` | `"INFO"` | root log level |

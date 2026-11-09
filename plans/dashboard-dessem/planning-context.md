@@ -287,3 +287,14 @@ the `/new-project` template summary above and of master plan Appendix B.
     resolving against the settings file's directory; absolute paths are used as-is; nothing ever
     resolves against the current working directory. Bundling the logo as package data was rejected
     because `logo/` must stay at the repository root.
+19. **`settings.json` always lives at the repository root; the dashboard lands in the working
+    directory.** Running from a study folder no longer requires a copy of `settings.json`: the
+    `--settings` default is the repository's own file (`config.DEFAULT_SETTINGS_FILE`), whatever
+    the working directory, and the flag only overrides it explicitly. Because the settings file no
+    longer sits in the study folder, a relative `paths.output_dir` now resolves against the working
+    directory, so each study folder keeps receiving its own `output/` (dashboard and
+    `run_manifest.json`); the developer chose this over the repository's `output/`, where every run
+    would overwrite the previous dashboard. `paths.log_dir` and `logging.file` keep resolving
+    against the settings file's directory, gathering every run's log in the repository's `logs/`.
+    This amends the last clause of decision 18: `paths.output_dir` is the one key that resolves
+    against the working directory.
