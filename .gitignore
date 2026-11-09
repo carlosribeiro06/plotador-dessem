@@ -39,3 +39,7 @@ exemplo/
 
 # Kiro workspace files (specs, steering, hooks): machine-local, never versioned
 .kiro/
+# Local planning material and agent rules: kept on the developer's machine, never versioned
+/plans/
+/plano_dashboard_dessem.md
+/CLAUDE.md
