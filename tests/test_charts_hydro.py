@@ -52,10 +52,6 @@ _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 _PAYLOAD_LOGGER_NAME = "dessem_dashboard.dashboard.payload"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # The eight hydro-plant chart keys, in dessem_dashboard.charts.specs.SPECS (== enabled_specs)
 # order, paired with the Current State table's curated titles, units and fixture entity counts.
 _UHE_CHART_KEYS_IN_ORDER: tuple[str, ...] = (
@@ -127,7 +123,7 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

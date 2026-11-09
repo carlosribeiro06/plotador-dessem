@@ -46,10 +46,6 @@ from dessem_dashboard.data.discovery import discover_scenarios
 from dessem_dashboard.models.store import DashboardData
 from fixtures_sintese import make_sintese_dir
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # Deck-key and chained-key value counts, reused from tests/test_charts_hydro.py's own constant
 # (Current State: 50, 50 and 96 values for 03/03/2024, 04/03/2024 and encadeado).
 _DECK_KEYS_AND_LENGTHS: tuple[tuple[str, int], ...] = (
@@ -86,7 +82,7 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

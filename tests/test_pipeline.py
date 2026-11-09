@@ -29,9 +29,6 @@ from dessem_dashboard.models.store import DashboardData
 from fixtures_sintese import make_sintese_dir
 
 _PIPELINE_LOGGER_NAME = "dessem_dashboard.pipeline"
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
 
 # Measured on tests.conftest.scenario_tree consolidated with settings matching the repository's
 # own settings.json: matches tests/test_output_size.py's and tests/test_builder.py's own count.
@@ -90,7 +87,7 @@ def _settings_dict(*, sintese_dirname: str = "sintese") -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

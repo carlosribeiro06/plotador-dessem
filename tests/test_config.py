@@ -12,6 +12,8 @@ import pytest
 from dessem_dashboard.config import load_settings
 from dessem_dashboard.errors import ConfigError
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+
 
 def _valid() -> dict[str, Any]:
     return {
@@ -84,6 +86,30 @@ def test_load_settings_relative_paths_resolve_against_settings_file_directory(
     monkeypatch.chdir(elsewhere)
     settings = load_settings(settings_path)
     assert settings.paths.output_dir == tmp_path / "output"
+    assert settings.paths.log_dir == tmp_path / "logs"
+    assert settings.logging.file == tmp_path / "logs" / "dashboard.log"
+
+
+def test_load_settings_relative_logo_file_resolves_against_repository_root(
+    tmp_path: Path,
+    tmp_path_factory: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings_path = _write(tmp_path, _valid())
+    elsewhere = tmp_path_factory.mktemp("elsewhere")
+    monkeypatch.chdir(elsewhere)
+    settings = load_settings(settings_path)
+    expected = _REPO_ROOT / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
+    assert settings.paths.logo_file == expected
+    assert settings.paths.logo_file.is_file()
+
+
+def test_load_settings_absolute_logo_file_is_kept_as_is(tmp_path: Path) -> None:
+    custom_logo = tmp_path / "assets" / "custom_logo.png"
+    data = _valid()
+    data["paths"]["logo_file"] = str(custom_logo)
+    settings = load_settings(_write(tmp_path, data))
+    assert settings.paths.logo_file == custom_logo
 
 
 def test_load_settings_missing_group_raises_config_error(tmp_path: Path) -> None:

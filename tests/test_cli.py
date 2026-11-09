@@ -18,10 +18,6 @@ from dessem_dashboard.config import load_settings
 from dessem_dashboard.errors import DashboardError
 from fixtures_sintese import make_sintese_dir
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # Chaining window shared by every deck this module builds directly through make_sintese_dir,
 # matching tests.conftest.build_scenario_tree so a missing-deck tree differs from scenario_tree
 # only by omitting one call. Kept local rather than imported from tests/test_pipeline.py's own
@@ -51,9 +47,9 @@ def _settings_dict() -> dict[str, Any]:
     """Return a settings.json payload identical in shape to the repository's own file.
 
     `output_dir` and `log_dir` are relative, so writing this next to a temporary directory
-    resolves them inside that same temporary directory. `paths.logo_file` points at the
-    repository's own logo instead of a relative path, because `pipeline.run` now reads it while
-    rendering the document and no temporary directory ships a logo file of its own.
+    resolves them inside that same temporary directory. `paths.logo_file` keeps the shipped
+    relative path, which resolves against the repository root: a settings.json written outside
+    the repository still finds the repository's own logo.
 
     A second divergence, in `logging.use_rich`: it is set to `False`, the only one of this
     plan's eighteen `_settings_dict`-shaped modules that detunes it -- the silence that let the
@@ -67,7 +63,7 @@ def _settings_dict() -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

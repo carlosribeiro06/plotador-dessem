@@ -404,7 +404,8 @@ Never read: `ESTATISTICAS_OPERACAO_{SIN,SBM,SBP,UHE,UTE}`, which repeat the same
 ## Appendix B: `settings.json` contract
 
 Single configuration anchor. Relative paths resolve against the directory of the settings file
-itself.
+itself, except `paths.logo_file`, which resolves against the repository root (amended 2026-11-09,
+`planning-context.md` decision 18).
 
 | Key | Default | Meaning |
 | --- | ------- | ------- |

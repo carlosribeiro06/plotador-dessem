@@ -30,10 +30,6 @@ _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 _CSS_ASSET = "dashboard.css"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
-
 # The five default-enabled SIN-group chart keys (dessem_dashboard.charts.specs.SPECS): disabling
 # all of them removes the group entirely from enabled_specs, so the initially active level shifts
 # to SBM, the group of the next entry in registration order.
@@ -68,7 +64,7 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",

@@ -31,12 +31,16 @@ binding user decisions.
 
 Every path, filename and tunable parameter is read from `settings.json` at the repository root
 (`dessem_dashboard.config.load_settings`); nothing is hard-coded. Relative paths inside
-`settings.json` resolve against **the settings file's own directory**, not the current working
-directory, so the project stays portable across machines. Loading fails fast with a Portuguese
-`ConfigError` message when a required key is missing or has the wrong JSON type. The tables below
-list every one of the 23 leaf keys with its shipped default and meaning, grouped exactly as
-`settings.json` groups them; a short paragraph follows the table for the four keys an operator is
-actually expected to change.
+`settings.json` never resolve against the current working directory, so the project stays
+portable across machines. The run artifacts (`paths.output_dir`, `paths.log_dir`,
+`logging.file`) resolve against **the settings file's own directory**; `paths.logo_file`
+resolves against **the repository root**, because the logo is a versioned asset of the repository
+and not an output of a run. A `settings.json` copied to another folder therefore still embeds the
+repository's `logo/` without copying it. Absolute paths are used as-is. Loading fails fast with a
+Portuguese `ConfigError` message when a required key is missing or has the wrong JSON type. The
+tables below list every one of the 23 leaf keys with its shipped default and meaning, grouped
+exactly as `settings.json` groups them; a short paragraph follows the table for the four keys an
+operator is actually expected to change.
 
 ### General
 
@@ -50,7 +54,7 @@ actually expected to change.
 | --- | --- | --- |
 | `paths.output_dir` | `"output"` | Destination of the dashboard HTML and of `run_manifest.json`. |
 | `paths.log_dir` | `"logs"` | Validated at load time (must resolve to a path), but **read by no module**: no consumer of this key exists under `src/` (`grep -rn "log_dir" src/` matches only the `Paths` dataclass field and the loader in `config.py`). The rotating log file's actual location is `logging.file`, which already carries a full path and whose parent directory `logging_setup.setup_logging` creates itself. Changing `paths.log_dir` alone has no observable effect; change `logging.file` instead. |
-| `paths.logo_file` | `"logo/MarcasONS_Secundarias_verticais_Verde.png"` | ONS logo file, embedded as a base64 `data:` URI in the dashboard header. This is a **hard requirement**: `dashboard.builder._logo_data_uri` raises `ConfigError` naming `paths.logo_file` and the resolved absolute path when the file is missing, or when its suffix is not one of `.png`, `.jpg`, `.jpeg` or `.svg`. A missing *data* file (a scenario's Parquet) degrades to a warning; a missing logo does not, because the ONS visual identity is a project goal. |
+| `paths.logo_file` | `"logo/MarcasONS_Secundarias_verticais_Verde.png"` | ONS logo file, embedded as a base64 `data:` URI in the dashboard header. A relative value resolves against the **repository root**, not against the settings file's directory; the root is derived from the installed package's location (`<root>/src/dessem_dashboard/`), so it requires the documented editable install from a checkout. This is a **hard requirement**: `dashboard.builder._logo_data_uri` raises `ConfigError` naming `paths.logo_file` and the resolved absolute path when the file is missing, or when its suffix is not one of `.png`, `.jpg`, `.jpeg` or `.svg`. A missing *data* file (a scenario's Parquet) degrades to a warning; a missing logo does not, because the ONS visual identity is a project goal. |
 
 ### Logging
 

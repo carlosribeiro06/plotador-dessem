@@ -39,9 +39,6 @@ _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 _CSS_ASSET = "dashboard.css"
 
-_REPO_LOGO = (
-    Path(__file__).resolve().parent.parent / "logo" / "MarcasONS_Secundarias_verticais_Verde.png"
-)
 _DOCS_CHECKLIST = Path(__file__).resolve().parent.parent / "docs" / "checklist-manual-dashboard.md"
 
 # The nine plant chart keys of the default catalogue, in enabled_specs order: the eight UHE
@@ -100,7 +97,7 @@ def _settings_dict(*, disabled: Sequence[str] = ()) -> dict[str, Any]:
         "paths": {
             "output_dir": "output",
             "log_dir": "logs",
-            "logo_file": str(_REPO_LOGO),
+            "logo_file": "logo/MarcasONS_Secundarias_verticais_Verde.png",
         },
         "logging": {
             "level": "INFO",
