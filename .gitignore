@@ -43,3 +43,6 @@ exemplo/
 /plans/
 /plano_dashboard_dessem.md
 /CLAUDE.md
+
+# Local examples folder: kept on the developer's machine, never versioned
+/examples/
