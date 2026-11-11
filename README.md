@@ -160,14 +160,15 @@ one Portuguese `logger.warning` naming the `min` label and the configured diviso
 | --- | --- | --- |
 | `charts.disabled` | `[]` | Chart registry keys excluded from a given run. |
 
-`charts.disabled` names zero or more of the 42 declared `ChartSpec` keys (see
+`charts.disabled` names zero or more of the 47 declared `ChartSpec` keys (see
 [Extending the chart catalogue](#extending-the-chart-catalogue) below for the full catalogue).
 Naming a key the registry never registered raises `RegistryError` naming the unknown key
 (`charts.registry.ChartRegistry.enabled_specs`); naming every currently-enabled key leaves nothing
 to render, and `dashboard.builder.build_html` raises `ConfigError` naming `charts.disabled` rather
 than let `_level_nav`/`_chart_sections` fail on an empty catalogue with a bare `IndexError`. Use it
-to hide a shipped-but-uninteresting chart, or, following the worked example below, to enable one
-of the 19 charts shipped disabled by editing the catalogue instead.
+to hide a shipped-but-uninteresting chart. It can only remove keys from the enabled set, so it
+cannot enable any of the 16 charts shipped disabled: enabling one means editing the catalogue, as
+described in [Enabling an already-declared chart](#enabling-an-already-declared-chart).
 
 ## How to run
 
@@ -366,6 +367,34 @@ before the filter stopped matching — it never blanks. Every selector and filte
 independent per chart section: picking an entity or typing a filter on one chart never affects
 another, and both survive a level round trip.
 
+### Hydro flow charts
+
+The `SIN` and `Usinas hidrelétricas` levels carry the flow charts, all in `m3/s`, each plotting one
+synthesized file exactly as shipped. On `SIN`, `Defluência`, `Turbinamento` and `Vertimento` plot
+`QDEF_SIN`, `QTUR_SIN` and `QVER_SIN`, each the per-stage sum over all plants of the matching
+`QDEF_UHE`, `QTUR_UHE` or `QVER_UHE` flow. They are aggregate indicators, not flows of distinct
+water: water that flows down a cascade is counted again at each plant that releases it through its
+turbines (`Turbinamento`), its spillway (`Vertimento`) or either (`Defluência`). `Defluência` is
+the synthesized *Vazão Defluente*; the dashboard neither derives it from `Turbinamento` and
+`Vertimento` nor checks it against them. In DESSEM a plant's outflow also includes the flow it
+diverts to another plant (*desvio*), but the synthesis ships no file for that diverted flow and
+does not state whether its *Vazão Defluente* includes it.
+
+On `Usinas hidrelétricas`, `Vazão Afluente` (`QAFL_UHE`) and `Vazão Incremental` (`QINC_UHE`) join
+the three flows above, one plant at a time. `Vazão Incremental` is the deck's inflow input
+(`dadvaz`), which no decision of the run changes. For most plants, `Vazão Incremental` is the
+natural incremental inflow, and `Vazão Afluente` adds the outflows of the upstream plants, lagged
+by the travel time where one exists. Where the deck gives a regularized inflow instead, that input
+already includes the upstream outflows, so `Vazão Afluente` equals `Vazão Incremental`. Sobradinho
+(plant 169) is an example whenever the deck gives its inflow as regularized (`dadvaz` inflow type
+`itp=3`), as recent ONS decks do.
+
+Two scenarios built from the same inflow input therefore show a zero `Diferença` on `Vazão
+Incremental` at every plant, while `Vazão Afluente`, `Defluência`, `Turbinamento` and `Vertimento`
+can still differ. Section 10 of
+[`docs/checklist-manual-dashboard.md`](docs/checklist-manual-dashboard.md) (steps 33 to 41) walks
+these charts on a real build.
+
 ### The two Execução charts
 
 `Custo Presente, Futuro e Total` and `Tempo Computacional` are the catalogue's only two grouped-bar
@@ -407,8 +436,12 @@ are exactly eight distinct shapes, all measured directly from
 6. **Chart file not found** (`data.consolidate._load_series` and `_load_scalars`) — a chart's
    source Parquet is missing for a (scenario, deck); that (scenario, deck) contributes no values
    for it.
-7. **Submarket code dropped** (`data.consolidate._load_series`) — a submarket code present in a
-   chart's data is neither in the visible registry nor configured as fictitious, and is discarded.
+7. **Submarket code dropped** (`data.consolidate._load_series`) — on a `Submercado`-level chart, a
+   submarket code present in the data that is neither in the `SBM.parquet` registry nor listed in
+   `submarkets.fictitious_codes` is discarded with this warning. The registry's fictitious flag
+   reads the same setting (`data.registries.load_registries`), so a listed code is hidden without a
+   warning unless `submarkets.include_fictitious` is `true`, and a registry code that is not listed
+   is shown as an ordinary submarket.
 8. **Entity absent, filled with null** (`data.consolidate._load_series`) — an entity present for
    one scenario/deck but not another is stored with `null` values rather than omitted, so every
    scenario's series for a chart stays aligned on the same entity set.
@@ -432,22 +465,55 @@ above carries the same structural information with none of that risk.
 
 ## Extending the chart catalogue
 
-The chart catalogue (`dessem_dashboard.charts.specs.SPECS`) declares 42 `ChartSpec` entries, of
-which **23 are enabled by default** and 19 ship disabled as registry entries only — both figures
-re-measured for this document by importing the registry and calling `all_specs()` /
-`enabled_specs()` directly, not copied from an earlier count. `dessem_dashboard.charts` registers
-every entry at import time (`charts/__init__.py`), so `enabled_specs()`/`all_specs()` reflect
-`SPECS` as soon as the package is imported.
+The chart catalogue (`dessem_dashboard.charts.specs.SPECS`) declares 47 `ChartSpec` entries, of
+which **31 are enabled by default** (24 line charts plus 7 bar charts) and 16 ship disabled as
+registry entries only — both figures re-measured for this document by importing the registry and
+calling `all_specs()` / `enabled_specs()` directly, not copied from an earlier count.
+`dessem_dashboard.charts` registers every entry at import time (`charts/__init__.py`), so
+`enabled_specs()`/`all_specs()` reflect `SPECS` as soon as the package is imported.
+
+The enabled charts, by level and in display order (the order of the level's chart sections; a
+chart's position within its level is its position in `SPECS`):
+
+| Level | Enabled charts, in display order |
+| --- | --- |
+| `SIN` | `Geração Térmica`, `Geração Hidrelétrica`, `Geração Não Simulada`, `EARMF`, `Volume Armazenado`, `Defluência`, `Turbinamento`, `Vertimento` |
+| `Submercado` | `Carga (Mercado de Energia)`, `Geração Hidráulica`, `Geração Térmica`, `Geração Não Simulada`, `CMO`, `Volume Armazenado` |
+| `Intercâmbio` | `Intercâmbios` |
+| `Usinas hidrelétricas` | `Geração`, `Volume Armazenado (hm3)`, `Volume Armazenado (%)`, `Vazão Afluente`, `Vazão Incremental`, `Defluência`, `Turbinamento`, `Vertimento` |
+| `Usinas termelétricas` | `Geração` |
+| `Custo` | `Custo Presente`, `Custo Futuro`, `Custo Total` |
+| `Tempo` | `Tempo MILP`, `Tempo PL`, `Tempo de Leitura de Dados e Impressão`, `Tempo Total` |
+
+The 16 entries that ship disabled, in `SPECS` order, are `MER_SIN`, `MERL_SBM`, `MERL_SIN`,
+`GUNSD_SIN`, `GUNSD_SBM`, `EARMF_SBM`, `VARMI_SIN`, `VARMI_SBM`, `VARMI_UHE`, `VARPI_UHE`,
+`VAGUA_UHE`, `VCALHA_UHE`, `CFU_SIN`, `COP_SIN`, `CUNS_SIN` and `CUNS_SBM`.
+
+Each chart plots one file that the DESSEM synthesis ships, and the dashboard never derives a series
+from other files. The synthesis ships flow files per plant (`QAFL_UHE`, `QINC_UHE`, `QDEF_UHE`,
+`QTUR_UHE`, `QVER_UHE`) and, as SIN totals, only three flows (`QDEF_SIN`, `QTUR_SIN`, `QVER_SIN`).
+There is no `QAFL_SIN` or `QINC_SIN` file to plot, so `SIN` has no `Vazão Afluente` or `Vazão
+Incremental` chart, and `Submercado` has no flow chart.
 
 ### Enabling an already-declared chart
 
-Every one of the 19 disabled entries is a fully valid spec already carrying its own
-`FALLBACK_UNITS` entry; enabling one needs **no source change at all**. For example, `QDEF_SIN`
-(`Defluência`, unit `m3/s`, group `SIN`) ships disabled; nothing needs to change in
-`charts/specs.py` to turn it on — only `settings.json`, by making sure it is not named in
-`charts.disabled` (it never is, by default). Conversely, an operator who wants fewer charts adds
-entries — enabled or disabled — to `charts.disabled` and they disappear from that run without
-touching a single source file.
+Each of the 16 disabled entries is a fully valid spec already carrying its own `FALLBACK_UNITS`
+entry. Enabling one is a catalogue edit, not a setting: `charts.disabled` only removes keys from
+`enabled_specs()` (`charts/registry.py`), so it can never turn a disabled chart on.
+
+For example, `MER_SIN` (`Mercado de Energia`, unit `MW`, level `SIN`) ships disabled. To enable it:
+
+1. Delete `enabled=False` from its `_series(...)` call in `charts/specs.py`.
+2. Move that call to where the chart should appear, because a chart's position within its level is
+   its position in `SPECS`.
+3. Update the count pins listed in the table of the next subsection, and the enabled-source-file counts in the comments
+   above `FALLBACK_UNITS` (`data/schemas.py`) and `_MAX_LOGGED_WARNINGS` (`cli.py`).
+
+If a deck's synthesis lacks `MER_SIN.parquet`, that (scenario, deck) contributes no values and
+raises one "file not found" warning (warning shape 6 in [Reading the dashboard](#reading-the-dashboard)).
+
+Conversely, an operator who wants fewer charts adds entries — enabled or disabled — to
+`charts.disabled` and they disappear from that run without touching a single source file.
 
 ### Adding a genuinely new chart
 
@@ -465,30 +531,30 @@ an existing level (`SIN`, `SBM`, `SBP`, `UHE`, `UTE`) is already covered. `tests
 builds one synthetic fixture file per entry of `enabled_specs()`, driven by the registry itself, so
 a newly enabled chart's test fixtures follow automatically with no test-side edit.
 
-**This recipe was verified, not assumed**, by actually performing it in a scratch copy of the
-repository — adding one new enabled `SIN`-level entry and its `FALLBACK_UNITS` key, then running
-the full test suite — and recording exactly what failed. The count is pinned in **twelve** test
-files (not seven, which is what a plain `grep` for the literal `23` and `42` finds — the other five
-only surface by actually running the suite):
+The catalogue's size and order are pinned in 13 test files. Twelve of them had to change when
+`QDEF_SIN`, `QTUR_SIN` and `QVER_SIN` were enabled, and `tests/test_schemas.py` is also hit when a
+new `FALLBACK_UNITS` key is added. A plain `grep -rln _ENABLED_CHART_COUNT tests/` finds only six of
+the 13 files; the other seven pin the catalogue under other names.
 
-| File | What breaks |
+| File | What pins the catalogue |
 | --- | --- |
-| `tests/test_chart_specs.py` | The `_ENABLED_KEYS_IN_ORDER` 23-key tuple and three literal `42` counts. |
-| `tests/test_builder.py` | `_ENABLED_CHART_COUNT = 23`, used directly and in one subtraction. |
-| `tests/test_charts_costs.py` | A literal `len(sections) == 23`. |
-| `tests/test_charts_sin.py` | A literal `_ALL_ENABLED_CHART_KEYS` 23-tuple, used both for a length check and — more subtly — as the `disabled` argument of a test that disables "every" chart: a 24th enabled chart not in that tuple survives disabling, so the test that expects `ConfigError` for an empty catalogue instead fails with "DID NOT RAISE". |
-| `tests/test_output_size.py` | `_ENABLED_CHART_COUNT = 23`, checked against `output_volumes()["graficos"]`. |
-| `tests/test_payload.py` | `_ENABLED_CHART_COUNT = 23`, checked against the payload's chart count. |
-| `tests/test_registries.py` | `_ENABLED_CHART_KEY_COUNT = 23`, checked against `METADADOS_OPERACAO`'s registered variable count. |
-| `tests/test_fixtures_sintese.py` | Three tests pinning the fixture generator's file count at exactly 30 (23 enabled charts plus 7 registry files). |
-| `tests/test_schemas.py` | `test_fallback_units_has_exactly_forty_two_keys`. |
-| `tests/test_pipeline.py` | `pipeline.run`'s own `data_volumes["graficos"]`, checked against the same `_ENABLED_CHART_COUNT`. |
-| `tests/test_parity.py` | The same `_ENABLED_CHART_COUNT` pinned chart-section count, inside a test whose main subject — the datetime X axis and the single inlined-Plotly output file, both parity findings — is unaffected. |
-| `tests/test_renderer_controls.py` | A test that disables every `SIN` chart and asserts the active group shifts to `SBM`; a new `SIN` entry changes which charts that disabling call must name. |
+| `tests/test_chart_specs.py` | `_ENABLED_KEYS_IN_ORDER` (31 keys, display order), `len(all_specs) == 47` (three tests), `16` disabled, per-level counts (`SIN: 8`, `SBM: 6`, `SBP: 1`, `UHE: 8`, `UTE: 1`, `CUSTO: 3`, `TEMPO: 4`), `len(remaining) == 29`. |
+| `tests/test_builder.py` | `_ENABLED_CHART_COUNT = 31` and `_SIN_CHART_COUNT = 8`. |
+| `tests/test_charts_costs.py` | A literal `len(sections) == 31`. |
+| `tests/test_charts_sin.py` | `_ALL_ENABLED_CHART_KEYS`, a 31-key tuple used for a length check and as the `disabled` argument of the empty-catalogue test: a 32nd enabled chart missing from the tuple survives, so the `ConfigError` test fails with "DID NOT RAISE". |
+| `tests/test_fixtures_sintese.py` | The generator's file count: `33` (26 enabled source files plus 7 registry files) in two tests, and `32` with one file omitted. |
+| `tests/test_integration_exemplo.py` | `_ENABLED_CHART_COUNT = 31`; runs only when the example tree is present. |
+| `tests/test_output_size.py` | `_ENABLED_CHART_COUNT = 31`, checked against `volumes["graficos"]`. |
+| `tests/test_parity.py` | `_ENABLED_CHART_COUNT = 31`, the chart-section count; runs only when the example tree is present. |
+| `tests/test_payload.py` | `_ENABLED_CHART_COUNT = 31` and `_VALUE_COUNT = 18_068`, the stored-value count. |
+| `tests/test_pipeline.py` | `_ENABLED_CHART_COUNT = 31`, checked against `data_volumes["graficos"]`. |
+| `tests/test_registries.py` | `_ENABLED_CHART_KEY_COUNT = 31`, one `METADADOS_OPERACAO` row per enabled chart key. |
+| `tests/test_renderer_controls.py` | `_ALL_SIN_CHART_KEYS`, the eight `SIN` keys a test disables to move the active level to `Submercado`. |
+| `tests/test_schemas.py` | `_ENABLED_CHART_KEYS` (26 source files), `_DISABLED_CHART_KEYS` (16) and `len(FALLBACK_UNITS) == 42`. Hit only by a new `FALLBACK_UNITS` key. |
 
-This is the complete, measured list for a new *enabled* chart added to the `SIN` group; a chart
-added disabled, or to a different group, changes exactly which of the group-specific assertions
-above are hit, but the same twelve files are where to look.
+`tests/test_charts_hydro.py` and `tests/test_charts_filters.py` pin the `Usinas hidrelétricas`
+chart order; they changed when that order was set. A chart added to another level, or added
+disabled, hits a different subset of these files.
 
 ## Structure
 
@@ -518,7 +584,7 @@ src/dessem_dashboard/
 ├── charts/
 │   ├── __init__.py                  # registers SPECS into REGISTRY at import time
 │   ├── registry.py                   # ChartSpec, ChartRegistry, REGISTRY singleton
-│   └── specs.py                       # SPECS: the 42-entry default catalogue (23 enabled)
+│   └── specs.py                       # SPECS: the 47-entry default catalogue (31 enabled)
 └── dashboard/
     ├── __init__.py                    # package marker, no logic
     ├── theme.py                        # ONS brand colors, Plotly layout template, CSS custom properties
@@ -579,11 +645,12 @@ mechanism: `DashboardData.add_warning` only appends to the list the `Avisos` sec
 `run_manifest.json` stores; it is `cli.main` that turns that list into console and log-file output,
 logging each distinct message as one `logger.warning` line right after the pipeline returns and
 before the manifest is written. That loop is capped at `cli._MAX_LOGGED_WARNINGS` (20) lines — a
-single (scenario, deck) whose synthesis folder is missing can otherwise raise up to 23 per-chart
-warnings on its own, and up to 92 across two scenarios and two decks — so one malformed tree cannot
-flood the console; past the cap, one further `logger.warning` line names how many messages were
-omitted and points back to `run_manifest.json` and `Avisos`, both of which always keep the
-complete, uncapped list regardless of what the console shows. The log file additionally
+single (scenario, deck) that lacks every chart source file raises 26 per-chart warnings, one per
+enabled source file (24 series files plus `CUSTOS` and `TEMPO`), and two scenarios by two decks
+raise 104 — so one malformed tree cannot flood the console; past the cap, one further
+`logger.warning` line names how many messages were omitted and points back to
+`run_manifest.json` and `Avisos`, both of which always keep the complete, uncapped list regardless
+of what the console shows. The log file additionally
 records several warnings that never reach the manifest or the `Avisos` section, because they are
 operational detail rather than something the chart's own values are missing — for example a
 renamed plant detected between two decks' registries (`data.consolidate._warn_on_renamed_plants`),
