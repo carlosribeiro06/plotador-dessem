@@ -13,6 +13,8 @@ Steps 1 to 20 cover the whole of Epic 3 (tickets 019–026): the offline shell, 
 the view-mode and deck controls, the Absoluto/Diferença toggle, and the SIN, submarket and
 interchange charts. Steps 21 to 26 cover Epic 4's plant name and code filters (ticket-028). Steps
 27 to 32 cover Epic 4's cost and time bar charts (tickets 030–031).
+Steps 33 to 41 cover the hydro flow charts of the SIN and `Usinas hidrelétricas` levels (plan
+graficos-hidreletricos).
 
 Interface strings are quoted exactly as they render, in Portuguese, because that is the language of
 every dashboard UI string; the prose around them is English, per the Rigoroso mode policy.
@@ -30,7 +32,7 @@ decision E3-1 means no test parses this file, so a syntax error would otherwise 
    console already open.
 
    **Expected result:** the page renders the ONS header, the level navigation, the controls and the
-   five initially visible SIN charts; the console reports no error of any kind. Any error here is a
+   eight initially visible SIN charts; the console reports no error of any kind. Any error here is a
    defect in `dashboard.js` and must be fixed before release, since no other gate would catch it.
 
 ## 2. ONS visual identity
@@ -53,7 +55,7 @@ decision E3-1 means no test parses this file, so a syntax error would otherwise 
 
 7. Click `Submercado`.
 
-   **Expected result:** the five SIN charts disappear, the six `Submercado` charts appear in their
+   **Expected result:** the eight SIN charts disappear, the six `Submercado` charts appear in their
    place, and the `Submercado` button becomes the pressed one while `SIN` stops being pressed. Click
    back to `SIN` and confirm the reverse. Level switching is a re-render, not a page reload, so the
    browser must not navigate.
@@ -257,3 +259,97 @@ section covers them together.
     only the selected deck's bars and re-renders when the deck selector changes (melhorias-dashboard
     requirement 4). The values themselves never change with the view mode, only which decks' bars
     are drawn.
+
+## 10. Hydro flow charts
+
+The `SIN` level and the `Usinas hidrelétricas` level carry flow charts in `m3/s` (plan
+graficos-hidreletricos), so this section verifies their titles, their order and their behaviour in
+all four combinations of `Por deck` / `Encadeado` with `Absoluto` / `Diferença`.
+
+33. Build the dashboard for the bundled two-scenario example (do not run this command as part of an
+    automated check; it is the manual reproduction case for this section). Replace `<scratch-dir>`
+    with a directory outside the repository, so the build leaves nothing in `output/`:
+
+    ```bash
+    dessem-dashboard --casos examples/caso1 examples/caso2 --saida <scratch-dir>/dashboard-fluxos.html
+    ```
+
+    The reference scenario of this build is the first `--casos` directory, as in step 12. Open the
+    resulting file as in step 2 and select `SIN`.
+
+34. On the `SIN` level, read the chart titles in order of appearance.
+
+    **Expected result:** eight charts, in this order: `Geração Térmica`, `Geração Hidrelétrica`,
+    `Geração Não Simulada`, `EARMF`, `Volume Armazenado`, `Defluência`, `Turbinamento` and
+    `Vertimento`. The last three are the flow charts: each draws one line trace per scenario, in
+    that scenario's own colour, and its Y axis reads `m3/s`.
+
+35. Select `Por deck` mode and pick a deck in the `Deck` dropdown (`#deck-selector`). With
+    `Absoluto` active, inspect `Defluência`, `Turbinamento` and `Vertimento`. Then switch the value
+    toggle (`#value-toggle`) to `Diferença` and inspect the same three charts.
+
+    **Expected result:** in `Absoluto` each chart plots both scenarios' flow for the picked deck.
+    In `Diferença` the reference scenario's trace is a flat line at zero, the other scenario's
+    trace is `scenario - referência`, and the Y-axis title reads `m3/s (diferença)`. If the
+    dropdown offers more than one deck, picking another one redraws all three charts; this example
+    pair holds a single deck, so only the picked deck's data is shown.
+
+36. Select `Encadeado` mode and repeat step 35 on the same three charts: first in `Absoluto`, then
+    in `Diferença`.
+
+    **Expected result:** the deck selector is disabled while `Encadeado` is active (as in step 11),
+    and each chart spans the chained axis. The `Absoluto` and `Diferença` results match step 35: the
+    reference trace is zero in `Diferença`, the other trace is the difference, and the Y-axis title
+    gains the suffix ` (diferença)`. Switching back to `Absoluto` restores the bare `m3/s`.
+
+37. Navigate to `Usinas hidrelétricas` and read the chart titles in order of appearance.
+
+    **Expected result:** eight charts, in this order: `Geração`, `Volume Armazenado (hm3)`,
+    `Volume Armazenado (%)`, `Vazão Afluente`, `Vazão Incremental`, `Defluência`, `Turbinamento`
+    and `Vertimento`. The five flow charts (`Vazão Afluente` to `Vertimento`) have a plant dropdown
+    and a Y axis that reads `m3/s`.
+
+38. On one of the flow charts of step 37 (for example `Turbinamento`), type a partial plant name
+    into `Filtrar por nome`, then clear it and type a partial plant code into `Filtrar por código`.
+    Pick a plant, then switch the value toggle between `Absoluto` and `Diferença` and between
+    `Por deck` and `Encadeado`.
+
+    **Expected result:** the plant dropdown narrows exactly as in steps 21 to 25, and the chart
+    shows the picked plant's flow, one trace per scenario. The four combinations of `Por deck` / `Encadeado` with `Absoluto` /
+    `Diferença` all draw the chart without a console error.
+
+39. On `Vazão Incremental`, switch the value toggle to `Diferença`, then pick several different
+    plants in the dropdown.
+
+    **Expected result:** for this example pair, the chart is a flat line at zero for every plant
+    picked, on both traces. This is expected and is not a defect: the two cases share their inflow
+    input, so their `Vazão Incremental` series are identical and their difference is zero
+    everywhere. It is a property of this example pair, not of DESSEM. On `Vazão Afluente`,
+    `Defluência`, `Turbinamento` and `Vertimento` the other scenario's trace in `Diferença` is
+    non-zero for at least some plants, so a flat line at zero for every plant there is not the
+    expected picture.
+
+40. Close the dashboard. Copy `settings.json` to a scratch directory outside the repository, then
+    edit the copy so that `charts.disabled` holds the key `QDEF_SIN`:
+
+    ```json
+    "charts": {
+      "disabled": ["QDEF_SIN"]
+    }
+    ```
+
+    Rebuild with the copy, passing it through `--settings`, and open the new file on `SIN`:
+
+    ```bash
+    dessem-dashboard --casos examples/caso1 examples/caso2 --saida <scratch-dir>/dashboard-sem-defluencia.html --settings <scratch-dir>/settings.json
+    ```
+
+    **Expected result:** the build exits 0 and the `SIN` level shows seven charts: `Defluência` is
+    gone, and `Turbinamento` and `Vertimento` remain with their traces. Only the `SIN` chart is
+    disabled: the `Defluência` chart on `Usinas hidrelétricas` is unchanged, because its key is
+    different.
+
+41. On the dashboard built in step 33, navigate to `Submercado`.
+
+    **Expected result:** the same six charts as in step 7 appear and none of them is a flow chart:
+    there is no `Defluência`, `Turbinamento` or `Vertimento` chart at this level.
