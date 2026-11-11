@@ -22,13 +22,17 @@ from dessem_dashboard.data.schemas import (
 )
 from dessem_dashboard.errors import SchemaError
 
-# The 23 enabled chart-catalogue keys, Appendix A.6.
+# The 26 enabled source files, in first-use order of the chart catalogue. Source files, not chart
+# keys: CUSTOS and TEMPO back the dedicated scalar charts CUSTO_* and TEMPO_*.
 _ENABLED_CHART_KEYS = (
     "GTER_SIN",
     "GHID_SIN",
     "GUNS_SIN",
     "EARMF_SIN",
     "VARMF_SIN",
+    "QDEF_SIN",
+    "QTUR_SIN",
+    "QVER_SIN",
     "MER_SBM",
     "GHID_SBM",
     "GTER_SBM",
@@ -37,19 +41,19 @@ _ENABLED_CHART_KEYS = (
     "VARMF_SBM",
     "INT_SBP",
     "GHID_UHE",
-    "QTUR_UHE",
-    "QVER_UHE",
     "VARMF_UHE",
     "VARPF_UHE",
-    "QDEF_UHE",
     "QAFL_UHE",
     "QINC_UHE",
+    "QDEF_UHE",
+    "QTUR_UHE",
+    "QVER_UHE",
     "GTER_UTE",
     "CUSTOS",
     "TEMPO",
 )
 
-# The 19 disabled registry entries listed just below the Appendix A.6 table.
+# The 16 disabled registry entries that follow the enabled source files.
 _DISABLED_CHART_KEYS = (
     "MER_SIN",
     "MERL_SBM",
@@ -67,9 +71,6 @@ _DISABLED_CHART_KEYS = (
     "COP_SIN",
     "CUNS_SIN",
     "CUNS_SBM",
-    "QDEF_SIN",
-    "QTUR_SIN",
-    "QVER_SIN",
 )
 
 

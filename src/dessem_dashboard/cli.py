@@ -22,11 +22,11 @@ from dessem_dashboard.manifest import write_run_manifest
 _LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 _VIEW_MODES = ("deck", "encadeado")
 
-# Measured cap (epic-05 refinement): 23 charts are enabled by default, so a (scenario, deck)
-# whose synthesis folder is missing can raise up to 23 per-chart warnings on its own, and four
-# such combinations (two scenarios by two decks) reach 92. Capping the console keeps one
-# malformed tree from flooding it; run_manifest.json and the dashboard's Avisos section still
-# carry every message, uncapped.
+# Measured cap (epic-05 refinement): 26 source files are enabled by default (24 SERIES charts plus
+# the CUSTOS and TEMPO scalar files), so a (scenario, deck) whose synthesis folder is missing can
+# raise up to 26 per-chart warnings on its own, and four such combinations (two scenarios by two
+# decks) reach 104. Capping the console keeps one malformed tree from flooding it;
+# run_manifest.json still carries every message, uncapped.
 _MAX_LOGGED_WARNINGS = 20
 
 _EPILOG = (
@@ -131,11 +131,11 @@ def _resolve_labels(
 def _log_warnings(messages: Sequence[str]) -> None:
     """Log each distinct degradation warning to the console and the rotating log file.
 
-    `DashboardData.add_warning` only appends to a list rendered into `run_manifest.json` and
-    the dashboard's Avisos section; without this call an operator watching the console of a
-    run sees nothing about a missing deck, a missing file or an absent entity. Logs at most
-    `_MAX_LOGGED_WARNINGS` messages and, when more were produced, exactly one further WARNING
-    naming how many were omitted and where the complete list still lives.
+    `DashboardData.add_warning` only appends to a list rendered into `run_manifest.json`;
+    without this call an operator watching the console of a run sees nothing about a missing
+    deck, a missing file or an absent entity. Logs at most `_MAX_LOGGED_WARNINGS` messages and,
+    when more were produced, exactly one further WARNING naming how many were omitted and where
+    the complete list still lives.
     """
     for message in messages[:_MAX_LOGGED_WARNINGS]:
         logger.warning(message)
@@ -143,7 +143,7 @@ def _log_warnings(messages: Sequence[str]) -> None:
     if omitted > 0:
         logger.warning(
             "%d aviso(s) adicional(is) omitido(s) no console e no arquivo de log; lista "
-            "completa em run_manifest.json e na seção Avisos do dashboard.",
+            "completa em run_manifest.json.",
             omitted,
         )
 

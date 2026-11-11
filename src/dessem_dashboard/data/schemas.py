@@ -95,16 +95,19 @@ SCALAR_COLUMNS: Mapping[str, tuple[str, ...]] = MappingProxyType(
 )
 
 # Unit fallback for chart titles when METADADOS_OPERACAO is unavailable or incomplete (ticket-011,
-# ticket-015). Covers the 23 keys enabled by default (Appendix A.6) plus the 19 disabled registry
-# entries listed below that table; units verified against METADADOS_OPERACAO.parquet.
+# ticket-015). Keyed by source_file. Covers the 26 source files enabled by default plus the 16
+# disabled registry entries listed after them; units verified against METADADOS_OPERACAO.parquet.
 FALLBACK_UNITS: Mapping[str, str] = MappingProxyType(
     {
-        # Enabled chart catalogue (Appendix A.6).
+        # Source files of the enabled charts, in first-use order of the chart catalogue.
         "GTER_SIN": "MW",
         "GHID_SIN": "MW",
         "GUNS_SIN": "MW",
         "EARMF_SIN": "MWh",
         "VARMF_SIN": "hm3",
+        "QDEF_SIN": "m3/s",
+        "QTUR_SIN": "m3/s",
+        "QVER_SIN": "m3/s",
         "MER_SBM": "MW",
         "GHID_SBM": "MW",
         "GTER_SBM": "MW",
@@ -113,13 +116,13 @@ FALLBACK_UNITS: Mapping[str, str] = MappingProxyType(
         "VARMF_SBM": "hm3",
         "INT_SBP": "MW",
         "GHID_UHE": "MW",
-        "QTUR_UHE": "m3/s",
-        "QVER_UHE": "m3/s",
         "VARMF_UHE": "hm3",
         "VARPF_UHE": "%",
-        "QDEF_UHE": "m3/s",
         "QAFL_UHE": "m3/s",
         "QINC_UHE": "m3/s",
+        "QDEF_UHE": "m3/s",
+        "QTUR_UHE": "m3/s",
+        "QVER_UHE": "m3/s",
         "GTER_UTE": "MW",
         # CUSTOS.PRESENTE (58667.5674 raw) tracks COP_SIN summed over the reference deck's 144 h
         # horizon (406.6581 R$/h x 144 h = 58558.77, ratio 1.0019); CUSTOS.FUTURO (228420390.34615
@@ -128,7 +131,7 @@ FALLBACK_UNITS: Mapping[str, str] = MappingProxyType(
         # share COP_SIN/CFU_SIN's unit, not R$ (epic-04 boundary review finding 1).
         "CUSTOS": "10^3 R$",
         "TEMPO": "min",
-        # Disabled registry entries (Appendix A.6, below the enabled table).
+        # Disabled registry entries.
         "MER_SIN": "MW",
         "MERL_SBM": "MW",
         "MERL_SIN": "MW",
@@ -145,9 +148,6 @@ FALLBACK_UNITS: Mapping[str, str] = MappingProxyType(
         "COP_SIN": "10^3 R$",
         "CUNS_SIN": "MW",
         "CUNS_SBM": "MW",
-        "QDEF_SIN": "m3/s",
-        "QTUR_SIN": "m3/s",
-        "QVER_SIN": "m3/s",
     }
 )
 

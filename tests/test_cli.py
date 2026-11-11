@@ -586,7 +586,7 @@ def test_main_truncates_logged_warnings_at_the_cap_and_names_the_remainder(
     # even though "5" would still be a substring of the mutated "25 aviso(s) ...".
     assert truncation_message.startswith(str(expected_omitted))
     assert "run_manifest.json" in truncation_message
-    assert "Avisos" in truncation_message
+    assert "Avisos" not in truncation_message
 
     log_lines = (tmp_path / "logs" / "dashboard.log").read_text(encoding="utf-8").splitlines()
     file_messages = [parts[-1] for line in log_lines if len(parts := line.split(" | ", 3)) == 4]
