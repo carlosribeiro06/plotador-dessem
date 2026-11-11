@@ -56,26 +56,26 @@ _PAYLOAD_LOGGER_NAME = "dessem_dashboard.dashboard.payload"
 # order, paired with the Current State table's curated titles, units and fixture entity counts.
 _UHE_CHART_KEYS_IN_ORDER: tuple[str, ...] = (
     "GHID_UHE",
-    "QTUR_UHE",
-    "QVER_UHE",
     "VARMF_UHE",
     "VARPF_UHE",
-    "QDEF_UHE",
     "QAFL_UHE",
     "QINC_UHE",
+    "QDEF_UHE",
+    "QTUR_UHE",
+    "QVER_UHE",
 )
 _UHE_TITLES_IN_ORDER: tuple[str, ...] = (
     "Geração",
-    "Turbinamento",
-    "Vertimento",
     "Volume Armazenado (hm3)",
     "Volume Armazenado (%)",
-    "Defluência",
     "Vazão Afluente",
     "Vazão Incremental",
+    "Defluência",
+    "Turbinamento",
+    "Vertimento",
 )
-_UHE_UNITS_IN_ORDER: tuple[str, ...] = ("MW", "m3/s", "m3/s", "hm3", "%", "m3/s", "m3/s", "m3/s")
-_UHE_ENTITY_COUNTS_IN_ORDER: tuple[int, ...] = (3, 3, 3, 2, 2, 3, 3, 3)
+_UHE_UNITS_IN_ORDER: tuple[str, ...] = ("MW", "hm3", "%", "m3/s", "m3/s", "m3/s", "m3/s", "m3/s")
+_UHE_ENTITY_COUNTS_IN_ORDER: tuple[int, ...] = (3, 2, 2, 3, 3, 3, 3, 3)
 _FOUR_DISTINCT_UHE_UNITS: frozenset[str] = frozenset({"MW", "m3/s", "hm3", "%"})
 
 # Measured on the scenario_tree fixture: three plant labels, sorted alphabetically like the

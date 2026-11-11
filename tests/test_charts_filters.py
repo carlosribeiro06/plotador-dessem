@@ -46,13 +46,13 @@ _DOCS_CHECKLIST = Path(__file__).resolve().parent.parent / "docs" / "checklist-m
 # catalogue").
 _PLANT_CHART_KEYS: tuple[str, ...] = (
     "GHID_UHE",
-    "QTUR_UHE",
-    "QVER_UHE",
     "VARMF_UHE",
     "VARPF_UHE",
-    "QDEF_UHE",
     "QAFL_UHE",
     "QINC_UHE",
+    "QDEF_UHE",
+    "QTUR_UHE",
+    "QVER_UHE",
     "GTER_UTE",
 )
 

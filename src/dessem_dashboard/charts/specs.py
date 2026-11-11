@@ -150,12 +150,6 @@ SPECS: tuple[ChartSpec, ...] = (
         "GHID_UHE", ChartGroup.UHE, AggregationLevel.UHE, EntitySelector.HYDRO_PLANT, "Geração"
     ),
     _series(
-        "QTUR_UHE", ChartGroup.UHE, AggregationLevel.UHE, EntitySelector.HYDRO_PLANT, "Turbinamento"
-    ),
-    _series(
-        "QVER_UHE", ChartGroup.UHE, AggregationLevel.UHE, EntitySelector.HYDRO_PLANT, "Vertimento"
-    ),
-    _series(
         "VARMF_UHE",
         ChartGroup.UHE,
         AggregationLevel.UHE,
@@ -172,9 +166,6 @@ SPECS: tuple[ChartSpec, ...] = (
         notes=_OPEN_QUESTION_2_NOTE,
     ),
     _series(
-        "QDEF_UHE", ChartGroup.UHE, AggregationLevel.UHE, EntitySelector.HYDRO_PLANT, "Defluência"
-    ),
-    _series(
         "QAFL_UHE",
         ChartGroup.UHE,
         AggregationLevel.UHE,
@@ -189,6 +180,15 @@ SPECS: tuple[ChartSpec, ...] = (
         EntitySelector.HYDRO_PLANT,
         "Vazão Incremental",
         notes=_OPEN_QUESTION_3_NOTE,
+    ),
+    _series(
+        "QDEF_UHE", ChartGroup.UHE, AggregationLevel.UHE, EntitySelector.HYDRO_PLANT, "Defluência"
+    ),
+    _series(
+        "QTUR_UHE", ChartGroup.UHE, AggregationLevel.UHE, EntitySelector.HYDRO_PLANT, "Turbinamento"
+    ),
+    _series(
+        "QVER_UHE", ChartGroup.UHE, AggregationLevel.UHE, EntitySelector.HYDRO_PLANT, "Vertimento"
     ),
     _series(
         "GTER_UTE", ChartGroup.UTE, AggregationLevel.UTE, EntitySelector.THERMAL_PLANT, "Geração"
