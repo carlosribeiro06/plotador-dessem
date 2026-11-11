@@ -43,7 +43,11 @@ _CONSOLIDATE_LOGGER_NAME = "dessem_dashboard.data.consolidate"
 
 
 def _settings_dict(
-    *, stages_per_deck: int, include_fictitious: bool, disabled: Sequence[str]
+    *,
+    stages_per_deck: int,
+    include_fictitious: bool,
+    disabled: Sequence[str],
+    fictitious_codes: Sequence[int] = (11, 99),
 ) -> dict[str, Any]:
     return {
         "project": "dessem-dashboard",
@@ -63,7 +67,10 @@ def _settings_dict(
         "chaining": {"stages_per_deck": stages_per_deck},
         "costs": {"total_parcels": ["PRESENTE", "FUTURO"]},
         "time": {"stage_groups": {"PL": ["PL"]}, "unit_divisor": 60.0},
-        "submarkets": {"include_fictitious": include_fictitious, "fictitious_codes": [11, 99]},
+        "submarkets": {
+            "include_fictitious": include_fictitious,
+            "fictitious_codes": list(fictitious_codes),
+        },
         "dashboard": {
             "title": "Comparação de Resultados do DESSEM",
             "footer_text": "Gerência de Ferramentas Energéticas - FEN",
@@ -84,11 +91,15 @@ def _build_settings(
     stages_per_deck: int = _STAGES_PER_DECK,
     include_fictitious: bool = False,
     disabled: Sequence[str] = (),
+    fictitious_codes: Sequence[int] = (11, 99),
 ) -> Settings:
     """Write settings.json under tmp_path and load it, so tests exercise the real config path."""
     target = tmp_path / "settings.json"
     settings_content = _settings_dict(
-        stages_per_deck=stages_per_deck, include_fictitious=include_fictitious, disabled=disabled
+        stages_per_deck=stages_per_deck,
+        include_fictitious=include_fictitious,
+        disabled=disabled,
+        fictitious_codes=fictitious_codes,
     )
     target.write_text(json.dumps(settings_content), encoding="utf-8")
     return load_settings(target)
@@ -516,6 +527,37 @@ def test_build_dashboard_data_fictitious_submarket_included_when_include_fictiti
 
     assert "11" in {e.entity_id for e in data.entities("CMO_SBM")}
     assert data.has_series("CMO_SBM", "11", "caso_a", data.deck_dates[0]) is True
+
+
+@pytest.mark.parametrize(
+    ("fictitious_codes", "expected_entity_ids"),
+    [
+        pytest.param([99], {"1", "2", "11"}, id="only_99_fictitious_keeps_11_visible"),
+        pytest.param([2, 11, 99], {"1"}, id="2_11_99_fictitious_hides_all_three"),
+    ],
+)
+def test_build_dashboard_data_hides_exactly_the_configured_fictitious_codes(
+    scenario_tree: dict[str, Path],
+    tmp_path: Path,
+    fictitious_codes: list[int],
+    expected_entity_ids: set[str],
+) -> None:
+    """R27 regression: settings.submarkets.fictitious_codes must reach the registry loader.
+
+    The hard-coded default (11, 99) used to decide visibility regardless of the setting, so
+    code 11 stayed hidden under [99], code 2 stayed visible under [2, 11, 99], and code 11
+    produced spurious "código(s) de submercado ... descartado(s)" warnings in _load_series.
+    """
+    scenarios = discover_scenarios([scenario_tree["caso_a"], scenario_tree["caso_b"]])
+    settings = _build_settings(
+        tmp_path, include_fictitious=False, fictitious_codes=fictitious_codes
+    )
+
+    data = build_dashboard_data(scenarios, settings=settings, reference="caso_a")
+
+    assert {e.entity_id for e in data.entities("CMO_SBM")} == expected_entity_ids
+    submarket_code_warnings = [w for w in data.warnings() if "código(s) de submercado" in w]
+    assert submarket_code_warnings == []
 
 
 def test_build_dashboard_data_int_sbp_keeps_pair_with_code_11_regardless_of_include_fictitious(

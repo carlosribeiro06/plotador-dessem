@@ -346,8 +346,14 @@ def _build_axes(
     return deck_axes, chained_axis, window_lengths, warnings
 
 
-def _load_registries(scenarios: Sequence[ScenarioRef]) -> Registries:
+def _load_registries(
+    scenarios: Sequence[ScenarioRef], *, fictitious_codes: Sequence[int]
+) -> Registries:
     """Phase 3: load the primary Registries from the first available deck of the first scenario.
+
+    fictitious_codes (settings.submarkets.fictitious_codes) is forwarded to every
+    load_registries call, so the registries' fictitious flag and _load_series's dropped-code set
+    agree on which submarkets are fictitious.
 
     Compares every other deck's UHE and UTE plant names against the primary registry, logging a
     WARNING on a mismatch and always keeping the primary name (requirement 4). A non-primary
@@ -362,7 +368,7 @@ def _load_registries(scenarios: Sequence[ScenarioRef]) -> Registries:
     """
     start = time.perf_counter()
     primary_deck = scenarios[0].decks[0]
-    primary = load_registries(primary_deck.sintese_dir)
+    primary = load_registries(primary_deck.sintese_dir, fictitious_codes=fictitious_codes)
 
     decks_compared = 0
     for scenario in scenarios:
@@ -370,7 +376,7 @@ def _load_registries(scenarios: Sequence[ScenarioRef]) -> Registries:
             if deck is primary_deck:
                 continue
             try:
-                registries = load_registries(deck.sintese_dir)
+                registries = load_registries(deck.sintese_dir, fictitious_codes=fictitious_codes)
             except DataFileError as err:
                 logger.warning(
                     "Registro do deck '%s' (cenário '%s') indisponível para a comparação "
@@ -662,7 +668,7 @@ def build_dashboard_data(
         deck_dates,
         stages_per_deck=settings.chaining.stages_per_deck,
     )
-    registries = _load_registries(scenarios)
+    registries = _load_registries(scenarios, fictitious_codes=settings.submarkets.fictitious_codes)
 
     data = DashboardData(
         scenarios=scenario_order, reference=reference, deck_dates=deck_dates, registries=registries

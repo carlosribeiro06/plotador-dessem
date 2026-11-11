@@ -591,7 +591,9 @@ def test_group_b_series_and_scalar_parity_matches_legacy_expressions(tmp_path: P
 
     official_name = context.scenarios[0]
     official_first_deck = context.dirs_by_scenario[official_name][0]
-    registries = load_registries(official_first_deck)
+    registries = load_registries(
+        official_first_deck, fictitious_codes=context.settings.submarkets.fictitious_codes
+    )
     codes = visible_submarket_codes(
         registries, include_fictitious=context.settings.submarkets.include_fictitious
     )

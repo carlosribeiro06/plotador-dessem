@@ -222,12 +222,15 @@ def _build_variables(frame: pd.DataFrame) -> dict[str, VariableMeta]:
     return variables
 
 
-def load_registries(sintese_dir: Path, *, fictitious_codes: Sequence[int] = (11, 99)) -> Registries:
+def load_registries(sintese_dir: Path, *, fictitious_codes: Sequence[int]) -> Registries:
     """Load UHE, UTE, SBM, REE and METADADOS_OPERACAO from sintese_dir into one Registries.
 
-    Performs five reads through readers.read_registry and no writes. DataFileError propagates
-    unchanged when a registry file is missing; that is a hard failure per the ticket's Error
-    Handling section, not a degradable warning.
+    fictitious_codes are the submarket codes flagged Submarket.fictitious; callers pass
+    settings.submarkets.fictitious_codes, and there is deliberately no default so that no caller
+    can silently fall back to a hard-coded set. Performs five reads through
+    readers.read_registry and no writes. DataFileError propagates unchanged when a registry file
+    is missing; that is a hard failure per the ticket's Error Handling section, not a degradable
+    warning.
     """
     fictitious_set = frozenset(fictitious_codes)
 
