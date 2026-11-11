@@ -32,7 +32,9 @@ def _expected_file_names() -> set[str]:
     return series_names | set(_REGISTRY_FILE_NAMES)
 
 
-def test_make_sintese_dir_default_arguments_writes_exactly_thirty_files(tmp_path: Path) -> None:
+def test_make_sintese_dir_default_arguments_writes_exactly_thirty_three_files(
+    tmp_path: Path,
+) -> None:
     # Arrange
     target = tmp_path / "s"
 
@@ -41,7 +43,7 @@ def test_make_sintese_dir_default_arguments_writes_exactly_thirty_files(tmp_path
 
     # Assert
     written = {path.name for path in result.iterdir()}
-    assert len(written) == 30
+    assert len(written) == 33
     assert written == _expected_file_names()
 
 
@@ -234,7 +236,7 @@ def test_omit_known_file_excludes_it_from_the_written_set(tmp_path: Path) -> Non
         omit=("GTER_UTE.parquet",),
     )
     written = {path.name for path in target.iterdir()}
-    assert len(written) == 29
+    assert len(written) == 32
     assert "GTER_UTE.parquet" not in written
 
 
@@ -270,9 +272,9 @@ def test_different_seeds_produce_different_valor_arrays(tmp_path: Path) -> None:
     assert not np.array_equal(valor_a, valor_b)
 
 
-def test_sintese_dir_fixture_returns_a_directory_with_thirty_files(sintese_dir: Path) -> None:
+def test_sintese_dir_fixture_returns_a_directory_with_thirty_three_files(sintese_dir: Path) -> None:
     written = {path.name for path in sintese_dir.iterdir()}
-    assert len(written) == 30
+    assert len(written) == 33
     assert written == _expected_file_names()
 
 

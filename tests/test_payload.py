@@ -26,11 +26,11 @@ _PAYLOAD_LOGGER_NAME = "dessem_dashboard.dashboard.payload"
 
 # Measured on tests.conftest.scenario_tree with the repository settings.json values
 # (chaining.stages_per_deck=48): both deck axes have length 50, the chained axis has length 96,
-# value_count() is 16892, warnings() is empty, and 23 charts are enabled by default.
+# value_count() is 18068, warnings() is empty, and 31 charts are enabled by default.
 _DECK_AXIS_LENGTH = 50
 _CHAINED_AXIS_LENGTH = 96
-_VALUE_COUNT = 16_892
-_ENABLED_CHART_COUNT = 28
+_VALUE_COUNT = 18_068
+_ENABLED_CHART_COUNT = 31
 _DECK_KEYS: tuple[str, str] = ("03/03/2024", "04/03/2024")
 _CHAINED_KEY = "encadeado"
 _HAND_BUILT_DATE = date(2024, 3, 3)

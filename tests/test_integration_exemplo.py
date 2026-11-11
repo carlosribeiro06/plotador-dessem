@@ -34,10 +34,10 @@ _REPO_SETTINGS_PATH = _REPO_ROOT / "settings.json"
 _DEFAULT_ROOT = _REPO_ROOT / "exemplo"
 
 # Measured via enabled_specs() against the repository's own settings.json (charts.disabled ==
-# []): 28 of the 47 declared chart specs are enabled by default (21 series plus the seven
+# []): 31 of the 47 declared chart specs are enabled by default (24 series plus the seven
 # dedicated Custo/Tempo bar charts of melhorias-dashboard design D7), matching
 # tests/test_pipeline.py's, tests/test_builder.py's and tests/test_output_size.py's own count.
-_ENABLED_CHART_COUNT = 28
+_ENABLED_CHART_COUNT = 31
 
 _FOOTER_TEXT = "Gerência de Ferramentas Energéticas - FEN"
 _LOGO_DATA_URI_PREFIX = "data:image/png;base64,"

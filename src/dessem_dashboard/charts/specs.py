@@ -1,11 +1,10 @@
 """Default chart catalogue: the 47 ChartSpec entries and their registration.
 
 Declares SPECS, the literal catalogue fixed by Appendix A.6 of the master plan, amended by the
-melhorias-dashboard spec (design D7): the 28 charts enabled by default (the spec minimum list of
-21 series plus the seven dedicated Custo/Tempo bar charts that replace the two former combined
-CUSTOS/TEMPO charts), followed by 19 further specs shipped disabled to demonstrate the registry's
-extensibility. register_default_specs loads SPECS into a ChartRegistry, defaulting to the REGISTRY
-singleton.
+melhorias-dashboard spec (design D7): the 31 charts enabled by default (24 series plus the seven
+dedicated Custo/Tempo bar charts that replace the two former combined CUSTOS/TEMPO charts),
+followed by 16 further specs shipped disabled to demonstrate the registry's extensibility.
+register_default_specs loads SPECS into a ChartRegistry, defaulting to the REGISTRY singleton.
 """
 
 from __future__ import annotations
@@ -102,6 +101,27 @@ SPECS: tuple[ChartSpec, ...] = (
     _series("EARMF_SIN", ChartGroup.SIN, AggregationLevel.SIN, EntitySelector.NONE, "EARMF"),
     _series(
         "VARMF_SIN", ChartGroup.SIN, AggregationLevel.SIN, EntitySelector.NONE, "Volume Armazenado"
+    ),
+    _series(
+        "QDEF_SIN",
+        ChartGroup.SIN,
+        AggregationLevel.SIN,
+        EntitySelector.NONE,
+        "Defluência",
+    ),
+    _series(
+        "QTUR_SIN",
+        ChartGroup.SIN,
+        AggregationLevel.SIN,
+        EntitySelector.NONE,
+        "Turbinamento",
+    ),
+    _series(
+        "QVER_SIN",
+        ChartGroup.SIN,
+        AggregationLevel.SIN,
+        EntitySelector.NONE,
+        "Vertimento",
     ),
     _series(
         "MER_SBM",
@@ -332,30 +352,6 @@ SPECS: tuple[ChartSpec, ...] = (
         AggregationLevel.SBM,
         EntitySelector.SUBMARKET,
         "Corte de Geração Não Simulada",
-        enabled=False,
-    ),
-    _series(
-        "QDEF_SIN",
-        ChartGroup.SIN,
-        AggregationLevel.SIN,
-        EntitySelector.NONE,
-        "Defluência",
-        enabled=False,
-    ),
-    _series(
-        "QTUR_SIN",
-        ChartGroup.SIN,
-        AggregationLevel.SIN,
-        EntitySelector.NONE,
-        "Turbinamento",
-        enabled=False,
-    ),
-    _series(
-        "QVER_SIN",
-        ChartGroup.SIN,
-        AggregationLevel.SIN,
-        EntitySelector.NONE,
-        "Vertimento",
         enabled=False,
     ),
 )

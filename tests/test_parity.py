@@ -138,7 +138,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 _REPO_SETTINGS_PATH = _REPO_ROOT / "settings.json"
 _DEFAULT_ROOT = _REPO_ROOT / "exemplo"
 
-_ENABLED_CHART_COUNT = 28  # enabled_specs(), measured; matches every other test module's own pin.
+_ENABLED_CHART_COUNT = 31  # enabled_specs(), measured; matches every other test module's own pin.
 
 _SCRIPT_PLOTLY_OPEN_TAG = '<script id="plotly-js">'
 _SCRIPT_CLOSE_TAG = "</script>"

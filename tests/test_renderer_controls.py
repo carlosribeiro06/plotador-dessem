@@ -30,7 +30,7 @@ _ASSETS_PACKAGE = "dessem_dashboard.dashboard.assets"
 _JS_ASSET = "dashboard.js"
 _CSS_ASSET = "dashboard.css"
 
-# The five default-enabled SIN-group chart keys (dessem_dashboard.charts.specs.SPECS): disabling
+# The eight default-enabled SIN-group chart keys (dessem_dashboard.charts.specs.SPECS): disabling
 # all of them removes the group entirely from enabled_specs, so the initially active level shifts
 # to SBM, the group of the next entry in registration order.
 _ALL_SIN_CHART_KEYS: tuple[str, ...] = (
@@ -39,6 +39,9 @@ _ALL_SIN_CHART_KEYS: tuple[str, ...] = (
     "GUNS_SIN",
     "EARMF_SIN",
     "VARMF_SIN",
+    "QDEF_SIN",
+    "QTUR_SIN",
+    "QVER_SIN",
 )
 
 _NAV_BUTTON_PATTERN = re.compile(

@@ -626,7 +626,7 @@ def test_document_data_kind_appears_exactly_once_per_enabled_chart_section(
         [scenario_tree["caso_a"], scenario_tree["caso_b"]], tmp_path, reference="caso_a"
     )
     sections = chart_section_slices(document)
-    assert len(sections) == 28
+    assert len(sections) == 31
     for section in sections:
         assert opening_tag(section).count("data-kind=") == 1
 

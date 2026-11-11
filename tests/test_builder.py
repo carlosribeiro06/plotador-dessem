@@ -30,12 +30,12 @@ _BUILDER_LOGGER_NAME = "dessem_dashboard.dashboard.builder"
 _SHIPPED_LOGO_FILE = "logo/MarcasONS_Secundarias_verticais_Verde.png"
 
 # Measured on tests.conftest.scenario_tree consolidated with settings matching the repository's
-# own settings.json and reference="caso_a": 28 enabled charts, of which 5 are in group SIN. The
-# 28 are the 21 series charts plus the seven dedicated Custo/Tempo bar charts (design D7) that
+# own settings.json and reference="caso_a": 31 enabled charts, of which 8 are in group SIN. The
+# 31 are the 24 series charts plus the seven dedicated Custo/Tempo bar charts (design D7) that
 # replaced the two former combined CUSTOS/TEMPO charts; the nav therefore lists seven groups
 # (SIN, SBM, SBP, UHE, UTE, Custo, Tempo).
-_ENABLED_CHART_COUNT = 28
-_SIN_CHART_COUNT = 5
+_ENABLED_CHART_COUNT = 31
+_SIN_CHART_COUNT = 8
 _LEVEL_NAV_GROUP_COUNT = 7
 _MIN_DOCUMENT_LENGTH = 4_300_000
 _MAX_DOCUMENT_LENGTH = 5_242_880

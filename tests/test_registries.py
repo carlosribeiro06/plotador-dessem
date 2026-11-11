@@ -29,9 +29,9 @@ _HYDRO_COUNT = 3
 _THERMAL_COUNT = 2
 _SUBMARKET_COUNT = 4
 _REE_COUNT = 3
-# One METADADOS_OPERACAO row per enabled chart key: 21 series plus the seven dedicated Custo/Tempo
+# One METADADOS_OPERACAO row per enabled chart key: 24 series plus the seven dedicated Custo/Tempo
 # bar charts (melhorias-dashboard design D7) that replaced the two former combined CUSTOS/TEMPO.
-_ENABLED_CHART_KEY_COUNT = 28
+_ENABLED_CHART_KEY_COUNT = 31
 
 # Mirrors "submarkets.fictitious_codes" in the repository's settings.json: load_registries has no
 # default for it, so every call states the codes explicitly.

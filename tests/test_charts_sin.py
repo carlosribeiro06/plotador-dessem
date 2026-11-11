@@ -49,10 +49,19 @@ _ELEVEN_MEMBERS_AFTER_TICKET_024 = (
     "setValueMode",
 )
 
-# The five default-enabled SIN-group chart keys, in dessem_dashboard.charts.specs.SPECS order.
-_SIN_CHART_KEYS: tuple[str, ...] = ("GTER_SIN", "GHID_SIN", "GUNS_SIN", "EARMF_SIN", "VARMF_SIN")
+# The eight default-enabled SIN-group chart keys, in dessem_dashboard.charts.specs.SPECS order.
+_SIN_CHART_KEYS: tuple[str, ...] = (
+    "GTER_SIN",
+    "GHID_SIN",
+    "GUNS_SIN",
+    "EARMF_SIN",
+    "VARMF_SIN",
+    "QDEF_SIN",
+    "QTUR_SIN",
+    "QVER_SIN",
+)
 
-# The full 23 keys SPECS enables by default (dessem_dashboard.charts.specs.SPECS), disabling all
+# The full 31 keys SPECS enables by default (dessem_dashboard.charts.specs.SPECS), disabling all
 # of which leaves enabled_specs() empty -- the precondition finding 1 of the epic-03 boundary
 # review guards against, since _level_nav and _chart_sections both index specs[0] unguarded.
 _ALL_ENABLED_CHART_KEYS: tuple[str, ...] = (
@@ -61,6 +70,9 @@ _ALL_ENABLED_CHART_KEYS: tuple[str, ...] = (
     "GUNS_SIN",
     "EARMF_SIN",
     "VARMF_SIN",
+    "QDEF_SIN",
+    "QTUR_SIN",
+    "QVER_SIN",
     "MER_SBM",
     "GHID_SBM",
     "GTER_SBM",
@@ -69,13 +81,13 @@ _ALL_ENABLED_CHART_KEYS: tuple[str, ...] = (
     "VARMF_SBM",
     "INT_SBP",
     "GHID_UHE",
-    "QTUR_UHE",
-    "QVER_UHE",
     "VARMF_UHE",
     "VARPF_UHE",
-    "QDEF_UHE",
     "QAFL_UHE",
     "QINC_UHE",
+    "QDEF_UHE",
+    "QTUR_UHE",
+    "QVER_UHE",
     "GTER_UTE",
     "CUSTO_PRESENTE",
     "CUSTO_FUTURO",
@@ -93,12 +105,16 @@ _SIN_TITLES_IN_ORDER: tuple[str, ...] = (
     "Geração Não Simulada",
     "EARMF",
     "Volume Armazenado",
+    "Defluência",
+    "Turbinamento",
+    "Vertimento",
 )
 
-# Measured on the scenario_tree fixture: three distinct units across the five SIN charts, not
-# two, which is why a hard-coded default unit would mislabel EARMF_SIN and VARMF_SIN alike.
-_SIN_UNITS_IN_ORDER: tuple[str, ...] = ("MW", "MW", "MW", "MWh", "hm3")
-_THREE_DISTINCT_SIN_UNITS: frozenset[str] = frozenset({"MW", "MWh", "hm3"})
+# Measured on the scenario_tree fixture: four distinct units across the eight SIN charts, not
+# two, which is why a hard-coded default unit would mislabel EARMF_SIN, VARMF_SIN and the three
+# flow charts alike.
+_SIN_UNITS_IN_ORDER: tuple[str, ...] = ("MW", "MW", "MW", "MWh", "hm3", "m3/s", "m3/s", "m3/s")
+_FOUR_DISTINCT_SIN_UNITS: frozenset[str] = frozenset({"MW", "MWh", "hm3", "m3/s"})
 
 _FORBIDDEN_UNIT_LITERALS: tuple[str, ...] = ('"MW"', '"MWh"', '"hm3"', '"m3/s"')
 
@@ -359,16 +375,16 @@ def test_dashboard_js_contains_no_hardcoded_unit_literal(literal: str) -> None:
     _check_no_unit_literal(text, literal)
 
 
-def test_fixture_payload_sin_units_are_three_distinct_strings_in_enabled_specs_order(
+def test_fixture_payload_sin_units_are_four_distinct_strings_in_enabled_specs_order(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
-    """The measurement that strengthens requirement 6: three units, not two, across five charts."""
+    """The measurement that strengthens requirement 6: four units, not two, across eight charts."""
     payload = _build_payload_from_scenario_tree(scenario_tree, tmp_path)
     charts = payload["charts"]  # type: ignore[index]
 
     observed_units = [charts[key]["unit"] for key in _SIN_CHART_KEYS]  # type: ignore[index]
     assert observed_units == list(_SIN_UNITS_IN_ORDER)
-    assert frozenset(observed_units) == _THREE_DISTINCT_SIN_UNITS
+    assert frozenset(observed_units) == _FOUR_DISTINCT_SIN_UNITS
 
 
 # --- acceptance criterion 2: the Diferença suffix comes from the payload, never a literal ------
@@ -407,7 +423,7 @@ def test_dashboard_js_assigns_yaxis_in_exactly_one_function() -> None:
     _check_yaxis_assigned_in_exactly_one_function(text)
 
 
-# --- acceptance criterion 4: the KEYS contract, and the five SIN section headings --------------
+# --- acceptance criterion 4: the KEYS contract, and the eight SIN section headings -------------
 
 
 @pytest.mark.parametrize("quoted_value", ['"unit"', '"labels"', '"y_axis_difference_suffix"'])
@@ -429,7 +445,7 @@ def test_document_sin_sections_carry_curated_headings_in_enabled_specs_order(
         assert section.count('<div class="plot" id="plot-') == 1
 
 
-def test_document_sin_chart_keys_equal_the_five_default_enabled_charts(
+def test_document_sin_chart_keys_equal_the_eight_default_enabled_charts(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     document = _build_document(scenario_tree, tmp_path)
@@ -447,23 +463,23 @@ def test_document_sin_sections_have_one_h2_and_no_subtitle_on_unmodified_fixture
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     """METADADOS_OPERACAO.parquet writes nome_longo_variavel equal to the curated title for
-    every SIN key on the unmodified fixture, so subtitle_html is empty for all five sections."""
+    every SIN key on the unmodified fixture, so subtitle_html is empty for all eight sections."""
     document = _build_document(scenario_tree, tmp_path)
     sections = _sin_sections(document)
 
-    assert len(sections) == 5
+    assert len(sections) == 8
     for section in sections:
         assert section.count("<h2>") == 1
         assert "chart-subtitle" not in section
 
 
-def test_document_with_earmf_sin_disabled_has_four_sin_sections_and_unchanged_headings(
+def test_document_with_earmf_sin_disabled_has_seven_sin_sections_and_unchanged_headings(
     scenario_tree: dict[str, Path], tmp_path: Path
 ) -> None:
     document = _build_document(scenario_tree, tmp_path, disabled=["EARMF_SIN"])
     sections = _sin_sections(document)
 
-    assert len(sections) == 4
+    assert len(sections) == 7
     assert 'id="chart-EARMF_SIN"' not in document
     remaining_titles = [_section_heading(section) for section in sections]
     expected_remaining = [
@@ -481,7 +497,7 @@ def test_build_html_with_every_enabled_chart_disabled_raises_config_error_naming
     enabled_specs() empty, and _level_nav/_chart_sections both index specs[0] unguarded. build_html
     must fail fast with a Portuguese ConfigError naming 'charts.disabled', never a bare IndexError
     that names neither the offending settings key nor its value."""
-    assert len(_ALL_ENABLED_CHART_KEYS) == 28
+    assert len(_ALL_ENABLED_CHART_KEYS) == 31
 
     with pytest.raises(ConfigError, match=r"charts\.disabled"):
         _build_document(scenario_tree, tmp_path, disabled=_ALL_ENABLED_CHART_KEYS)

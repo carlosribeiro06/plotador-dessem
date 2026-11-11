@@ -16,6 +16,9 @@ _ENABLED_KEYS_IN_ORDER = (
     "GUNS_SIN",
     "EARMF_SIN",
     "VARMF_SIN",
+    "QDEF_SIN",
+    "QTUR_SIN",
+    "QVER_SIN",
     "MER_SBM",
     "GHID_SBM",
     "GTER_SBM",
@@ -67,11 +70,11 @@ def test_enabled_specs_returns_exact_key_tuple_in_appendix_order() -> None:
     assert tuple(item.key for item in registry.enabled_specs()) == _ENABLED_KEYS_IN_ORDER
 
 
-def test_all_specs_has_forty_seven_entries_with_nineteen_disabled() -> None:
+def test_all_specs_has_forty_seven_entries_with_sixteen_disabled() -> None:
     registry = _fresh_registry()
     all_specs = registry.all_specs()
     assert len(all_specs) == 47
-    assert sum(1 for item in all_specs if not item.enabled) == 19
+    assert sum(1 for item in all_specs if not item.enabled) == 16
 
 
 def test_every_spec_unit_matches_fallback_units_for_its_source_file() -> None:
@@ -84,7 +87,7 @@ def test_enabled_specs_group_sizes_match_dedicated_cost_and_time_tabs() -> None:
     counts = Counter(item.group for item in registry.enabled_specs())
     assert counts == Counter(
         {
-            ChartGroup.SIN: 5,
+            ChartGroup.SIN: 8,
             ChartGroup.SBM: 6,
             ChartGroup.SBP: 1,
             ChartGroup.UHE: 8,
@@ -147,7 +150,7 @@ def test_ambiguity_pair_specs_carry_non_empty_notes() -> None:
 def test_enabled_specs_disabled_argument_excludes_both_ambiguity_candidates() -> None:
     registry = _fresh_registry()
     remaining = registry.enabled_specs(disabled=("VARPF_UHE", "QINC_UHE"))
-    assert len(remaining) == 26
+    assert len(remaining) == 29
     assert "VARPF_UHE" not in {item.key for item in remaining}
     assert "QINC_UHE" not in {item.key for item in remaining}
 
