@@ -2,9 +2,12 @@
 
 The only module in the plan authorised to make the suite read `exemplo/` (ticket-034), and the
 authorisation is narrow: every test below runs the pipeline over that tree *through the library*
-(`dessem_dashboard.pipeline.run`) and never opens, lists, copies or transcribes anything under it
-itself -- `exemplo_tree.qualifying_scenarios` does the one non-recursive listing this module needs,
-mirroring `dessem_dashboard.data.discovery`'s own rule. No value read *from* the tree is ever
+(`dessem_dashboard.pipeline.run`) and never copies, writes or transcribes anything under it
+itself -- `exemplo_tree.qualifying_scenarios` does the one non-recursive listing of scenarios this
+module needs, mirroring `dessem_dashboard.data.discovery`'s own rule. The single exception to
+"never reads it itself" is `test_exemplo_sin_flow_charts_follow_dashboard_contract`: it lists
+decks through `discover_scenarios` and reads the tree's Parquet files with pandas, read-only, to
+build the expected values the payload is compared against. No value read *from* the tree is ever
 hard-coded here: every pinned figure in `test_exemplo_documented_tree_pinned_volumes` is
 transcribed from the master plan's Appendix A, `planning-context.md` and the committed
 `reference/parquet-schemas.txt` dump, none of it measured by this module.
@@ -18,14 +21,21 @@ of it (epic decision E5-6).
 from __future__ import annotations
 
 import json
+import math
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any
 
+import pandas as pd
 import pytest
 
-from dashboard_document import chart_section_slices
+from dashboard_document import chart_section_slices, sections_by_chart_key, sections_by_group
 from dessem_dashboard import pipeline
+from dessem_dashboard.charts.registry import ChartGroup, enabled_specs
 from dessem_dashboard.config import Settings, load_settings
+from dessem_dashboard.data.discovery import discover_scenarios
 from dessem_dashboard.data.schemas import FALLBACK_UNITS
 from exemplo_tree import ENV_VAR, documented_pair, exemplo_root, qualifying_scenarios
 
@@ -79,6 +89,34 @@ _WARNING_SHAPES: tuple[str, ...] = (
     "código(s) de submercado do gráfico",  # consolidate's submarket-coverage branch
     "ausente(s) no cenário",  # consolidate's absent-entity branch
 )
+
+# R13 chart order per group, as enabled by default: the tuples the dashboard contract promises,
+# kept apart from the registry so a reordering of the catalogue fails this test instead of
+# silently moving the charts.
+_SIN_ORDER: tuple[str, ...] = (
+    "GTER_SIN",
+    "GHID_SIN",
+    "GUNS_SIN",
+    "EARMF_SIN",
+    "VARMF_SIN",
+    "QDEF_SIN",
+    "QTUR_SIN",
+    "QVER_SIN",
+)
+_UHE_ORDER: tuple[str, ...] = (
+    "GHID_UHE",
+    "VARMF_UHE",
+    "VARPF_UHE",
+    "QAFL_UHE",
+    "QINC_UHE",
+    "QDEF_UHE",
+    "QTUR_UHE",
+    "QVER_UHE",
+)
+_SIN_FLOW_KEYS: tuple[str, ...] = ("QDEF_SIN", "QTUR_SIN", "QVER_SIN")
+_SIN_ENTITY_ID = ""
+_FLOW_UNIT = "m3/s"
+_DECK_KEY_FORMAT = "%d/%m/%Y"
 
 
 # --- settings builder ---------------------------------------------------------------------------
@@ -424,3 +462,178 @@ def test_exemplo_skip_reason_names_env_var_and_default_path(
     message = str(exc_info.value)
     assert ENV_VAR in message
     assert str(_DEFAULT_ROOT) in message
+
+
+# --- test_exemplo_sin_flow_charts_follow_dashboard_contract: ticket-006 (R20) -------------------
+
+
+@dataclass(frozen=True)
+class _DeckFacts:
+    """One deck as its own files describe it: date and stage count come from EST.parquet."""
+
+    sintese_dir: Path
+    deck_date: date
+    stage_count: int
+
+
+def _read_deck_facts(sintese_dir: Path) -> _DeckFacts:
+    """Read sintese_dir's EST.parquet directly, sharing no code path with the data layer."""
+    stages = pd.read_parquet(sintese_dir / "EST.parquet", engine="pyarrow")
+    deck_date = pd.Timestamp(stages["data_inicio"].min()).date()
+    return _DeckFacts(sintese_dir=sintese_dir, deck_date=deck_date, stage_count=len(stages))
+
+
+def _round_like_payload(value: float, decimals: int) -> float:
+    """Round value as dashboard.payload does, so both sides compare exactly, without tolerance."""
+    rounded = round(value, decimals)
+    return 0.0 if rounded == 0.0 else rounded
+
+
+def _expected_flow_values(
+    sintese_dir: Path, chart_key: str, *, decimals: int
+) -> list[float | None]:
+    """Return chart_key's `valor` column ordered by `estagio`, rounded like the payload.
+
+    NaN maps to None, the payload's null for an unknown value.
+    """
+    frame = pd.read_parquet(sintese_dir / f"{chart_key}.parquet", engine="pyarrow")
+    assert frame["estagio"].is_unique, f"{chart_key}: duplicated estagio under '{sintese_dir}'"
+    return [
+        None if math.isnan(value) else _round_like_payload(float(value), decimals)
+        for value in frame.sort_values("estagio")["valor"]
+    ]
+
+
+def _expected_subtitle(primary_sintese_dir: Path, chart_key: str, spec_title: str) -> str | None:
+    """Return the subtitle the payload owes chart_key, from the primary deck's METADADOS file.
+
+    The registry long name when it is present, non-empty and different from the curated title,
+    None otherwise.
+    """
+    metadata = pd.read_parquet(primary_sintese_dir / "METADADOS_OPERACAO.parquet", engine="pyarrow")
+    rows = metadata.loc[metadata["chave"] == chart_key, "nome_longo_variavel"]
+    assert len(rows) <= 1, f"{chart_key}: duplicated chave in METADADOS_OPERACAO"
+    if rows.empty:
+        return None
+    long_name = rows.iloc[0]
+    if pd.isna(long_name) or long_name in ("", spec_title):
+        return None
+    return str(long_name)
+
+
+def _chained_layout(
+    decks_by_scenario: Iterable[Sequence[_DeckFacts]], *, stages_per_deck: int
+) -> dict[date, tuple[int, int]]:
+    """Map each deck date, ascending, to its (offset, length) segment of the chained array.
+
+    The segment length is min(stages_per_deck, stage_count) of the first scenario, in the given
+    order, that holds the date: a date has one axis, shared by every scenario that has it.
+    """
+    window_by_date: dict[date, int] = {}
+    for decks in decks_by_scenario:
+        for deck in decks:
+            window_by_date.setdefault(deck.deck_date, min(stages_per_deck, deck.stage_count))
+    layout: dict[date, tuple[int, int]] = {}
+    offset = 0
+    for deck_date in sorted(window_by_date):
+        layout[deck_date] = (offset, window_by_date[deck_date])
+        offset += window_by_date[deck_date]
+    return layout
+
+
+def _chart_keys_in_group(document: str, group: ChartGroup) -> list[str]:
+    """Return the chart keys of document's sections of group, in document order."""
+    in_group = sections_by_group(document, group.value)
+    return [key for key, section in sections_by_chart_key(document).items() if section in in_group]
+
+
+def test_exemplo_sin_flow_charts_follow_dashboard_contract(
+    exemplo_two_scenario_paths: tuple[Path, Path], tmp_path: Path
+) -> None:
+    """The dashboard contract of the three SIN flow charts, over the real tree.
+
+    Asserts only what the dashboard owes: no warnings, the SIN and UHE chart order, the shape of
+    QDEF_SIN, QTUR_SIN and QVER_SIN, and their fidelity to the files. It never relates the three
+    charts to one another (no QDEF == QTUR + QVER) and never looks at QINC: those properties
+    belong to the synthesizer that wrote the files, not to the dashboard.
+    """
+    scenario_a, scenario_b = exemplo_two_scenario_paths
+    settings = _build_settings(tmp_path)
+    output_file = tmp_path / "out" / "dashboard.html"
+
+    result = pipeline.run(
+        scenario_dirs=[scenario_a, scenario_b],
+        output_file=output_file,
+        reference=scenario_a.name,
+        settings=settings,
+    )
+
+    # Acceptance criterion 2: zero warnings, taken literally; a failure on another tree lists them.
+    assert not result.warnings, f"{len(result.warnings)} unexpected warning(s):\n" + "\n".join(
+        f"- {message}" for message in result.warnings
+    )
+
+    # Acceptance criterion 3: the document's chart order per group equals the registry's, and the
+    # registry's equals the R13 tuple.
+    document = output_file.read_text(encoding="utf-8")
+    specs = enabled_specs(disabled=settings.charts.disabled)
+    for group, expected_order in ((ChartGroup.SIN, _SIN_ORDER), (ChartGroup.UHE, _UHE_ORDER)):
+        registry_keys = [spec.key for spec in specs if spec.group is group]
+        assert _chart_keys_in_group(document, group) == registry_keys
+        assert registry_keys == list(expected_order)
+
+    payload = _extract_payload(document)
+    scenarios = discover_scenarios(
+        [scenario_a, scenario_b], sintese_dirname=settings.discovery.sintese_dirname
+    )
+    decks_by_scenario = {
+        scenario.label: [_read_deck_facts(deck.sintese_dir) for deck in scenario.decks]
+        for scenario in scenarios
+    }
+    stages_per_deck = settings.chaining.stages_per_deck
+    layout = _chained_layout(decks_by_scenario.values(), stages_per_deck=stages_per_deck)
+    chained_key = payload["chained_key"]
+    assert payload["deck_dates"] == [deck_date.strftime(_DECK_KEY_FORMAT) for deck_date in layout]
+    assert len(payload["axes"][chained_key]["starts"]) == sum(
+        length for _, length in layout.values()
+    )
+
+    primary_sintese_dir = scenarios[0].decks[0].sintese_dir
+    title_by_key = {spec.key: spec.title for spec in specs}
+    decimals = settings.output.decimals
+    comparisons = 0
+    for chart_key in _SIN_FLOW_KEYS:
+        chart = payload["charts"][chart_key]
+
+        # Acceptance criterion 4: one entity (the SIN, id ""), the flow unit, the subtitle.
+        assert [entity["id"] for entity in chart["entities"]] == [_SIN_ENTITY_ID], chart_key
+        assert list(chart["series"]) == [_SIN_ENTITY_ID], chart_key
+        assert chart["unit"] == _FLOW_UNIT, chart_key
+        expected_subtitle = _expected_subtitle(
+            primary_sintese_dir, chart_key, title_by_key[chart_key]
+        )
+        assert chart["subtitle"] == expected_subtitle, chart_key
+
+        # Acceptance criterion 5: per scenario and deck, the deck array and the chained segment
+        # both equal the file's values.
+        series_by_scenario = chart["series"][_SIN_ENTITY_ID]
+        assert set(series_by_scenario) == set(decks_by_scenario), chart_key
+        for scenario_label, decks in decks_by_scenario.items():
+            by_axis = series_by_scenario[scenario_label]
+            deck_keys = {deck.deck_date.strftime(_DECK_KEY_FORMAT) for deck in decks}
+            assert set(by_axis) == {*deck_keys, chained_key}, (chart_key, scenario_label)
+            for deck in decks:
+                expected = _expected_flow_values(deck.sintese_dir, chart_key, decimals=decimals)
+                where = f"{chart_key}, scenario '{scenario_label}', deck {deck.deck_date}"
+                assert expected, f"{where}: the file holds no stage"
+                deck_key = deck.deck_date.strftime(_DECK_KEY_FORMAT)
+                assert by_axis[deck_key] == expected, f"{where}: deck array differs from the file"
+
+                offset, _ = layout[deck.deck_date]
+                head = min(stages_per_deck, len(expected))
+                assert by_axis[chained_key][offset : offset + head] == expected[:head], (
+                    f"{where}: chained segment differs from the file"
+                )
+                comparisons += 1
+
+    assert comparisons > 0
