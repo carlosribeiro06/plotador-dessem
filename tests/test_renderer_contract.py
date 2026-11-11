@@ -571,3 +571,103 @@ def test_checklist_section_9_covers_cost_and_time_bar_charts() -> None:
     assert "Read and record" in section_text
     assert "the Y axis reads `min`" in section_text
     assert " (diferença)" in section_text
+
+
+# --- ticket-008: the guard for checklist section 10 (hydro flow charts) ------------------------
+
+
+def test_checklist_section_10_covers_hydro_flow_charts() -> None:
+    """Guards section 10 -- ``## 10. Hydro flow charts``, steps 33 to 41, written by ticket-007 --
+    so a simplifier cannot delete the section, drop its mode words, or reorder the chart titles
+    it lists without breaking a test (the gap epic-04's Live Defects table found for section 9).
+
+    Pins literal strings only, like the section-9 guard and, in ``tests/test_charts_filters.py``,
+    the section-8 guard (ADR-010). It deliberately reads no title from the chart catalogue and
+    imports nothing from ``dessem_dashboard.charts``: that would turn the guard into a
+    checklist-versus-catalogue drift test, which ADR-008 and design critique DES-03 rejected. The
+    R13 order is pinned in the catalogue by ``tests/test_chart_specs.py``; this test only checks
+    that the checklist text states it. Scoped to section 10's own slice, from its heading to the
+    next top-level heading or end of file; it does not assert that nothing follows section 10.
+
+    The ordered search is bounded to the sentence that lists the UHE charts -- from the literal
+    ``in this order:`` to the literal ``The five flow charts`` inside step 37. The titles recur
+    after that sentence (the tail of step 37 repeats ``Vazão Afluente`` and ``Vertimento``; step 39
+    repeats ``Vazão Incremental``, ``Defluência``, ``Turbinamento`` and ``Vertimento``), so a
+    search that runs to the end of the section finds a later occurrence of a displaced title and
+    stays green: measured, the unbounded ``section.index(title, position)`` version passed on a
+    checklist with ``Vazão Afluente`` and ``Defluência`` swapped. ``in this order:`` also opens
+    step 34, so it is counted from step 37 onwards. The SIN titles are searched before step 37
+    only, and the UHE titles inside the bounded sentence only, so one group cannot satisfy the
+    other. Titles are pinned with their backticks, because the checklist quotes UI strings that
+    way and bare ``Geração`` or ``Volume Armazenado`` also match SIN titles.
+
+    Proven to fail, each by editing ``docs/checklist-manual-dashboard.md`` in place, running only
+    this test, and restoring the file byte-identically (``git diff --exit-code -- docs/``):
+
+    - section 10 deleted: ``AssertionError`` from ``assert heading in text``, before any other
+      assertion runs;
+    - ``Vazão Afluente`` and ``Defluência`` swapped in step 37's list: ``AssertionError:
+      `Vazão Incremental` is missing from step 37's list or out of R13 order``, the first title
+      that is no longer found after the displaced one;
+    - ``Turbinamento`` and ``Vertimento`` swapped in step 37's list: ``AssertionError:
+      `Vertimento` is missing from step 37's list or out of R13 order``. The tail sentence
+      ``(`Vazão Afluente` to `Vertimento`)`` lies outside the bounded slice, so it cannot rescue
+      this swap.
+    """
+    text = _read_checklist()
+
+    heading = "## 10. Hydro flow charts"
+    assert heading in text
+    section_start = text.index(heading)
+    next_heading_start = text.find("\n## ", section_start + len(heading))
+    section_end = len(text) if next_heading_start == -1 else next_heading_start
+    section_text = text[section_start:section_end]
+
+    assert "\n33. " in section_text, "step 33 is missing from section 10"
+    for literal in (
+        "Por deck",
+        "Encadeado",
+        "Absoluto",
+        "Diferença",
+        "charts.disabled",
+        "QDEF_SIN",
+    ):
+        assert literal in section_text, f"{literal!r} is missing from section 10"
+
+    uhe_step_marker = "\n37. "
+    assert uhe_step_marker in section_text, "the UHE-order step 37 is missing from section 10"
+    uhe_step_start = section_text.index(uhe_step_marker)
+    for sin_title in ("`Defluência`", "`Turbinamento`", "`Vertimento`"):
+        assert sin_title in section_text[:uhe_step_start], (
+            f"SIN flow title {sin_title} is missing before step 37"
+        )
+
+    order_open = "in this order:"
+    order_close = "The five flow charts"
+    assert section_text.count(order_open, uhe_step_start) == 1, (
+        f"{order_open!r} must occur exactly once from step 37 onwards"
+    )
+    assert section_text.count(order_close, uhe_step_start) == 1, (
+        f"{order_close!r} must occur exactly once from step 37 onwards"
+    )
+    order_start = section_text.index(order_open, uhe_step_start)
+    assert order_close in section_text[order_start:], (
+        f"{order_close!r} must come after {order_open!r} in step 37"
+    )
+    uhe_titles_text = section_text[order_start : section_text.index(order_close, order_start)]
+
+    position = 0
+    for uhe_title in (
+        "`Geração`",
+        "`Volume Armazenado (hm3)`",
+        "`Volume Armazenado (%)`",
+        "`Vazão Afluente`",
+        "`Vazão Incremental`",
+        "`Defluência`",
+        "`Turbinamento`",
+        "`Vertimento`",
+    ):
+        assert uhe_title in uhe_titles_text[position:], (
+            f"{uhe_title} is missing from step 37's list or out of R13 order"
+        )
+        position = uhe_titles_text.index(uhe_title, position) + len(uhe_title)
