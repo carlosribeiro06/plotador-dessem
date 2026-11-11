@@ -4,7 +4,7 @@
 
 `dessem-dashboard` compares the results of two or more DESSEM study scenarios and emits a single
 self-contained, offline HTML file with interactive comparative charts at the SIN / submarket /
-interchange-pair / hydro-plant / thermal-plant / execution levels. A "scenario" is a directory
+interchange-pair / hydro-plant / thermal-plant / cost / time levels. A "scenario" is a directory
 passed via `--casos`; each of its immediate subdirectories that contains a `sintese/` folder is a
 "deck" (one DESSEM run), and the deck date comes from `EST.parquet`, never from the folder name.
 The dashboard offers two view modes — **Por deck** (each deck's full original horizon) and
@@ -92,20 +92,21 @@ chain with no gap when their windows are contiguous.
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `costs.total_parcels` | `["PRESENTE", "FUTURO"]` | `CUSTOS.parquet` parcels summed into the `TOTAL` bar of the `Custo Presente, Futuro e Total` chart. |
+| `costs.total_parcels` | `["PRESENTE", "FUTURO"]` | `CUSTOS.parquet` parcels summed into `Custo Total`. `Custo Presente` and `Custo Futuro` show the `PRESENTE` and `FUTURO` parcels only while those names are listed. |
 
 `costs.total_parcels` may name any subset of `CUSTOS.parquet`'s `parcela` values (also
 `VIOLACOES` and `PEQUENAS PENALIDADES` exist in the file but are not summed by default); it must
 not contain a parcel literally named `TOTAL`, since that name is reserved for the computed series
 (`ConfigError` naming `costs.total_parcels` otherwise). A configured parcel absent from a scenario's
 data is a Portuguese `logger.warning` naming the parcel and the key, and that parcel — never a
-partial sum — is omitted from both the chart and the total for that (scenario, deck) cell.
+partial sum — is omitted from both the parcel's own chart and `Custo Total` for that (scenario,
+deck) cell.
 
 ### Time
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `time.stage_groups` | see below | `TEMPO.parquet` `etapa` groupings displayed as bars in the `Tempo Computacional` chart. |
+| `time.stage_groups` | see below | `TEMPO.parquet` `etapa` groupings displayed as bars: `Tempo MILP`, `Tempo PL` and `Tempo de Leitura de Dados e Impressão` show the groups labelled `MILP`, `PL` and `Leitura`, and `Tempo Total` shows their sum. A chart whose label is not configured shows no bars. |
 | `time.unit_divisor` | `60.0` | Divisor applied once to convert `TEMPO.parquet`'s raw seconds into the chart's `min` axis. |
 
 The default `time.stage_groups` value is a JSON object mapping a group label to the list of
@@ -281,8 +282,8 @@ stdout empty; all diagnostics, progress and the per-warning lines described in
 `null` outside a git checkout), `git_dirty` (boolean, or `null` alongside a `null` `git_sha`),
 `python` (interpreter version), `platform`, `package_version`, `params` (the resolved CLI
 parameters — `casos`, `saida`, `referencia`, `settings`, `modo_inicial`, `nivel_log`),
-`data_volumes`, `warnings` (the same warning list the dashboard's own `Avisos` section renders —
-see [Reading the dashboard](#reading-the-dashboard) below) and `elapsed_seconds`. `data_volumes`
+`data_volumes`, `warnings` (the run's complete, uncapped warning list — see
+[Logging and auditing](#logging-and-auditing) below) and `elapsed_seconds`. `data_volumes`
 itself has six integer keys, in order: `cenarios`, `decks`, `graficos` (the number of enabled
 charts actually rendered), `valores` (total stored series values plus scalars), `bytes_html` and
 `bytes_plotly` (the size of the inlined Plotly bundle, memoised per process since it depends only
@@ -291,23 +292,20 @@ on the installed `plotly` version).
 ## Reading the dashboard
 
 The document has one fixed layout, in this order: a header with the ONS logo and
-`dashboard.title`; a level navigation bar; a control row; an optional `Avisos` section; one chart
-section per enabled chart of the currently active level; and a mandatory footer. As plain text
-(built from the DOM contract in `dashboard/builder.py` and `dashboard/assets/dashboard.html`,
-never from a screenshot — see the note at the end of this section):
+`dashboard.title`; a level navigation bar; a control row; one chart section per enabled chart of
+the currently active level; and a mandatory footer. As plain text (built from the DOM contract in
+`dashboard/builder.py` and `dashboard/assets/dashboard.html`, never from a screenshot — see the note
+at the end of this section):
 
 ```text
 ┌──────────────────────────────────────────────────────────────────┐
 │ [logo]  Comparação de Resultados do DESSEM                        │  <- header
 ├──────────────────────────────────────────────────────────────────┤
 │ [SIN] [Submercado] [Intercâmbio] [Usinas hidrelétricas]            │  <- level-nav
-│ [Usinas termelétricas] [Execução]                                  │
+│ [Usinas termelétricas] [Custo] [Tempo]                             │
 ├──────────────────────────────────────────────────────────────────┤
 │ [Por deck] [Encadeado]   Deck: [ 03/03/2024 v ]                    │  <- controls
 │ [Absoluto] [Diferença]   Referência: caso_oficial                  │
-├──────────────────────────────────────────────────────────────────┤
-│ Avisos                                                              │  <- optional
-│  - <one Portuguese warning message per line>                       │
 ├──────────────────────────────────────────────────────────────────┤
 │ Geração Térmica                                                     │  <- one <section>
 │ [optional subtitle from METADADOS_OPERACAO]                        │     per enabled
@@ -324,8 +322,8 @@ never from a screenshot — see the note at the end of this section):
 
 The level navigation (`#level-nav`) shows one button per chart group that holds at least one
 enabled chart, in registration order, labelled `SIN`, `Submercado`, `Intercâmbio`,
-`Usinas hidrelétricas`, `Usinas termelétricas` and `Execução` (`dashboard.builder.GROUP_LABELS`).
-Clicking a button re-renders in place — the browser never navigates — showing only that group's
+`Usinas hidrelétricas`, `Usinas termelétricas`, `Custo` and `Tempo`
+(`dashboard.builder.GROUP_LABELS`). Clicking a button re-renders in place — the browser never navigates — showing only that group's
 chart sections and marking that button `aria-pressed="true"`.
 
 ### View modes and the Deck selector
@@ -395,14 +393,33 @@ can still differ. Section 10 of
 [`docs/checklist-manual-dashboard.md`](docs/checklist-manual-dashboard.md) (steps 33 to 41) walks
 these charts on a real build.
 
-### The two Execução charts
+### Cost and time bar charts
 
-`Custo Presente, Futuro e Total` and `Tempo Computacional` are the catalogue's only two grouped-bar
-charts (`kind=SCALAR_BY_DECK`); every other enabled chart is a line chart. Both share one category
-axis built from every deck date crossed with every displayed series name, with labels of the exact
-form `<deck date> - <series name>` — for example `03/03/2024 - PRESENTE` — never a raw or
-re-parsed timestamp, and independent of the active view mode and `Deck` selector: both charts
-always show every deck at once. **`CUSTOS` is reported in `10^3 R$`, not plain `R$`** — a unit the
+The `Custo` and `Tempo` levels hold the catalogue's only seven grouped-bar charts
+(`kind=SCALAR_BY_DECK`); the other 24 enabled charts are line charts. Each bar chart shows one
+series of `CUSTOS.parquet` or `TEMPO.parquet`:
+
+| Level | Chart title | Series shown | Unit |
+| --- | --- | --- | --- |
+| `Custo` | `Custo Presente` | `PRESENTE` | `10^3 R$` |
+| `Custo` | `Custo Futuro` | `FUTURO` | `10^3 R$` |
+| `Custo` | `Custo Total` | `TOTAL` | `10^3 R$` |
+| `Tempo` | `Tempo MILP` | `MILP` | `min` |
+| `Tempo` | `Tempo PL` | `PL` | `min` |
+| `Tempo` | `Tempo de Leitura de Dados e Impressão` | `Leitura` | `min` |
+| `Tempo` | `Tempo Total` | `TOTAL` | `min` |
+
+`TOTAL` sums the configured parcels or groups (`costs.total_parcels`, `time.stage_groups`); it is
+drawn for a (scenario, deck) only when every one of them has a value there. The category axis is
+built from deck dates crossed with the series name, with labels of the exact form
+`<deck date> - <series name>` — for example `03/03/2024 - PRESENTE` — never a raw or re-parsed
+timestamp, and one bar per scenario at each category. The view mode decides which decks are drawn:
+`Por deck` draws only the selected deck's bars and re-renders when the `Deck` selector changes,
+while `Encadeado` draws every deck and disables the selector; the values themselves never change
+with the mode. `Diferença` works as on the line charts: the reference scenario's bars fall to zero
+and the others show `scenario - referência`.
+
+**`CUSTOS` is reported in `10^3 R$`, not plain `R$`** — a unit the
 Y-axis label states explicitly. This matters because a review during development found the legacy
 scripts had mislabelled the same values `(R$)`, a 1000x error caught by cross-checking `CUSTOS`
 against `COP_SIN`/`CFU_SIN` on a reference deck: `CUSTOS.PRESENTE`'s raw value tracks
@@ -411,40 +428,6 @@ ratio 0.9978 when read as `10^3 R$` — versus 1000x too small when read as plai
 comment above `FALLBACK_UNITS["CUSTOS"]` in `data/schemas.py`). A
 reader comparing this dashboard against a raw DESSEM report should multiply `CUSTOS` values by
 1000 to reach plain reais.
-
-### Avisos: the eight warning shapes
-
-The optional `Avisos` section appears only when there is at least one warning, listing every
-distinct message from `DashboardData.warnings()` (`dashboard.builder._warnings_section`) — the same
-list `run_manifest.json`'s `warnings` field carries; the log file separately records these same
-events as part of a much larger operational log (see [Logging and auditing](#logging-and-auditing)
-below). Every warning degrades the affected chart or deck rather than aborting the run, and there
-are exactly eight distinct shapes, all measured directly from
-`data/consolidate.py` and `data/timeline.py`:
-
-1. **Short chaining window** (`data.timeline.validate_chaining`) — a deck has fewer stages than
-   `chaining.stages_per_deck` in its chaining window.
-2. **Chaining gap** (`data.timeline.validate_chaining`) — two consecutive decks' chaining windows
-   leave a time gap between them.
-3. **Chaining overlap** (`data.timeline.validate_chaining`) — two consecutive decks' chaining
-   windows overlap in time.
-4. **Missing deck for a shared date** (`data.timeline.align_deck_dates`) — a scenario has no deck
-   for a date another scenario does have.
-5. **Divergent timeline** (`data.consolidate._check_timeline_coverage`) — a non-primary scenario's
-   deck at a shared date has a different stage count or start time than the deck the time axis was
-   built from.
-6. **Chart file not found** (`data.consolidate._load_series` and `_load_scalars`) — a chart's
-   source Parquet is missing for a (scenario, deck); that (scenario, deck) contributes no values
-   for it.
-7. **Submarket code dropped** (`data.consolidate._load_series`) — on a `Submercado`-level chart, a
-   submarket code present in the data that is neither in the `SBM.parquet` registry nor listed in
-   `submarkets.fictitious_codes` is discarded with this warning. The registry's fictitious flag
-   reads the same setting (`data.registries.load_registries`), so a listed code is hidden without a
-   warning unless `submarkets.include_fictitious` is `true`, and a registry code that is not listed
-   is shown as an ordinary submarket.
-8. **Entity absent, filled with null** (`data.consolidate._load_series`) — an entity present for
-   one scenario/deck but not another is stored with `null` values rather than omitted, so every
-   scenario's series for a chart stays aligned on the same entity set.
 
 ### Offline guarantee and the release checklist
 
@@ -510,7 +493,7 @@ For example, `MER_SIN` (`Mercado de Energia`, unit `MW`, level `SIN`) ships disa
    above `FALLBACK_UNITS` (`data/schemas.py`) and `_MAX_LOGGED_WARNINGS` (`cli.py`).
 
 If a deck's synthesis lacks `MER_SIN.parquet`, that (scenario, deck) contributes no values and
-raises one "file not found" warning (warning shape 6 in [Reading the dashboard](#reading-the-dashboard)).
+raises one "file not found" warning (warning shape 6 in [The eight warning shapes](#the-eight-warning-shapes)).
 
 Conversely, an operator who wants fewer charts adds entries — enabled or disabled — to
 `charts.disabled` and they disappear from that run without touching a single source file.
@@ -520,16 +503,18 @@ Conversely, an operator who wants fewer charts adds entries — enabled or disab
 Registering a chart under a key the catalogue has never declared takes exactly two source edits:
 
 1. One entry in `FALLBACK_UNITS` (`data/schemas.py`), keyed by the new chart's key.
-2. One `_series(...)` or `_scalar(...)` call added to the `SPECS` tuple (`charts/specs.py`).
+2. One `_series(...)` or `_scalar_series(...)` call added to the `SPECS` tuple (`charts/specs.py`).
 
-Both `_series` and `_scalar` read `FALLBACK_UNITS[key]` directly (not `.get`) while building the
-`ChartSpec` at module import time, so a new entry in `SPECS` without a matching `FALLBACK_UNITS`
-key raises `KeyError` the moment `dessem_dashboard.charts` is imported — the catalogue is
-deliberately impossible to leave half-wired. No schema entry is needed: `SERIES_COLUMNS` and
+`_series` reads `FALLBACK_UNITS[key]` and `_scalar_series` reads `FALLBACK_UNITS[source_file]`, both
+directly (not `.get`), while building the `ChartSpec` at module import time, so a new entry in
+`SPECS` without a matching `FALLBACK_UNITS` key raises `KeyError` the moment
+`dessem_dashboard.charts` is imported — the catalogue is deliberately impossible to leave
+half-wired. No schema entry is needed: `SERIES_COLUMNS` and
 `ENTITY_KEYS` are declared per aggregation level, not per source file, so any new `SERIES` chart at
 an existing level (`SIN`, `SBM`, `SBP`, `UHE`, `UTE`) is already covered. `tests/fixtures_sintese.py`
-builds one synthetic fixture file per entry of `enabled_specs()`, driven by the registry itself, so
-a newly enabled chart's test fixtures follow automatically with no test-side edit.
+builds one synthetic file per distinct source file of `enabled_specs()`, plus the seven registry
+files, driven by the registry itself, so a newly enabled chart's test fixtures follow automatically
+with no test-side edit.
 
 The catalogue's size and order are pinned in 13 test files. Twelve of them had to change when
 `QDEF_SIN`, `QTUR_SIN` and `QVER_SIN` were enabled, and `tests/test_schemas.py` is also hit when a
@@ -638,30 +623,63 @@ manifest-written line. Measured directly against the two-scenario, two-deck-per-
 worked example — that totals **25** lines, so a run of that shape can be reconstructed from the
 log alone.
 
-The rotating log file, `run_manifest.json`'s `warnings` field, and the dashboard's own `Avisos`
-section carry overlapping but not identical information. The **eight warning shapes** described in
-[Reading the dashboard](#reading-the-dashboard) above reach all three, but not through the same
-mechanism: `DashboardData.add_warning` only appends to the list the `Avisos` section renders and
+Warnings reach two sinks: the console and the rotating log file on one side, and
+`run_manifest.json`'s `warnings` field on the other. The dashboard renders none of them (section 7
+of [`docs/checklist-manual-dashboard.md`](docs/checklist-manual-dashboard.md)). The **eight warning
+shapes** listed in [The eight warning shapes](#the-eight-warning-shapes) below reach both sinks, but
+not through the same mechanism: `DashboardData.add_warning` only appends to the list that
 `run_manifest.json` stores; it is `cli.main` that turns that list into console and log-file output,
 logging each distinct message as one `logger.warning` line right after the pipeline returns and
-before the manifest is written. That loop is capped at `cli._MAX_LOGGED_WARNINGS` (20) lines — a
-single (scenario, deck) that lacks every chart source file raises 26 per-chart warnings, one per
+before the manifest is written (`cli._log_warnings`). That loop is capped at
+`cli._MAX_LOGGED_WARNINGS` (20) lines — a single (scenario, deck) that lacks every chart source file raises 26 per-chart warnings, one per
 enabled source file (24 series files plus `CUSTOS` and `TEMPO`), and two scenarios by two decks
 raise 104 — so one malformed tree cannot flood the console; past the cap, one further
-`logger.warning` line names how many messages were omitted and points back to
-`run_manifest.json` and `Avisos`, both of which always keep the complete, uncapped list regardless
-of what the console shows. The log file additionally
-records several warnings that never reach the manifest or the `Avisos` section, because they are
-operational detail rather than something the chart's own values are missing — for example a
-renamed plant detected between two decks' registries (`data.consolidate._warn_on_renamed_plants`),
+`logger.warning` line names how many messages were omitted and points to `run_manifest.json`, the
+only place it names, which always keeps the complete, uncapped list regardless of what the console
+shows. The log file additionally records several warnings that never reach the manifest, because
+they are operational detail rather than something the chart's own values are missing — for example
+a renamed plant detected between two decks' registries (`data.consolidate._warn_on_renamed_plants`),
 a chart present in the store but excluded from a run's own catalogue
-(`dashboard.payload._warn_omitted_charts`), the output-size warning (`dashboard.builder.write_dashboard`),
-and the `costs.total_parcels`/`time.stage_groups`/`time.unit_divisor` configuration warnings
-described in [Configuration](#configuration) above.
+(`dashboard.payload._warn_omitted_charts`), the output-size warning
+(`dashboard.builder.write_dashboard`), and the `costs.total_parcels`/`time.stage_groups`/
+`time.unit_divisor` configuration warnings described in [Configuration](#configuration) above.
 
 Every run also writes `run_manifest.json` inside `paths.output_dir` (`manifest.write_run_manifest`);
 its ten fields and `data_volumes`' six keys are listed in full in
 [How to run](#how-to-run) above. `git_sha` and `git_dirty` are `null` outside a git checkout.
+
+### The eight warning shapes
+
+`DashboardData.add_warning` collects every warning raised while the data is consolidated.
+`run_manifest.json` keeps the complete list, and `cli.main` logs it to the console and the log file,
+capped at 20 lines (see above); the dashboard renders none of them (section 7 of
+[`docs/checklist-manual-dashboard.md`](docs/checklist-manual-dashboard.md)). Every warning degrades
+the affected chart or deck rather than aborting the run, and there are exactly eight distinct
+shapes, all measured directly from `data/consolidate.py` and `data/timeline.py`:
+
+1. **Short chaining window** (`data.timeline.validate_chaining`) — a deck has fewer stages than
+   `chaining.stages_per_deck` in its chaining window.
+2. **Chaining gap** (`data.timeline.validate_chaining`) — two consecutive decks' chaining windows
+   leave a time gap between them.
+3. **Chaining overlap** (`data.timeline.validate_chaining`) — two consecutive decks' chaining
+   windows overlap in time.
+4. **Missing deck for a shared date** (`data.timeline.align_deck_dates`) — a scenario has no deck
+   for a date another scenario does have.
+5. **Divergent timeline** (`data.consolidate._check_timeline_coverage`) — a non-primary scenario's
+   deck at a shared date has a different stage count or start time than the deck the time axis was
+   built from.
+6. **Chart file not found** (`data.consolidate._load_series` and `_load_scalars`) — a chart's
+   source Parquet is missing for a (scenario, deck); that (scenario, deck) contributes no values
+   for it.
+7. **Submarket code dropped** (`data.consolidate._load_series`) — on a `Submercado`-level chart, a
+   submarket code present in the data that is neither in the `SBM.parquet` registry nor listed in
+   `submarkets.fictitious_codes` is discarded with this warning. The registry's fictitious flag
+   reads the same setting (`data.registries.load_registries`), so a listed code is hidden without a
+   warning unless `submarkets.include_fictitious` is `true`, and a registry code that is not listed
+   is shown as an ordinary submarket.
+8. **Entity absent, filled with null** (`data.consolidate._load_series`) — an entity present for
+   one scenario/deck but not another is stored with `null` values rather than omitted, so every
+   scenario's series for a chart stays aligned on the same entity set.
 
 ## Development
 
@@ -676,29 +694,38 @@ Quality gate, run from the repository root, in this order:
 
 `ruff format --check` only reports formatting problems; it never rewrites files (`ruff format`
 without `--check` does). All four commands must exit 0. Measured for this document, on the
-repository as it stands at the end of this ticket:
+repository as it stands when this section was last updated:
 
 | Command | Result |
 | ------- | ------ |
 | `ruff check src tests` | `All checks passed!` |
 | `ruff format --check src tests` | `61 files already formatted` |
 | `mypy src` | `Success: no issues found in 26 source files` |
-| `pytest --cov=dessem_dashboard --cov-report=term-missing` | `643 passed, 1 warning` across two chunked invocations totalling 441.2s (0:07:21); total coverage **99%** (1542 statements, 14 missed) |
+| `pytest --cov=dessem_dashboard --cov-report=term-missing` | `352 passed, 1 skipped` (first chunk) and `305 passed, 4 skipped, 1 warning` (second chunk); combined total coverage **99%** (1557 statements, 15 missed) |
 
 Measured as two sequential chunked invocations, `tests/test_[a-l]*.py` then `tests/test_[m-z]*.py`
 (the second with `--cov-append` so the reported coverage combines both), rather than as the single
 command shown above: on this development machine, a single `pytest --cov` run across the whole
-suite at once has repeatedly been killed by the OS for low memory. 338 passed in the first chunk
-and 305 in the second (338 + 305 = 643), zero skipped, one warning; wall clock was 4m44.5s +
-2m36.7s = 7m21.2s; the combined `.coverage` data reports 1542 statements with 14 missed (99%).
+suite at once has repeatedly been killed by the OS for low memory. The first chunk ended with
+`352 passed, 1 skipped` in a real time of 3m28.9s and the second with `305 passed, 4 skipped, 1
+warning` in 1m44.6s, so the suite totals 657 passed and 5 skipped in 5m13.5s. The 31 test modules
+(`ls tests/test_*.py | wc -l`) split between the chunks, and `mypy src` checked 26 source files.
+Both chunks ran with `DESSEM_DASHBOARD_EXEMPLO` pointing at `examples/`, a local, git-ignored tree
+of two scenarios, `caso1` and `caso2`. The five skips all share one cause: the tests that need the
+documented pair `caso_oficial` / `caso_gurobi` (one in `tests/test_integration_exemplo.py`, four in
+`tests/test_parity.py`) find only `caso1` and `caso2` under that tree. `pytest -rs` gives their
+reason as "The documented pair ('caso_oficial', 'caso_gurobi') does not both qualify under the
+resolved root", the root being the `examples/` directory. The single warning is a pandas
+`UserWarning` ("Could not infer format ...") reported while
+`tests/test_readers.py::test_read_series_unparsable_timestamp_raises_schema_error_naming_column`
+runs.
 
-Total coverage is **99%**, well above the Epic 5 convention of an **85% floor** (raised from 80%
-at the Epic 4/5 boundary). That floor is a convention checked by reading this number on every
-ticket, the same way a reviewer or a specialist agent has checked it throughout this plan — **not**
-a threshold `pytest` itself enforces: `pyproject.toml`'s `[tool.pytest.ini_options]` has no
-`--cov-fail-under`, and no `setup.cfg` or other configuration adds one anywhere in the repository.
-Wiring an enforced floor (`--cov-fail-under=85`) is a small, legitimate follow-up, but it is a code
-change and is out of this documentation ticket's scope.
+Total coverage is **99%**, well above the project's **85% floor**. That floor is a convention
+checked by reading this number on every change, the same way a reviewer or a specialist agent
+checks it — **not** a threshold `pytest` itself enforces: `pyproject.toml`'s
+`[tool.pytest.ini_options]` has no `--cov-fail-under`, and no `setup.cfg` or other configuration
+adds one anywhere in the repository. Wiring an enforced floor (`--cov-fail-under=85`) is a small,
+legitimate follow-up, but it is a code change and is out of scope for documentation.
 
 `[tool.ruff.lint]` in `pyproject.toml` selects 20 rule families explicitly, because ruff's default
 set (`E4`, `E7`, `E9`, `F`) is narrower than this project needs. Four families are deliberately not
