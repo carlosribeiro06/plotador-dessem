@@ -605,8 +605,10 @@ def test_group_b_series_and_scalar_parity_matches_legacy_expressions(tmp_path: P
             )
         assert visited_total == len(codes) * len(context.scenarios)
 
-    assert _check_custos_scalars_match_legacy(context) == len(context.scenarios) * 2
-    assert _check_tempo_scalars_match_legacy(context) == len(context.scenarios) * 2
+    deck_pairs = sum(len(dirs) for dirs in context.dirs_by_scenario.values())
+    assert deck_pairs > 0, "Group B context holds no deck: the scalar checks would visit nothing"
+    assert _check_custos_scalars_match_legacy(context) == deck_pairs
+    assert _check_tempo_scalars_match_legacy(context) == deck_pairs
 
 
 def _official_scenario_skip_reason(root: Path) -> str:
