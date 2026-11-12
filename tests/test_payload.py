@@ -225,7 +225,7 @@ def test_build_payload_scenario_tree_has_ten_top_level_keys_and_scalar_fields(
         "formats",
         "labels",
     }
-    assert payload["schema_version"] == 1
+    assert payload["schema_version"] == 2
     assert payload["scenarios"] == ["caso_a", "caso_b"]
     assert payload["reference"] == "caso_a"
     assert payload["deck_dates"] == list(_DECK_KEYS)

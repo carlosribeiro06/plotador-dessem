@@ -31,7 +31,7 @@ from dessem_dashboard.models.store import DashboardData, TimeAxis
 
 logger = logging.getLogger(__name__)
 
-_SCHEMA_VERSION: Final = 1
+_SCHEMA_VERSION: Final = 2
 
 # Machine format for Plotly's "date" axis type, one string per TimeAxis.starts entry. Never
 # operator-facing: the display format is dashboard.date_format. Deck axes get it client-side from

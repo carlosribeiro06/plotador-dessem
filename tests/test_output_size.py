@@ -43,11 +43,11 @@ _BUILDER_LOGGER_NAME = "dessem_dashboard.dashboard.builder"
 # D7) that replaced the two former combined CUSTOS/TEMPO charts.
 _ENABLED_CHART_COUNT = 31
 
-# Measured on the same build: bytes_html - bytes_plotly is 238_059 bytes -- about 72_600 the
-# base64 logo, about 135_000 the payload's embedded values, the rest the CSS, renderer and
+# Measured on the same build: bytes_html - bytes_plotly is 255_287 bytes -- about 72_600 the
+# base64 logo, about 142_000 the payload's embedded values, the rest the CSS, renderer and
 # shell. The range brackets that figure with margin wide enough for a future plotly upgrade to
 # shift bytes_plotly without breaking this assertion, narrow enough that doubling or halving the
-# controlled share (476_118 or 119_029) falls outside it -- see the non-vacuity assertion below.
+# controlled share (510_574 or 127_643) falls outside it -- see the non-vacuity assertion below.
 _MIN_CONTROLLED_SHARE_BYTES = 150_000
 _MAX_CONTROLLED_SHARE_BYTES = 400_000
 

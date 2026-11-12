@@ -277,7 +277,7 @@ def test_exemplo_two_scenarios_universal_invariants(
     assert plotly_index < payload_index < js_index
 
     payload = _extract_payload(document)
-    assert payload["schema_version"] == 1
+    assert payload["schema_version"] == 2
     assert set(payload.keys()) == _PAYLOAD_TOP_LEVEL_KEYS
 
     charts = payload["charts"]

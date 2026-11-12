@@ -12,7 +12,9 @@
   // yaxis.title) is pinned on the Python side by tests/test_theme.py's plotly_layout_template
   // assertions; buildLayout's own mutations of that copy -- deleting tickformat/hoverformat and
   // setting xaxis.type/barmode for SCALAR_BY_DECK charts -- are pinned instead by
-  // tests/test_charts_costs.py's assertions on this file's own source text.
+  // tests/test_charts_costs.py's assertions on this file's own source text. The chained branch's
+  // mutations (a linear xaxis with array ticks, hoverformat and a labelalias map for the
+  // encadeado line charts) are pinned the same way by tests/test_renderer_chained_axis.py.
   const KEYS = Object.freeze({
     SCHEMA_VERSION: "schema_version",
     DECK_DATES: "deck_dates",
@@ -36,6 +38,10 @@
     KIND: "kind",
     LABELS: "labels",
     Y_AXIS_DIFFERENCE_SUFFIX: "y_axis_difference_suffix",
+    POSITIONS: "positions",
+    TICK_VALUES: "tick_values",
+    TICK_LABELS: "tick_labels",
+    HOVER_LABELS: "hover_labels",
   });
 
   // The chart[KEYS.KIND] value renderChart compares against to choose buildBarTraces over
@@ -55,9 +61,9 @@
     const payloadElement = document.getElementById("dashboard-payload");
     payload = JSON.parse(payloadElement.textContent);
 
-    if (payload[KEYS.SCHEMA_VERSION] !== 1) {
+    if (payload[KEYS.SCHEMA_VERSION] !== 2) {
       console.error(
-        "Dashboard payload schema version is unsupported: expected 1, got " +
+        "Dashboard payload schema version is unsupported: expected 2, got " +
           payload[KEYS.SCHEMA_VERSION] +
           "; aborting initialization."
       );
@@ -114,7 +120,10 @@
     const entityId = state.entities[chartKey];
     const key = axisKey();
     const axis = payload[KEYS.AXES][key];
-    const x = axis[KEYS.STARTS].concat([axis[KEYS.END]]);
+    const x =
+      key === payload[KEYS.CHAINED_KEY]
+        ? axis[KEYS.POSITIONS].slice()
+        : axis[KEYS.STARTS].concat([axis[KEYS.END]]);
     const scenarioColors = payload[KEYS.THEME][KEYS.SCENARIO_COLORS];
 
     // Read the reference series once, before the per-scenario loop: a missing reference is
@@ -268,6 +277,18 @@
       delete layout.xaxis.hoverformat;
       layout.xaxis.type = "category";
       layout.barmode = "group";
+    } else if (axisKey() === payload[KEYS.CHAINED_KEY]) {
+      const axis = payload[KEYS.AXES][payload[KEYS.CHAINED_KEY]];
+      // Hover reads the real stage time: Plotly formats the integer position with "d", then
+      // labelalias maps that text to the timestamp.
+      delete layout.xaxis.tickformat;
+      layout.xaxis.type = "linear";
+      layout.xaxis.zeroline = false;
+      layout.xaxis.tickmode = "array";
+      layout.xaxis.tickvals = axis[KEYS.TICK_VALUES].slice();
+      layout.xaxis.ticktext = axis[KEYS.TICK_LABELS].slice();
+      layout.xaxis.hoverformat = "d";
+      layout.xaxis.labelalias = Object.assign({}, axis[KEYS.HOVER_LABELS]);
     }
     return layout;
   }
