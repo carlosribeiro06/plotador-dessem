@@ -677,67 +677,34 @@ def test_checklist_section_10_covers_hydro_flow_charts() -> None:
 
 
 def test_checklist_section_11_covers_the_continuous_encadeado_axis() -> None:
-    """Guards section 11 -- ``## 11. Continuous Encadeado axis``, steps 42 to 50, written by
-    ticket-008 of plan chained-axis-continuity -- so a simplifier cannot delete the section, drop
-    the step-42 generator snippet, drop the step-46 sentence that names the ``labelalias`` defect,
-    lose or duplicate an ``**Expected result:**`` paragraph, or reorder the tick labels of step 44
-    without breaking a test. The section is the only place the open ``labelalias`` risk (the
-    ``x unified`` hover title may show a bare integer instead of a timestamp) is verified, because
-    epic decision E3-1 keeps JavaScript out of this suite.
+    """Guards checklist section 11, ``## 11. Continuous Encadeado axis`` (steps 42 to 50).
 
-    Pins literal strings only, like the section-9 and section-10 guards (ADR-010): it reads nothing
-    from the payload or the chart catalogue. Scoped to section 11's own slice, from its heading to
-    the next top-level heading or end of file; it does not assert that nothing follows section 11.
-    The steps are counted with a line-start pattern, so the indented snippet and the wrapped prose
-    cannot add a false step.
+    The section is the manual check for the ``labelalias`` risk (the ``x unified`` hover title
+    showing a bare integer instead of a timestamp), which no static test can observe. Pins literal
+    strings only; reads nothing from the payload or the chart catalogue. Requires the heading;
+    steps 42 to 50 numbered in order; the Purpose sentence ``Steps 42 to 50``; step 44's nine tick
+    labels in order; the step-42 generator import line; ``labelalias`` and ``4320`` inside step
+    46's slice; and exactly nine ``**Expected result:**`` markers.
 
-    The ordered search of the nine tick labels is bounded to step 44's own slice, from the line
-    that opens step 44 to the line that opens step 45, and advances past each match, so the
-    repeated ``08/01/2026 00:00`` needs two occurrences and a label re-quoted in steps 45 to 47
-    cannot stand in for a displaced one. Measured on the checklist as written, every pairwise swap
-    of two distinct tick labels in step 44 (all 28 pairs of the eight distinct labels) fails with
-    the bound and without it, so the bound is a safeguard against later edits to steps 45 to 47,
-    not a hole the current text exposes.
+    A literal that also occurs in prose pins nothing, so the pins sit where the literal is unique.
+    Within section 11, ``labelalias`` occurs three times and ``4320`` twice, and
+    ``fixtures_sintese`` and ``stages_per_deck`` also occur outside the step-42 fence; the import
+    line occurs once, inside it, and step 46's slice holds each hover literal once.
 
-    The three pins added at the epic-03 boundary were each chosen by measuring where the literal
-    occurs, because a literal that also occurs in the prose pins nothing. The generator snippet is
-    pinned by its import line, ``from fixtures_sintese import make_sintese_dir``: it occurs once
-    in section 11, inside the step-42 fence, while ``fixtures_sintese`` and ``stages_per_deck``
-    alone also occur in step 42's prose and survive the deletion of the fence. Only that line is
-    pinned: with the test green, the ``chaining.stages_per_deck`` override line, or the
-    ``make_sintese_dir(`` call with the import kept, can still be removed from the snippet. Step 46
-    is sliced like step 44, from the line that opens it to the line that opens step 47, and
-    ``labelalias`` and ``4320`` are pinned inside that slice: each occurs once there, in the defect
-    sentence, whereas the section as a whole holds ``labelalias`` three times and ``4320`` twice
-    (the introduction repeats both), so a section-wide search passes without the sentence. The
-    ``**Expected result:**`` marker is counted over section 11, one per step, so dropping or
-    duplicating a single paragraph fails as well as dropping all of them.
+    Steps 44 and 46 are sliced from the line that opens the step to the line that opens the next.
+    The tick search advances past each match, so the repeated ``08/01/2026 00:00`` needs two
+    occurrences, and a label re-quoted in steps 45 to 47 cannot stand in for a displaced one. Every
+    pairwise swap of the eight distinct labels already fails without the bound, so it guards
+    against later edits to steps 45 to 47. The marker is counted over the section, one per step,
+    so dropping or duplicating a single paragraph fails.
 
-    Proven to fail. The first two by editing ``docs/checklist-manual-dashboard.md`` in place,
-    running only this test, and restoring the file byte-identically (``sha256sum`` equal before and
-    after):
+    Rejected with ``AssertionError``: section deleted or renamed; a step number missing or
+    duplicated; two tick labels of step 44 swapped; step-42 fence, or only its import line,
+    removed; step-46 defect sentence, or only ``labelalias``, or only ``4320``, removed; an
+    ``**Expected result:**`` marker dropped or duplicated.
 
-    - section 11 deleted: ``AssertionError`` from ``assert heading in text``, before any other
-      assertion runs;
-    - ``07/01/2026 12:00`` and ``08/01/2026 12:00`` swapped in step 44's list: ``AssertionError:
-      `08/01/2026 00:00` is missing from step 44's tick list or out of order``, the first label
-      that is no longer found after the displaced ``07/01/2026 12:00``.
-
-    The next three, with their variants, on a mutated copy of the text returned in place of
-    ``_read_checklist()``, so the checklist file is never edited. Each left this test green before
-    the three pins were added and now fails:
-
-    - the step-42 fenced block removed, from the first ``bash`` fence after the heading to its
-      closing fence: ``AssertionError: step 42's generator snippet is missing from section 11``;
-      removing only the import line fails the same way;
-    - the step-46 defect sentence removed (``A title showing a bare integer such as `4320` is a
-      defect: `labelalias` does not reach the unified hover title.``, matched whitespace-tolerantly
-      because it wraps over two lines): ``AssertionError: 'labelalias' is missing from step 46's
-      hover check``; removing only ``labelalias``, or only ``4320``, from step 46 fails naming that
-      literal;
-    - the nine ``**Expected result:**`` markers removed: ``AssertionError: '**Expected result:**'
-      must occur exactly nine times in section 11, one per step, found 0``; one marker dropped
-      gives ``found 8``, one marker duplicated ``found 10``.
+    Known limit: only the import line of the snippet is pinned, so the ``chaining.stages_per_deck``
+    override line or the ``make_sintese_dir(`` call (import kept) can be removed without failing.
     """
     text = _read_checklist()
 
@@ -766,10 +733,8 @@ def test_checklist_section_11_covers_the_continuous_encadeado_axis() -> None:
 
     for literal in (
         "stages_per_deck",
-        "fixtures_sintese",
         "Encadeamento apresenta lacuna entre os decks de 08/01/2026 e 10/09/2026",
         "x unified",
-        "labelalias",
         "09/01/2026 06:00",
         "MW (diferença)",
         "twelve times wider",
