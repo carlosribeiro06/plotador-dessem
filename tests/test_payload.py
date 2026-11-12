@@ -35,6 +35,7 @@ _DECK_KEYS: tuple[str, str] = ("03/03/2024", "04/03/2024")
 _CHAINED_KEY = "encadeado"
 _HAND_BUILT_DATE = date(2024, 3, 3)
 _HAND_BUILT_DECK_KEY = "03/03/2024"
+_CHAINED_AXIS_KEYS = {"starts", "end", "positions", "tick_values", "tick_labels", "hover_labels"}
 
 
 def _settings_dict(*, decimals: int, disabled: Sequence[str]) -> dict[str, Any]:
@@ -141,6 +142,37 @@ def _hand_built_data(
     return data
 
 
+def _hand_built_gap_data() -> DashboardData:
+    """Build a store whose two decks are months apart and whose chained axis concatenates them.
+
+    Each deck has 48 half-hour stages from 00:00 UTC of its own date; the chained axis holds both
+    decks' stages in order, so its stage 48 starts 2026-09-10 00:00, about eight months after
+    stage 47 ends.
+    """
+    deck_dates = (date(2026, 1, 8), date(2026, 9, 10))
+    data = DashboardData(
+        scenarios=("caso_a",),
+        reference="caso_a",
+        deck_dates=deck_dates,
+        registries=_empty_registries(),
+    )
+    all_starts: list[pd.Timestamp] = []
+    for deck_date in deck_dates:
+        first = pd.Timestamp(deck_date.isoformat(), tz="UTC")
+        starts = tuple(first + pd.Timedelta(hours=0.5 * index) for index in range(48))
+        data.set_deck_axis(
+            deck_date,
+            TimeAxis(
+                key=deck_date.strftime("%d/%m/%Y"), starts=starts, durations_hours=(0.5,) * 48
+            ),
+        )
+        all_starts.extend(starts)
+    data.set_chained_axis(
+        TimeAxis(key=_CHAINED_KEY, starts=tuple(all_starts), durations_hours=(0.5,) * 96)
+    )
+    return data
+
+
 def _rewrite_metadados_long_name(
     sintese_dir: Path, *, chart_key: str, long_name: str | None
 ) -> None:
@@ -215,15 +247,65 @@ def test_build_payload_scenario_tree_axes_shape_and_values(
     axes = payload["axes"]
     assert isinstance(axes, dict)
 
-    assert set(axes) == {"03/03/2024", "04/03/2024", "encadeado"}
-    for axis_entry in axes.values():
-        assert set(axis_entry) == {"starts", "end"}
+    assert list(axes) == [*_DECK_KEYS, _CHAINED_KEY]
+    for deck_key in _DECK_KEYS:
+        assert set(axes[deck_key]) == {"starts", "end"}
+    assert set(axes[_CHAINED_KEY]) == _CHAINED_AXIS_KEYS
 
     assert len(axes["03/03/2024"]["starts"]) == _DECK_AXIS_LENGTH
     assert axes["03/03/2024"]["starts"][0] == "2024-03-03 00:00"
     assert axes["03/03/2024"]["end"] == "2024-03-04 12:00"
     assert len(axes["encadeado"]["starts"]) == _CHAINED_AXIS_LENGTH
     assert axes["encadeado"]["end"] == "2024-03-05 00:00"
+
+
+def test_build_payload_scenario_tree_chained_axis_geometry(
+    scenario_tree: dict[str, Path], tmp_path: Path
+) -> None:
+    settings = _build_settings(tmp_path)
+    data = _build_data(
+        [scenario_tree["caso_a"], scenario_tree["caso_b"]], settings=settings, reference="caso_a"
+    )
+
+    payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
+    chained = payload["axes"][_CHAINED_KEY]
+
+    positions = chained["positions"]
+    assert len(positions) == _CHAINED_AXIS_LENGTH + 1
+    assert all(type(position) is int for position in positions)
+    assert positions[0] == 0
+    assert positions[48] == 1440
+    assert positions[96] == 2880
+    assert chained["tick_values"] == [0, 360, 720, 1080, 1440, 1800, 2160, 2520]
+    assert len(chained["tick_labels"]) == len(chained["tick_values"])
+    assert chained["tick_labels"][0] == "03/03/2024 00:00"
+    assert chained["tick_labels"][4] == "04/03/2024 00:00"
+    hover_labels = chained["hover_labels"]
+    assert len(hover_labels) == _CHAINED_AXIS_LENGTH + 1
+    assert hover_labels["0"] == "03/03/2024 00:00"
+    assert hover_labels["1440"] == "04/03/2024 00:00"
+    assert hover_labels["2880"] == "05/03/2024 00:00"
+    assert set(hover_labels) == {str(position) for position in positions}
+
+
+def test_build_payload_chained_axis_gap_is_continuous(tmp_path: Path) -> None:
+    settings = _build_settings(tmp_path)
+    data = _hand_built_gap_data()
+
+    payload = build_payload(data, settings=settings, scenario_colors={}, plotly_layout={})
+    chained = payload["axes"][_CHAINED_KEY]
+
+    assert chained["positions"][47] == 1410
+    assert chained["positions"][48] == 1440
+    assert chained["starts"][47] == "2026-01-08 23:30"
+    assert chained["starts"][48] == "2026-09-10 00:00"
+    assert chained["hover_labels"]["1410"] == "08/01/2026 23:30"
+    assert chained["hover_labels"]["1440"] == "10/09/2026 00:00"
+    assert chained["positions"][96] == 2880
+    assert chained["end"] == "2026-09-11 00:00"
+    assert chained["hover_labels"]["2880"] == "11/09/2026 00:00"
+    assert set(payload["axes"]["08/01/2026"]) == {"starts", "end"}
+    assert set(payload["axes"]["10/09/2026"]) == {"starts", "end"}
 
 
 # --- acceptance criterion 3: charts --------------------------------------------------------------
@@ -717,4 +799,9 @@ def test_build_payload_and_payload_json_log_info_lines_with_volume_fields(
     ]
     assert any(f"graficos={_ENABLED_CHART_COUNT}" in message for message in messages)
     assert any(f"valores={_VALUE_COUNT}" in message for message in messages)
+    assert any(
+        f"estagios_encadeados={_CHAINED_AXIS_LENGTH}" in message
+        and "marcas_eixo_encadeado=8" in message
+        for message in messages
+    )
     assert any(f"caracteres={len(text)}" in message for message in messages)

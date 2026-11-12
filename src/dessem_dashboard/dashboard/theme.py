@@ -54,6 +54,7 @@ FONT_SIZE_PX: Final[int] = 12
 CHART_HEIGHT_PX: Final[int] = 450
 LOGO_MIN_WIDTH_PX: Final[int] = 220
 LOGO_PADDING_PX: Final[int] = 24
+X_AXIS_MAX_TICKS: Final[int] = 12
 
 SCENARIO_PALETTE: Final[tuple[str, ...]] = (
     BRAND_GREEN,
@@ -125,7 +126,7 @@ def plotly_layout_template(*, date_format: str) -> dict[str, object]:
             "showticklabels": True,
             "ticks": "outside",
             "automargin": True,
-            "nticks": 12,
+            "nticks": X_AXIS_MAX_TICKS,
         },
         "yaxis": {
             "gridcolor": GRID_COLOR,

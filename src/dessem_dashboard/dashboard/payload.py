@@ -5,7 +5,9 @@ chart, entity, scenario and time axis, per master plan decision 6 (no pre-render
 figures) and decision 8 (only absolute series travel; the Diferença view is computed in the
 browser). `payload_json` then serialises that mapping into HTML-safe text. Neither function
 reads a file, writes a file, or mutates `data`; the two theme arguments arrive as caller-supplied
-values so this module stays independent of `dashboard.theme`.
+values, and the only name imported from `dashboard.theme` is `X_AXIS_MAX_TICKS`, the tick budget
+shared with the chart layout. The chained axis entry also carries its continuous geometry, and its
+tick and hover labels are formatted here with `dashboard.date_format`.
 """
 
 from __future__ import annotations
@@ -14,14 +16,16 @@ import json
 import logging
 import time
 from collections.abc import Mapping
-from typing import Final
+from typing import Final, cast
 
 import pandas as pd
 
 from dessem_dashboard.charts.registry import ChartKind, ChartSpec, enabled_specs
 from dessem_dashboard.config import Settings
+from dessem_dashboard.dashboard.chained_axis import chained_points, chained_tick_indices
 from dessem_dashboard.dashboard.scalars import ScalarsByName
 from dessem_dashboard.dashboard.scalars import aggregate as aggregate_scalars
+from dessem_dashboard.dashboard.theme import X_AXIS_MAX_TICKS
 from dessem_dashboard.logging_setup import log_step
 from dessem_dashboard.models.store import DashboardData, TimeAxis
 
@@ -30,9 +34,9 @@ logger = logging.getLogger(__name__)
 _SCHEMA_VERSION: Final = 1
 
 # Machine format for Plotly's "date" axis type, one string per TimeAxis.starts entry. Never
-# operator-facing: the display format is dashboard.date_format, applied client-side by
-# ticket-019's tickformat, and deck/chained labels are read from TimeAxis.key, never reformatted
-# here.
+# operator-facing: the display format is dashboard.date_format. Deck axes get it client-side from
+# ticket-019's tickformat; the chained axis plots minutes rather than timestamps, so its tick and
+# hover labels are formatted here with dashboard.date_format (see _chained_axis_entry).
 _AXIS_TIMESTAMP_FORMAT: Final = "%Y-%m-%d %H:%M"
 
 _DIFFERENCE_SUFFIX: Final = " (diferença)"
@@ -53,11 +57,38 @@ def _axis_entry(axis: TimeAxis) -> dict[str, object]:
     return {"starts": starts, "end": end.strftime(_AXIS_TIMESTAMP_FORMAT)}
 
 
-def _build_axes(data: DashboardData) -> dict[str, dict[str, object]]:
-    """Build the axes mapping: every deck's TimeAxis plus the chained axis, keyed by axis.key."""
-    time_axes = [data.deck_axis(deck_date) for deck_date in data.deck_dates]
-    time_axes.append(data.chained_axis())
-    return {axis.key: _axis_entry(axis) for axis in time_axes}
+def _chained_axis_entry(axis: TimeAxis, *, date_format: str) -> dict[str, object]:
+    """Build the chained axis entry: `_axis_entry` plus its continuous-axis geometry.
+
+    positions holds the n+1 integer minute positions of the stage starts and of the terminal
+    point; tick_values and tick_labels hold the chosen ticks (at most X_AXIS_MAX_TICKS);
+    hover_labels maps str(position) to the point's real timestamp label, formatted with
+    date_format. Raises StoreError, unchanged, when chained_points rejects the axis.
+    """
+    points = chained_points(axis, date_format=date_format)
+    ticks = chained_tick_indices(axis.starts, max_ticks=X_AXIS_MAX_TICKS)
+    return {
+        **_axis_entry(axis),
+        "positions": [point.position for point in points],
+        "tick_values": [points[i].position for i in ticks],
+        "tick_labels": [points[i].label for i in ticks],
+        "hover_labels": {str(point.position): point.label for point in points},
+    }
+
+
+def _build_axes(data: DashboardData, *, date_format: str) -> dict[str, dict[str, object]]:
+    """Build the axes mapping: every deck's TimeAxis plus the chained axis, keyed by axis.key.
+
+    Deck entries keep exactly {"starts", "end"}; only the chained entry carries the geometry that
+    _chained_axis_entry adds. The chained key stays last.
+    """
+    axes = {
+        axis.key: _axis_entry(axis)
+        for axis in (data.deck_axis(deck_date) for deck_date in data.deck_dates)
+    }
+    chained = data.chained_axis()
+    axes[chained.key] = _chained_axis_entry(chained, date_format=date_format)
+    return axes
 
 
 def _build_series(
@@ -241,7 +272,10 @@ def build_payload(
     Reads no file and touches no disk, and never mutates data: calling this twice on the same
     store returns equal payloads. scenario_colors and plotly_layout arrive from the caller
     (ticket-021 passes theme.scenario_colors(...) and theme.plotly_layout_template(...)) and are
-    neither validated nor interpreted here, so this module stays independent of dashboard.theme.
+    neither validated nor interpreted here; the only dashboard.theme name this module imports is
+    X_AXIS_MAX_TICKS, the chained axis tick budget. The chained axis entry's tick and hover labels
+    are formatted here with settings.dashboard.date_format. A StoreError from the chained axis
+    geometry (empty axis, sub-minute stage) propagates unchanged.
     """
     start = time.perf_counter()
     decimals = settings.output.decimals
@@ -260,13 +294,16 @@ def build_payload(
         )
         for spec in specs
     }
+    axes = _build_axes(data, date_format=settings.dashboard.date_format)
+    chained_key = data.chained_axis().key
+    chained_tick_values = cast("list[int]", axes[chained_key]["tick_values"])
     payload: dict[str, object] = {
         "schema_version": _SCHEMA_VERSION,
         "scenarios": list(data.scenarios),
         "reference": data.reference,
         "deck_dates": [data.deck_axis(deck_date).key for deck_date in data.deck_dates],
-        "chained_key": data.chained_axis().key,
-        "axes": _build_axes(data),
+        "chained_key": chained_key,
+        "axes": axes,
         "charts": charts,
         "theme": {"scenario_colors": dict(scenario_colors), "layout": dict(plotly_layout)},
         "formats": {"decimals": decimals},
@@ -278,6 +315,8 @@ def build_payload(
         "Payload JSON construído",
         graficos=len(charts),
         valores=data.value_count(),
+        estagios_encadeados=data.chained_axis().length,
+        marcas_eixo_encadeado=len(chained_tick_values),
         elapsed_s=time.perf_counter() - start,
     )
     return payload
