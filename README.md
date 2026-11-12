@@ -86,7 +86,11 @@ paragraph follows the table for the four keys an operator is actually expected t
 fewer stages than this value contributes a shorter window and `data.timeline.validate_chaining`
 emits a Portuguese warning naming the deck date and the stage shortfall, rather than failing the
 run. The default of 48 half-hour stages covers exactly one operating day, so consecutive decks
-chain with no gap when their windows are contiguous.
+chain with no gap when their windows are contiguous. A gap or an overlap between consecutive
+windows is likewise reported as a warning (shapes 2 and 3 of
+[The eight warning shapes](#the-eight-warning-shapes)) and does not change the **Encadeado** axis,
+which lays the windows end to end on elapsed time; see
+[View modes and the Deck selector](#view-modes-and-the-deck-selector).
 
 ### Costs
 
@@ -145,7 +149,15 @@ one Portuguese `logger.warning` naming the `min` label and the configured diviso
 | --- | --- | --- |
 | `dashboard.title` | `"Comparação de Resultados do DESSEM"` | HTML `<title>` and header text. |
 | `dashboard.footer_text` | `"Gerência de Ferramentas Energéticas - FEN"` | Mandatory footer. |
-| `dashboard.date_format` | `"%d/%m/%Y %H:%M"` | X-axis tick and hover timestamp format for every line chart. |
+| `dashboard.date_format` | `"%d/%m/%Y %H:%M"` | Tick-label and hover-title timestamp format for every line chart, in both view modes. |
+
+The same `dashboard.date_format` pattern feeds two formatters. `Por deck` plots a date axis, so Plotly's d3-time-format
+renders its tick and hover labels in the browser (`tickformat` and `hoverformat` in
+`dashboard.theme`). `Encadeado` plots elapsed minutes rather than dates, so Python `strftime`
+renders its tick and hover labels at build time (`dashboard.payload`). Use only the numeric
+directives both share (`%d`, `%m`, `%Y`, `%H`, `%M`): the name directives (`%b`, `%B`, `%a`, `%A`)
+can render differently on the two axes, because Python follows the process locale while Plotly uses
+English names.
 
 ### Output
 
@@ -334,10 +346,36 @@ The mode toggle (`#mode-toggle`) shows two buttons, `Por deck` and `Encadeado`
 concatenates the first `chaining.stages_per_deck` stages of every deck, in deck-date order, into
 one continuous axis, and the `Deck` selector carries the `disabled` attribute while this mode is
 active — present but inert, not hidden, since the chained axis does not read from a single deck.
-Every line chart's X axis is a true datetime axis with step interpolation (`line_shape: "hv"`),
-not one evenly-spaced tick per stage (see
+`Por deck` draws a true datetime axis with linear interpolation between stage starts, not one
+evenly spaced tick per stage (see
 [Intentional divergences](#intentional-divergences-from-the-original-specification) below): a
-6-hour stage therefore renders six times wider than a 30-minute stage of the same deck.
+6-hour stage therefore renders twelve times wider than a 30-minute stage of the same deck.
+
+`Encadeado` plots **elapsed plotted time**, not calendar time: X is the integer minutes from the
+start of the chained axis, that is, the cumulative duration of the chained stages before each point
+(`dashboard.chained_axis`). A calendar gap between decks takes no width and has no break marker,
+and overlapping windows are laid end to end, so X always runs forward. Stage width stays
+proportional to duration.
+
+The tick labels and the `x unified` hover title show the real stage start timestamps, formatted
+with `dashboard.date_format`. At most 12 ticks (`theme.X_AXIS_MAX_TICKS`) sit on hour-aligned stage
+starts, at the finest step of 1, 2, 3, 6, 12 or 24 hours that fits; when no step fits, the
+candidate starts are thinned by a fixed stride to the budget.
+
+Two limits follow from how the axis is built:
+
+- Ticks are static. They are computed once at build time and not recomputed when the reader zooms,
+  so after a zoom only the ticks already inside the visible range remain and none is added. A
+  narrow zoom can show no tick label while the hover title still shows the exact time.
+- When overlapping windows repeat a stage start, two ticks can carry the same label, and the hover
+  title can step back in time while X moves forward.
+
+`Diferença` pairs scenarios by stage index on the `Encadeado` axis, because every scenario's
+chained array shares one axis.
+
+The `Encadeado` entry of the embedded payload carries `positions`, `tick_values`, `tick_labels` and
+`hover_labels` besides `starts` and `end`; deck entries keep only `starts` and `end`. The payload
+`schema_version` is 2, and the renderer refuses to draw any other version.
 
 ### Absoluto and Diferença
 
@@ -436,8 +474,8 @@ the installed `plotly` package (`plotly.offline.get_plotlyjs()`), the CSS and re
 inlined from the package's own assets, and the JSON payload is embedded in a `<script
 type="application/json">` element. Because no automated test can execute this file's JavaScript in
 this environment (`node`/`npm` are not installed; `dashboard.js` carries only static Python-side
-assertions in `tests/test_renderer_contract.py`), the full interactive behaviour described above is
-verified manually, once per release, by walking
+assertions in `tests/test_renderer_contract.py` and `tests/test_renderer_chained_axis.py`), the
+full interactive behaviour described above is verified manually, once per release, by walking
 [`docs/checklist-manual-dashboard.md`](docs/checklist-manual-dashboard.md) against a real built
 file. That checklist is the release gate for everything this section describes.
 
@@ -574,16 +612,17 @@ src/dessem_dashboard/
     ├── __init__.py                    # package marker, no logic
     ├── theme.py                        # ONS brand colors, Plotly layout template, CSS custom properties
     ├── scalars.py                       # CUSTOS/TEMPO aggregation into displayed bar series
-    ├── payload.py                        # DashboardData -> compact JSON-ready payload
-    ├── builder.py                         # DOM assembly, single-substitution HTML document build
+    ├── chained_axis.py                   # Encadeado continuous-axis geometry: elapsed-minute positions, ticks, labels; no I/O
+    ├── payload.py                         # DashboardData -> compact JSON-ready payload
+    ├── builder.py                          # DOM assembly, single-substitution HTML document build
     └── assets/
-        ├── __init__.py                     # packaging marker: makes package-data discoverable
-        ├── dashboard.html                   # string.Template shell with the $placeholders builder.py fills
-        ├── dashboard.css                     # stylesheet, reading every color from theme.py's :root block
-        └── dashboard.js                       # hand-written renderer: mode/level/value toggles, filters
+        ├── __init__.py                      # packaging marker: makes package-data discoverable
+        ├── dashboard.html                    # string.Template shell with the $placeholders builder.py fills
+        ├── dashboard.css                      # stylesheet, reading every color from theme.py's :root block
+        └── dashboard.js                        # hand-written renderer: mode/level/value toggles, filters
 ```
 
-26 Python files (20 modules plus 6 package `__init__.py` markers) and 3 static assets, matching
+27 Python files (21 modules plus 6 package `__init__.py` markers) and 3 static assets, matching
 `find src/dessem_dashboard -name "*.py" -o -name "*.css" -o -name "*.js" -o -name "*.html"`.
 
 ### Legacy scripts
@@ -750,8 +789,11 @@ Two behaviours deliberately depart from the original spec:
   original spec suggested ignoring `logo/` and `*.md`; only the local planning material (`plans/`,
   `plano_dashboard_dessem.md`) and `CLAUDE.md` are excluded, and `.gitignore` itself is the
   evidence.
-- **The line-chart X axis is a true datetime axis with `line_shape: "hv"` step interpolation**, not
-  the legacy scripts' `type='category'` axis: in `Por deck` mode stage
-  durations vary (0.5, 2, 6 and 8 hours), and a categorical axis would give a 30-minute stage and an
-  8-hour stage the same width, visually misrepresenting the horizon. This is a deliberate,
-  documented improvement, checked against the legacy behaviour by `tests/test_parity.py`.
+- **The line-chart X axis is proportional to stage duration, with linear interpolation**, not the
+  legacy scripts' `type='category'` axis: it is a datetime axis in `Por deck` mode and an
+  elapsed-time axis in `Encadeado`. Stage durations vary (0.5, 2, 6 and 8 hours), and a categorical
+  axis would give a 30-minute stage and an 8-hour stage the same width, visually misrepresenting the
+  horizon. `Encadeado` plots elapsed time rather than real timestamps because the chained windows
+  can leave a calendar gap or overlap: real timestamps would leave an empty span across a gap and
+  make X run backwards across an overlap. This is a deliberate, documented improvement;
+  `tests/test_parity.py` checks only the `date` axis type against the legacy behaviour.

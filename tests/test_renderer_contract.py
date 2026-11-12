@@ -671,3 +671,153 @@ def test_checklist_section_10_covers_hydro_flow_charts() -> None:
             f"{uhe_title} is missing from step 37's list or out of R13 order"
         )
         position = uhe_titles_text.index(uhe_title, position) + len(uhe_title)
+
+
+# --- ticket-008 (chained-axis-continuity): the guard for checklist section 11 ------------------
+
+
+def test_checklist_section_11_covers_the_continuous_encadeado_axis() -> None:
+    """Guards section 11 -- ``## 11. Continuous Encadeado axis``, steps 42 to 50, written by
+    ticket-008 of plan chained-axis-continuity -- so a simplifier cannot delete the section, drop
+    the step-42 generator snippet, drop the step-46 sentence that names the ``labelalias`` defect,
+    lose or duplicate an ``**Expected result:**`` paragraph, or reorder the tick labels of step 44
+    without breaking a test. The section is the only place the open ``labelalias`` risk (the
+    ``x unified`` hover title may show a bare integer instead of a timestamp) is verified, because
+    epic decision E3-1 keeps JavaScript out of this suite.
+
+    Pins literal strings only, like the section-9 and section-10 guards (ADR-010): it reads nothing
+    from the payload or the chart catalogue. Scoped to section 11's own slice, from its heading to
+    the next top-level heading or end of file; it does not assert that nothing follows section 11.
+    The steps are counted with a line-start pattern, so the indented snippet and the wrapped prose
+    cannot add a false step.
+
+    The ordered search of the nine tick labels is bounded to step 44's own slice, from the line
+    that opens step 44 to the line that opens step 45, and advances past each match, so the
+    repeated ``08/01/2026 00:00`` needs two occurrences and a label re-quoted in steps 45 to 47
+    cannot stand in for a displaced one. Measured on the checklist as written, every pairwise swap
+    of two distinct tick labels in step 44 (all 28 pairs of the eight distinct labels) fails with
+    the bound and without it, so the bound is a safeguard against later edits to steps 45 to 47,
+    not a hole the current text exposes.
+
+    The three pins added at the epic-03 boundary were each chosen by measuring where the literal
+    occurs, because a literal that also occurs in the prose pins nothing. The generator snippet is
+    pinned by its import line, ``from fixtures_sintese import make_sintese_dir``: it occurs once
+    in section 11, inside the step-42 fence, while ``fixtures_sintese`` and ``stages_per_deck``
+    alone also occur in step 42's prose and survive the deletion of the fence. Only that line is
+    pinned: with the test green, the ``chaining.stages_per_deck`` override line, or the
+    ``make_sintese_dir(`` call with the import kept, can still be removed from the snippet. Step 46
+    is sliced like step 44, from the line that opens it to the line that opens step 47, and
+    ``labelalias`` and ``4320`` are pinned inside that slice: each occurs once there, in the defect
+    sentence, whereas the section as a whole holds ``labelalias`` three times and ``4320`` twice
+    (the introduction repeats both), so a section-wide search passes without the sentence. The
+    ``**Expected result:**`` marker is counted over section 11, one per step, so dropping or
+    duplicating a single paragraph fails as well as dropping all of them.
+
+    Proven to fail. The first two by editing ``docs/checklist-manual-dashboard.md`` in place,
+    running only this test, and restoring the file byte-identically (``sha256sum`` equal before and
+    after):
+
+    - section 11 deleted: ``AssertionError`` from ``assert heading in text``, before any other
+      assertion runs;
+    - ``07/01/2026 12:00`` and ``08/01/2026 12:00`` swapped in step 44's list: ``AssertionError:
+      `08/01/2026 00:00` is missing from step 44's tick list or out of order``, the first label
+      that is no longer found after the displaced ``07/01/2026 12:00``.
+
+    The next three, with their variants, on a mutated copy of the text returned in place of
+    ``_read_checklist()``, so the checklist file is never edited. Each left this test green before
+    the three pins were added and now fails:
+
+    - the step-42 fenced block removed, from the first ``bash`` fence after the heading to its
+      closing fence: ``AssertionError: step 42's generator snippet is missing from section 11``;
+      removing only the import line fails the same way;
+    - the step-46 defect sentence removed (``A title showing a bare integer such as `4320` is a
+      defect: `labelalias` does not reach the unified hover title.``, matched whitespace-tolerantly
+      because it wraps over two lines): ``AssertionError: 'labelalias' is missing from step 46's
+      hover check``; removing only ``labelalias``, or only ``4320``, from step 46 fails naming that
+      literal;
+    - the nine ``**Expected result:**`` markers removed: ``AssertionError: '**Expected result:**'
+      must occur exactly nine times in section 11, one per step, found 0``; one marker dropped
+      gives ``found 8``, one marker duplicated ``found 10``.
+    """
+    text = _read_checklist()
+
+    heading = "## 11. Continuous Encadeado axis"
+    assert heading in text
+    section_start = text.index(heading)
+    next_heading_start = text.find("\n## ", section_start + len(heading))
+    section_end = len(text) if next_heading_start == -1 else next_heading_start
+    section_text = text[section_start:section_end]
+
+    step_numbers = re.findall(r"^(\d+)\. ", section_text, re.MULTILINE)
+    assert step_numbers == [str(number) for number in range(42, 51)], (
+        f"section 11 must number its steps 42 to 50 exactly, found {step_numbers}"
+    )
+
+    expected_marker = "**Expected result:**"
+    assert section_text.count(expected_marker) == 9, (
+        f"{expected_marker!r} must occur exactly nine times in section 11, one per step, "
+        f"found {section_text.count(expected_marker)}"
+    )
+
+    generator_import = "from fixtures_sintese import make_sintese_dir"
+    assert generator_import in section_text, (
+        "step 42's generator snippet is missing from section 11"
+    )
+
+    for literal in (
+        "stages_per_deck",
+        "fixtures_sintese",
+        "Encadeamento apresenta lacuna entre os decks de 08/01/2026 e 10/09/2026",
+        "x unified",
+        "labelalias",
+        "09/01/2026 06:00",
+        "MW (diferença)",
+        "twelve times wider",
+        "10/09/2026 - PRESENTE",
+    ):
+        assert literal in section_text, f"{literal!r} is missing from section 11"
+
+    tick_step_open = "\n44. "
+    tick_step_close = "\n45. "
+    assert tick_step_open in section_text, "step 44 is missing from section 11"
+    tick_step_start = section_text.index(tick_step_open)
+    assert tick_step_close in section_text[tick_step_start:], (
+        "step 45 must follow step 44 in section 11"
+    )
+    tick_step_text = section_text[
+        tick_step_start : section_text.index(tick_step_close, tick_step_start)
+    ]
+
+    position = 0
+    for tick_label in (
+        "`07/01/2026 00:00`",
+        "`07/01/2026 12:00`",
+        "`08/01/2026 00:00`",
+        "`08/01/2026 00:00`",
+        "`08/01/2026 12:00`",
+        "`09/01/2026 00:00`",
+        "`10/09/2026 00:00`",
+        "`10/09/2026 12:00`",
+        "`11/09/2026 00:00`",
+    ):
+        assert tick_label in tick_step_text[position:], (
+            f"{tick_label} is missing from step 44's tick list or out of order"
+        )
+        position = tick_step_text.index(tick_label, position) + len(tick_label)
+
+    hover_step_open = "\n46. "
+    hover_step_close = "\n47. "
+    assert hover_step_open in section_text, "step 46 is missing from section 11"
+    hover_step_start = section_text.index(hover_step_open)
+    assert hover_step_close in section_text[hover_step_start:], (
+        "step 47 must follow step 46 in section 11"
+    )
+    hover_step_text = section_text[
+        hover_step_start : section_text.index(hover_step_close, hover_step_start)
+    ]
+    for hover_literal in ("labelalias", "4320"):
+        assert hover_literal in hover_step_text, (
+            f"{hover_literal!r} is missing from step 46's hover check"
+        )
+
+    assert "Steps 42 to 50" in text

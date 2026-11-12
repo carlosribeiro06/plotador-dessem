@@ -15,6 +15,7 @@ interchange charts. Steps 21 to 26 cover Epic 4's plant name and code filters (t
 27 to 32 cover Epic 4's cost and time bar charts (tickets 030–031).
 Steps 33 to 41 cover the hydro flow charts of the SIN and `Usinas hidrelétricas` levels (plan
 graficos-hidreletricos).
+Steps 42 to 50 cover the continuous Encadeado axis (plan chained-axis-continuity).
 
 Interface strings are quoted exactly as they render, in Portuguese, because that is the language of
 every dashboard UI string; the prose around them is English, per the Rigoroso mode policy.
@@ -353,3 +354,124 @@ all four combinations of `Por deck` / `Encadeado` with `Absoluto` / `Diferença`
 
     **Expected result:** the same six charts as in step 7 appear and none of them is a flow chart:
     there is no `Defluência`, `Turbinamento` or `Vertimento` chart at this level.
+
+## 11. Continuous Encadeado axis
+
+The static tests pin the source text of `dashboard.js` (`tests/test_renderer_chained_axis.py`), not
+what Plotly draws, so tick legibility, the span across a calendar gap and the hover title are
+browser-only facts. This section checks them on a synthetic tree of non-consecutive decks, and it
+closes the open `labelalias` risk: if `labelalias` does not reach the `x unified` hover title, that
+title shows a bare integer such as `4320` instead of a timestamp such as `10/09/2026 00:00`. The
+synthetic values are random, so every step checks axis behaviour only, never a data value.
+
+42. Generate the synthetic tree with the test-suite generator `make_sintese_dir` of
+    `tests/fixtures_sintese.py` (do not run this snippet as part of an automated check; it is the
+    manual reproduction case for this section). Replace `<scratch-dir>` with an empty absolute path
+    outside the repository, and run the snippet from the repository root, because
+    `sys.path.insert(0, "tests")` resolves relative to the working directory:
+
+    ```bash
+    uv run python - <scratch-dir> <<'EOF'
+    import json
+    import sys
+    from datetime import UTC, datetime
+    from pathlib import Path
+
+    sys.path.insert(0, "tests")
+    from fixtures_sintese import make_sintese_dir
+
+    scratch = Path(sys.argv[1])
+    starts = (
+        datetime(2026, 1, 7, tzinfo=UTC),
+        datetime(2026, 1, 8, tzinfo=UTC),
+        datetime(2026, 9, 10, tzinfo=UTC),
+    )
+    for scenario_index, scenario in enumerate(("caso_a", "caso_b")):
+        for deck_index, start in enumerate(starts):
+            make_sintese_dir(
+                scratch / scenario / f"deck_{deck_index}" / "sintese",
+                first_stage_start=start,
+                n_stages=50,
+                half_hour_stages=48,
+                long_stage_hours=6.0,
+                seed=300 + 3 * scenario_index + deck_index,
+            )
+    settings = json.loads(Path("settings.json").read_text(encoding="utf-8"))
+    settings["chaining"]["stages_per_deck"] = 50
+    (scratch / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    EOF
+    ```
+
+    The block is indented four spaces to sit inside this list item: strip that indentation when
+    copying from the raw file, because Python rejects an indented first line. Each deck has 48
+    half-hour stages followed by two 6-hour stages, and the copied `settings.json` sets
+    `chaining.stages_per_deck` to `50`, so the 50-stage windows of the decks starting on 07/01/2026
+    and 08/01/2026 overlap and an eight-month gap precedes the deck starting on 10/09/2026.
+
+    **Expected result:** `<scratch-dir>` holds `caso_a/` and `caso_b/`, each with the decks
+    `deck_0`, `deck_1` and `deck_2`, and a `settings.json` whose `chaining.stages_per_deck` is `50`.
+
+43. With the project's virtual environment active, as in step 33, build the dashboard from inside
+    `<scratch-dir>`, so that `run_manifest.json` lands in `<scratch-dir>/output/` and the log file
+    in `<scratch-dir>/logs/` instead of the repository's `output/` and `logs/`. The reference
+    scenario of this build is `caso_a`, the first `--casos` directory, as in step 12:
+
+    ```bash
+    cd <scratch-dir>
+    dessem-dashboard --casos <scratch-dir>/caso_a <scratch-dir>/caso_b --saida <scratch-dir>/dashboard-eixo-continuo.html --settings <scratch-dir>/settings.json
+    ```
+
+    **Expected result:** the build exits 0, and `<scratch-dir>/output/run_manifest.json` holds
+    exactly two messages under `warnings`, in this order, starting
+    `Encadeamento apresenta sobreposição entre os decks de 07/01/2026 e 08/01/2026` and
+    `Encadeamento apresenta lacuna entre os decks de 08/01/2026 e 10/09/2026`.
+
+44. Open `<scratch-dir>/dashboard-eixo-continuo.html` as in step 2, select `SIN`, `Encadeado` and
+    `Absoluto`, and read the time-axis tick labels of the chart `Geração Térmica`.
+
+    **Expected result:** exactly nine tick labels, left to right, evenly spaced, none overlapping or
+    cut: `07/01/2026 00:00`, `07/01/2026 12:00`, `08/01/2026 00:00`, `08/01/2026 00:00`,
+    `08/01/2026 12:00`, `09/01/2026 00:00`, `10/09/2026 00:00`, `10/09/2026 12:00` and
+    `11/09/2026 00:00`. The label that repeats at the third and fourth tick is intended, because
+    both overlapping windows start a stage at that time. A bare number as a tick label is a defect.
+
+45. Follow both traces from the `09/01/2026 00:00` tick to the `10/09/2026 00:00` tick.
+
+    **Expected result:** no empty horizontal span and no break; the distance between these two ticks
+    equals the distance between any other two adjacent ticks; no marker is drawn at the gap, by
+    design.
+
+46. Hover (the tooltip is `x unified`) the last point before and the first point after the
+    `10/09/2026 00:00` tick, then the points just before and after the second `08/01/2026 00:00`
+    tick.
+
+    **Expected result:** the hover titles read `09/01/2026 06:00` and then `10/09/2026 00:00`;
+    across the overlap they read `08/01/2026 06:00` and then `08/01/2026 00:00` (the title steps
+    back in time while X moves forward, which is intended). A title showing a bare integer such as
+    `4320` is a defect: `labelalias` does not reach the unified hover title.
+
+47. Zoom with a box drag on `Geração Térmica` from about the `08/01/2026 12:00` tick to about the
+    `10/09/2026 12:00` tick, then double-click.
+
+    **Expected result:** while zoomed, only the ticks of step 44's list that fall inside the range
+    remain (among them `09/01/2026 00:00` and `10/09/2026 00:00`), no tick label outside that list
+    appears, and the hover title stays as in step 46; the ticks are static by design. The
+    double-click restores all nine ticks.
+
+48. Switch to `Diferença`, still in `Encadeado`.
+
+    **Expected result:** `caso_a`, the reference scenario, is a flat line at zero across the whole
+    axis, on both sides of the gap and of the overlap; `caso_b` is continuous with no empty span;
+    the Y-axis title reads `MW (diferença)`.
+
+49. Switch back to `Absoluto`, then to `Por deck`, and pick `10/09/2026` in the `Deck` dropdown.
+
+    **Expected result:** a date axis covering `10/09/2026 00:00` to `11/09/2026 12:00` only, with no
+    January date; the hover titles are timestamps in the `dashboard.date_format` pattern; each of
+    the two last 6-hour stages is twelve times wider than a 30-minute stage.
+
+50. Navigate to `Custo` and select `Encadeado`.
+
+    **Expected result:** `Custo Presente` shows a category axis with exactly three categories,
+    `07/01/2026 - PRESENTE`, `08/01/2026 - PRESENTE` and `10/09/2026 - PRESENTE`, equally spaced;
+    there are no minute numbers and no timestamps on that axis.
